@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 function EndpointsList() {
     const [dados, setDados] = useState([]);
 
     useEffect(() => {
-        fetch('http://sip.getel.net.br:8090/circuits')
+        fetch(`${apiUrl}/circuits`)
             .then((response) => {
                 if (!response.ok) {
                     throw new Error('Erro na resposta da API');
@@ -26,15 +28,21 @@ function EndpointsList() {
                     <table>
                         <thead>
                         <tr>
+                            <th>Circuito</th>
                             <th>Username</th>
                             <th>Password</th>
+                            <th>IP</th>
+                            <th>Status</th>
                         </tr>
                         </thead>
                         <tbody>
                         {dados.map((item) => (
                             <tr key={item.id}>
+                                <td>{item.id}</td>
                                 <td>{item.username}</td>
                                 <td>{item.password}</td>
+                                <td>{item.ip}</td>
+                                <td>{item.online ? `Online - ${item.rtt}` : 'Offline'}</td>
                             </tr>
                         ))}
                         </tbody>

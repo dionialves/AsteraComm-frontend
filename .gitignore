@@ -1,3 +1,8 @@
+### Porject
+.env
+.env.production
+
+
 # Logs
 logs
 *.log
