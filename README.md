@@ -3,19 +3,22 @@
 AsteraComm Frontend é a interface visual do sistema AsteraComm, projetada para facilitar o gerenciamento e monitoramento do Asterisk. Esta aplicação consome a API do backend e apresenta os dados de forma amigável ao usuário, atualmente focando na exibição dos endpoints registrados no sistema VoIP.
 
 O frontend foi desenvolvido com foco em simplicidade, desempenho e integração eficiente com o backend, utilizando tecnologias modernas como React, Vite e Docker.
-
+<br>
+<br>
 ## 🚀 Tecnologias
 
 - **React**: Biblioteca para construção de interfaces de usuário.
 - **Vite**: Build tool rápida e moderna para projetos frontend.
 - **Axios**: Cliente HTTP para comunicação com a API backend.
 - **React Router**: Para navegação entre páginas da aplicação.
+<br>
 
 ## 🌐 Repositórios
 
 - **Projeto Principal**: [AsteraComm](https://github.com/dionialves/AsteraComm)
 - **Frontend**: [AsteraComm-frontend](https://github.com/dionialves/AsteraComm-frontend)
 - **Backend**: [AsteraComm-backend](https://github.com/dionialves/AsteraComm-backend)
+<br>
 
 ## ⚙️ Como Rodar o Frontend Localmente
 
@@ -50,6 +53,7 @@ yarn dev
 ```
 
 4. Acesse a aplicação em `http://localhost:5173` (ou a porta que o Vite informar).
+<br>
 
 ## 📦 Funcionalidades Atuais
 
