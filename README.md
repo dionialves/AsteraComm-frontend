@@ -1,12 +1,67 @@
-# React + Vite
+# AsteraComm Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+AsteraComm Frontend é a interface visual do sistema AsteraComm, projetada para facilitar o gerenciamento e monitoramento do Asterisk. Esta aplicação consome a API do backend e apresenta os dados de forma amigável ao usuário, atualmente focando na exibição dos endpoints registrados no sistema VoIP.
 
-Currently, two official plugins are available:
+O frontend foi desenvolvido com foco em simplicidade, desempenho e integração eficiente com o backend, utilizando tecnologias modernas como React, Vite e Docker.
+<br>
+<br>
+## 🚀 Tecnologias
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React**: Biblioteca para construção de interfaces de usuário.
+- **Vite**: Build tool rápida e moderna para projetos frontend.
+- **Axios**: Cliente HTTP para comunicação com a API backend.
+- **React Router**: Para navegação entre páginas da aplicação.
+<br>
 
-## Expanding the ESLint configuration
+## 🌐 Repositórios
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Projeto Principal**: [AsteraComm](https://github.com/dionialves/AsteraComm)
+- **Frontend**: [AsteraComm-frontend](https://github.com/dionialves/AsteraComm-frontend)
+- **Backend**: [AsteraComm-backend](https://github.com/dionialves/AsteraComm-backend)
+<br>
+
+## ⚙️ Como Rodar o Frontend Localmente
+
+### Pré-requisitos
+
+- [Node.js](https://nodejs.org/) (versão 16 ou superior)
+- npm ou yarn
+
+### Passos para rodar
+
+1. Clone o repositório:
+
+```bash
+git clone https://github.com/dionialves/AsteraComm-frontend.git
+cd AsteraComm-frontend
+```
+
+2. Instale as dependências:
+
+```bash
+npm install
+# ou
+yarn install
+```
+
+3. Inicie o servidor de desenvolvimento com Vite:
+
+```bash
+npm run dev
+# ou
+yarn dev
+```
+
+4. Acesse a aplicação em `http://localhost:5173` (ou a porta que o Vite informar).
+<br>
+
+## 📦 Funcionalidades Atuais
+
+- ✅ Exibição de endpoints registrados do Asterisk, consumindo a API do backend.
+
+Outras funcionalidades como chamadas ativas, histórico (CDRs), gerenciamento de filas e ramais serão implementadas nas próximas versões, conforme descrito no [ROADMAP.md](https://github.com/dionialves/AsteraComm/blob/main/ROADMAP.md).
+
+
+## 📄 Licença
+
+Distribuído sob a licença MIT. Veja o arquivo `LICENSE` para mais informações.
