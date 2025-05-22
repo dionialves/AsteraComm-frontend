@@ -4,7 +4,7 @@ function EndpointsList() {
     const [dados, setDados] = useState([]);
 
     useEffect(() => {
-        fetch(`/api/circuits`)
+        fetch(`http://localhost:8090/api/circuits`)
             .then((response) => {
                 if (!response.ok) {
                     throw new Error('Erro na resposta da API');
