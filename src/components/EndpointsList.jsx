@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
+
 function EndpointsList() {
     const [dados, setDados] = useState([]);
 
     useEffect(() => {
-        fetch(`http://localhost:8090/api/circuits`)
+        fetch(`${apiUrl}/circuits`)
             .then((response) => {
                 if (!response.ok) {
                     throw new Error('Erro na resposta da API');
