@@ -1,67 +1,48 @@
-# AsteraComm Frontend
+# Astro Starter Kit: Basics
 
-AsteraComm Frontend é a interface visual do sistema AsteraComm, projetada para facilitar o gerenciamento e monitoramento do Asterisk. Esta aplicação consome a API do backend e apresenta os dados de forma amigável ao usuário, atualmente focando na exibição dos endpoints registrados no sistema VoIP.
-
-O frontend foi desenvolvido com foco em simplicidade, desempenho e integração eficiente com o backend, utilizando tecnologias modernas como React, Vite e Docker.
-<br>
-<br>
-## 🚀 Tecnologias
-
-- **React**: Biblioteca para construção de interfaces de usuário.
-- **Vite**: Build tool rápida e moderna para projetos frontend.
-- **Axios**: Cliente HTTP para comunicação com a API backend.
-- **React Router**: Para navegação entre páginas da aplicação.
-<br>
-
-## 🌐 Repositórios
-
-- **Projeto Principal**: [AsteraComm](https://github.com/dionialves/AsteraComm)
-- **Frontend**: [AsteraComm-frontend](https://github.com/dionialves/AsteraComm-frontend)
-- **Backend**: [AsteraComm-backend](https://github.com/dionialves/AsteraComm-backend)
-<br>
-
-## ⚙️ Como Rodar o Frontend Localmente
-
-### Pré-requisitos
-
-- [Node.js](https://nodejs.org/) (versão 16 ou superior)
-- npm ou yarn
-
-### Passos para rodar
-
-1. Clone o repositório:
-
-```bash
-git clone https://github.com/dionialves/AsteraComm-frontend.git
-cd AsteraComm-frontend
+```sh
+npm create astro@latest -- --template basics
 ```
 
-2. Instale as dependências:
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
+[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/basics/devcontainer.json)
 
-```bash
-npm install
-# ou
-yarn install
+> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+
+![just-the-basics](https://github.com/withastro/astro/assets/2244813/a0a5533c-a856-4198-8470-2d67b1d7c554)
+
+## 🚀 Project Structure
+
+Inside of your Astro project, you'll see the following folders and files:
+
+```text
+/
+├── public/
+│   └── favicon.svg
+├── src/
+│   ├── layouts/
+│   │   └── Layout.astro
+│   └── pages/
+│       └── index.astro
+└── package.json
 ```
 
-3. Inicie o servidor de desenvolvimento com Vite:
+To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
 
-```bash
-npm run dev
-# ou
-yarn dev
-```
+## 🧞 Commands
 
-4. Acesse a aplicação em `http://localhost:5173` (ou a porta que o Vite informar).
-<br>
+All commands are run from the root of the project, from a terminal:
 
-## 📦 Funcionalidades Atuais
+| Command                   | Action                                           |
+| :------------------------ | :----------------------------------------------- |
+| `npm install`             | Installs dependencies                            |
+| `npm run dev`             | Starts local dev server at `localhost:4321`      |
+| `npm run build`           | Build your production site to `./dist/`          |
+| `npm run preview`         | Preview your build locally, before deploying     |
+| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
+| `npm run astro -- --help` | Get help using the Astro CLI                     |
 
-- ✅ Exibição de endpoints registrados do Asterisk, consumindo a API do backend.
+## 👀 Want to learn more?
 
-Outras funcionalidades como chamadas ativas, histórico (CDRs), gerenciamento de filas e ramais serão implementadas nas próximas versões, conforme descrito no [ROADMAP.md](https://github.com/dionialves/AsteraComm/blob/main/ROADMAP.md).
-
-
-## 📄 Licença
-
-Distribuído sob a licença MIT. Veja o arquivo `LICENSE` para mais informações.
+Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
