@@ -1,0 +1,101 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout>
+    <h1 class="text-2xl font-semibold">Lista de Circuitos</h1>
+    
+    <div class="app-container-circuits">
+        <div class="circuits">
+            <p id="loading">Carregando...</p>
+            <table id="table-circuits" style="display:none;">
+                <thead>
+                <tr>
+                    <th>Circuito</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>IP</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody id="tbody-circuits"></tbody>
+            </table>
+
+            <div class="pagination-controls" style="display:none;">
+                <button id="btn-prev">Anterior</button>
+                <span id="page-info"></span>
+                <button id="btn-next">Próxima</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      const tbody = document.getElementById("tbody-circuits");
+      const loading = document.getElementById("loading");
+      const table = document.getElementById("table-circuits");
+      const btnPrev = document.getElementById("btn-prev");
+      const btnNext = document.getElementById("btn-next");
+      const pageInfo = document.getElementById("page-info");
+      const paginationControls = document.querySelector(".pagination-controls");
+
+      let paginaAtual = 0;
+      let totalPaginas = 0;
+
+      function carregarDados(pagina) {
+        loading.style.display = "block";
+        table.style.display = "none";
+        paginationControls.style.display = "none";
+
+        fetch(`/api/circuits?page=${pagina}&size=20`)
+          .then((res) => {
+            if (!res.ok) throw new Error("Erro na resposta da API");
+            return res.json();
+          })
+          .then((data) => {
+            loading.style.display = "none";
+            table.style.display = "table";
+            paginationControls.style.display = "flex";
+
+            paginaAtual = pagina;
+            totalPaginas = data.totalPages;
+
+            tbody.innerHTML = "";
+
+            if (data.content.length === 0) {
+              tbody.innerHTML = `<tr><td colspan="5">Nenhum circuito encontrado.</td></tr>`;
+            } else {
+              data.content.forEach((item) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                  <td>${item.id}</td>
+                  <td>${item.username}</td>
+                  <td>${item.password}</td>
+                  <td>${item.ip}</td>
+                  <td>${item.online ? `Online - ${item.rtt}` : "Offline"}</td>
+                `;
+                tbody.appendChild(tr);
+              });
+            }
+
+
+            pageInfo.textContent = `Página ${paginaAtual + 1} de ${totalPaginas}`;
+          })
+          .catch((err) => {
+            loading.textContent = "Erro ao carregar dados.";
+            console.error(err);
+          });
+      }
+
+      btnPrev.addEventListener("click", () => {
+        if (paginaAtual > 0) carregarDados(paginaAtual - 1);
+      });
+
+      btnNext.addEventListener("click", () => {
+        if (paginaAtual < totalPaginas - 1) carregarDados(paginaAtual + 1);
+      });
+
+      // Carrega a página 0 ao iniciar
+      carregarDados(1);
+    </script>
+</Layout>
+
