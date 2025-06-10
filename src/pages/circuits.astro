@@ -78,15 +78,25 @@ import Layout from "../layouts/Layout.astro";
         });
     });
 
+    // Campo pesquisar
+    const searchInput = document.getElementById("search-input");
+
+    searchInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            currentPage = 0;
+            carregarDados(currentPage);
+        }
+    });
+
     function carregarDados(pagina) {
         loading.style.display = "block";
         table.style.visibility = "visible";
         paginationControls.style.display = "none";
 
+        const termoPesquisa = encodeURIComponent(searchInput.value.trim());
 
         // Monta a URL incluindo sort
-        const url = `/api/circuits?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}`;
-
+        const url = `/api/circuits?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${termoPesquisa}`;
         fetch(url)
             .then(res => {
                 if (!res.ok) throw new Error("Erro na resposta da API");
