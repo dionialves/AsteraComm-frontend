@@ -3,29 +3,47 @@ import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout>
-    <h1 class="text-2xl font-semibold mb-4">Lista de Circuitos</h1>
+    <div class="flex justify-between items-center mb-2">
+        <h1 class="text-2xl font-semibold mb-4">Lista de Circuitos</h1>
+        <a href="/circuits/new" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700">Adicionar</a>
+    </div>
 
     <div class="overflow-x-auto p-4 bg-white rounded-lg shadow">
         <p id="loading" class="text-gray-600 mb-2">Carregando...</p>
 
+        <!-- Container para pesquisa + paginação -->
+        <div class="flex items-center justify-between mb-2"style="display:none;" id="pagination-container">
+            <!-- Campo de pesquisa -->
+            <div class="flex items-center space-x-2">
+                <input
+                    id="search-input"
+                    type="text"
+                    placeholder="Pesquisar..."
+                    class="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300 w-96"
+                />
+            </div>
+
+            <!-- Botões de paginação -->
+            <div class="flex justify-between items-center space-x-2 w-96">
+                <button id="btn-prev" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Anterior</button>
+                <span id="page-info" class="text-sm text-gray-700"></span>
+                <button id="btn-next" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Próxima</button>
+            </div>
+        </div>
+
+
         <table id="table-circuits" class="min-w-full border border-gray-200 rounded-lg shadow-sm text-sm" style="display:none;">
             <thead class="bg-gray-100 text-gray-700">
                 <tr>
-                    <th data-field="id" class="px-4 py-2 text-left font-semibold">Circuito</th>
-                    <th data-field="username" class="px-4 py-2 text-left font-semibold">Username</th>
-                    <th data-field="password" class="px-4 py-2 text-left font-semibold">Password</th>
-                    <th data-field="ip" class="px-4 py-2 text-left font-semibold">IP</th>
-                    <th data-field="online" class="px-4 py-2 text-left font-semibold">Status</th>
+                    <th data-field="id" class="px-4 py-2 text-left font-semibold cursor-pointer">Circuito</th>
+                    <th data-field="username" class="px-4 py-2 text-left font-semibold cursor-pointer">Username</th>
+                    <th data-field="password" class="px-4 py-2 text-left font-semibold cursor-pointer">Password</th>
+                    <th data-field="ip" class="px-4 py-2 text-left font-semibold cursor-pointer">IP</th>
+                    <th data-field="online" class="px-4 py-2 text-left font-semibold cursor-pointer">Status</th>
                 </tr>
             </thead>
             <tbody id="tbody-circuits" class="divide-y divide-gray-200"></tbody>
         </table>
-
-        <div class="pagination-controls flex items-center justify-between mt-4" style="display:none;">
-            <button id="btn-prev" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Anterior</button>
-            <span id="page-info" class="text-sm text-gray-700"></span>
-            <button id="btn-next" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Próxima</button>
-        </div>
     </div>
 
 <script type="module" defer>
@@ -35,7 +53,7 @@ import Layout from "../layouts/Layout.astro";
     const btnPrev = document.getElementById("btn-prev");
     const btnNext = document.getElementById("btn-next");
     const pageInfo = document.getElementById("page-info");
-    const paginationControls = document.querySelector(".pagination-controls");
+    const paginationControls = document.getElementById("pagination-container");
 
     let currentPage = 0;
     let totalPages = 0;
@@ -62,7 +80,7 @@ import Layout from "../layouts/Layout.astro";
 
     function carregarDados(pagina) {
         loading.style.display = "block";
-        table.style.display = "none";
+        table.style.visibility = "visible";
         paginationControls.style.display = "none";
 
 
@@ -89,8 +107,8 @@ import Layout from "../layouts/Layout.astro";
                 } else {
                     data.content.forEach(item => {
                         const tr = document.createElement("tr");
-                        tr.className = "odd:bg-gray-50 hover:bg-gray-100 transition-colors";
-
+                        tr.className = "odd:bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer";
+                     
                         tr.innerHTML = `
                             <td class="px-4 py-2">${item.id}</td>
                             <td class="px-4 py-2">${item.username}</td>
@@ -100,6 +118,10 @@ import Layout from "../layouts/Layout.astro";
                                 ${item.online ? `Online - ${item.rtt}` : 'Offline'}
                             </td>
                         `;
+
+                        tr.addEventListener('click', () => {
+                            window.location.href = `/circuits/${item.id}`;
+                        });
 
                         tbody.appendChild(tr);
                     });
@@ -124,9 +146,6 @@ import Layout from "../layouts/Layout.astro";
     // Carrega a primeira página ao iniciar
     carregarDados(0);
 
-
-
-
-    </script>
+</script>
 </Layout>
 
