@@ -1,5 +1,5 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import Layout from "../../layouts/Layout.astro";
 ---
 
 <Layout>
@@ -9,10 +9,9 @@ import Layout from "../layouts/Layout.astro";
     </div>
 
     <div class="overflow-x-auto p-4 bg-white rounded-lg shadow">
-        <p id="loading" class="text-gray-600 mb-2">Carregando...</p>
 
         <!-- Container para pesquisa + paginação -->
-        <div class="flex items-center justify-between mb-2"style="display:none;" id="pagination-container">
+        <div class="flex items-center justify-between mb-2" id="pagination-container">
             <!-- Campo de pesquisa -->
             <div class="flex items-center space-x-2">
                 <input
@@ -26,15 +25,15 @@ import Layout from "../layouts/Layout.astro";
             <!-- Botões de paginação -->
             <div class="flex justify-between items-center space-x-2 w-96">
                 <button id="btn-prev" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Anterior</button>
-                <span id="page-info" class="text-sm text-gray-700"></span>
+                <span id="page-info" class="text-sm text-gray-700">Pagina 1 de 1</span>
                 <button id="btn-next" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Próxima</button>
             </div>
         </div>
 
 
-        <table id="table-circuits" class="min-w-full border border-gray-200 rounded-lg shadow-sm text-sm" style="display:none;">
-            <thead class="bg-gray-100 text-gray-700">
-                <tr>
+        <table id="table-circuits" class="min-w-full border border-gray-200 rounded-lg shadow-sm text-sm">
+            <thead class="bg-gray-100 text-gray-900">
+                <tr class="font-semibold">
                     <th data-field="id" class="px-4 py-2 text-left font-semibold cursor-pointer">Circuito</th>
                     <th data-field="username" class="px-4 py-2 text-left font-semibold cursor-pointer">Username</th>
                     <th data-field="password" class="px-4 py-2 text-left font-semibold cursor-pointer">Password</th>
@@ -42,7 +41,13 @@ import Layout from "../layouts/Layout.astro";
                     <th data-field="online" class="px-4 py-2 text-left font-semibold cursor-pointer">Status</th>
                 </tr>
             </thead>
-            <tbody id="tbody-circuits" class="divide-y divide-gray-200"></tbody>
+            <tbody id="tbody-circuits" class="divide-y divide-gray-200">
+                <tr id="loading" colspan="5" class="py-4 px-4 text-gray-500">
+                    <td colspan="5" class="text-center py-4 text-gray-500">
+                        Carregando...
+                    </td>
+                </tr>
+            </tbody>
         </table>
     </div>
 
@@ -91,7 +96,6 @@ import Layout from "../layouts/Layout.astro";
     function carregarDados(pagina) {
         loading.style.display = "block";
         table.style.visibility = "visible";
-        paginationControls.style.display = "none";
 
         const termoPesquisa = encodeURIComponent(searchInput.value.trim());
 
@@ -117,7 +121,7 @@ import Layout from "../layouts/Layout.astro";
                 } else {
                     data.content.forEach(item => {
                         const tr = document.createElement("tr");
-                        tr.className = "odd:bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer";
+                        tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
                      
                         tr.innerHTML = `
                             <td class="px-4 py-2">${item.id}</td>
