@@ -31,19 +31,19 @@ import Layout from "../../layouts/Layout.astro";
         </div>
 
 
-        <table id="table-circuits" class="min-w-full border border-gray-200 rounded-lg shadow-sm text-sm">
+        <table id="table-circuits" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm">
             <thead class="bg-gray-100 text-gray-900">
                 <tr class="font-semibold">
-                    <th data-field="id" class="px-4 py-2 text-left font-semibold cursor-pointer">Circuito</th>
-                    <th data-field="username" class="px-4 py-2 text-left font-semibold cursor-pointer">Username</th>
-                    <th data-field="password" class="px-4 py-2 text-left font-semibold cursor-pointer">Password</th>
-                    <th data-field="ip" class="px-4 py-2 text-left font-semibold cursor-pointer">IP</th>
-                    <th data-field="online" class="px-4 py-2 text-left font-semibold cursor-pointer">Status</th>
+                    <th data-field="id" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Circuito</th>
+                    <th data-field="username" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Username</th>
+                    <th data-field="password" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Password</th>
+                    <th data-field="ip" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">IP</th>
+                    <th data-field="online" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Status</th>
                 </tr>
             </thead>
             <tbody id="tbody-circuits" class="divide-y divide-gray-200">
-                <tr id="loading" colspan="5" class="py-4 px-4 text-gray-500">
-                    <td colspan="5" class="text-center py-4 text-gray-500">
+                <tr id="loading" class="py-4 px-4 text-gray-500">
+                    <td>
                         Carregando...
                     </td>
                 </tr>
@@ -122,14 +122,14 @@ import Layout from "../../layouts/Layout.astro";
                     data.content.forEach(item => {
                         const tr = document.createElement("tr");
                         tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
-                     
+
                         tr.innerHTML = `
                             <td class="px-4 py-2">${item.id}</td>
                             <td class="px-4 py-2">${item.username}</td>
                             <td class="px-4 py-2">${item.password}</td>
                             <td class="px-4 py-2 text-gray-500 italic">${item.ip || '—'}</td>
                             <td class="px-4 py-2 font-semibold ${item.online ? 'text-green-600' : 'text-red-600'}">
-                                ${item.online ? `Online - ${item.rtt}` : 'Offline'}
+                                ${item.online ? `OK (${item.rtt})` : 'Offline'}
                             </td>
                         `;
 
