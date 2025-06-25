@@ -1,26 +1,43 @@
 ---
+
 import "../styles/global.css";
+const { title = 'AsteraComm - Softswitch' } = Astro.props;
+
 ---
 
 <html lang="pt-BR" class="h-full bg-gray-100">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AsteraComm - Softswitch</title>
+    <title>{title}</title>
   </head>
   <body class="h-full flex flex-col font-medium">
+
+
+  <script is:inline>
+    // Verifica se o cookie "token" existe
+    const hasToken = document.cookie.split("; ").some(c => c.startsWith("token="));
+
+
+    if (!hasToken && window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
+
+  </script>
+
+
     <div class="flex flex-1 min-h-0 overflow-hidden">
      
       <!-- Sidebar -->
-      <aside class="w-64 bg-[#373737] p-2 border-r border-indigo-200 overflow-y-auto shadow">
+      <aside class="w-64 bg-[#1b2533] p-2 border-r border-indigo-200 overflow-y-auto shadow">
         <!-- <h1 class="px-3 py-2 text-white font-semibold text-2xl">ASTERACOMM</h1> -->
         <a href="/" ><img src="/images/logo.png" alt="Logo AsteraComm"></a>
 
         <hr class="border-t border-gray-500 my-4" />
 
         <nav class="space-y-2 text-[#cdcdcd] font-semibold">
-            <a href="/" class="block px-3 py-2 rounded hover:text-white hover:bg-[#666666] transition">Dashboard</a>
-            <a href="/circuits" class="block px-3 py-2 rounded hover:text-white hover:bg-[#666666] transition">Circuitos</a>
+            <a href="/" class="block px-3 py-2 rounded hover:text-white hover:bg-gray-700 transition">Dashboard</a>
+            <a href="/circuits" class="block px-3 py-2 rounded hover:text-white hover:bg-gray-700 transition">Circuitos</a>
         </nav>
       </aside>
 
