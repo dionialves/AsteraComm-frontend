@@ -93,15 +93,30 @@ import Layout from "../../layouts/Layout.astro";
         }
     });
 
+    function getTokenFromCookie() {
+        return document.cookie
+            .split("; ")
+            .find((c) => c.startsWith("token="))
+            ?.split("=")[1];
+    }
+
     function carregarDados(pagina) {
         loading.style.display = "block";
         table.style.visibility = "visible";
+
+        const token = getTokenFromCookie();
 
         const termoPesquisa = encodeURIComponent(searchInput.value.trim());
 
         // Monta a URL incluindo sort
         const url = `/api/circuits?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${termoPesquisa}`;
-        fetch(url)
+
+        fetch(url, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
+        })
             .then(res => {
                 if (!res.ok) throw new Error("Erro na resposta da API");
                 return res.json();
@@ -141,7 +156,7 @@ import Layout from "../../layouts/Layout.astro";
                     });
                 }
 
-                pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages}`;
+                pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
             })
             .catch(err => {
                 loading.textContent = "Erro ao carregar dados.";
