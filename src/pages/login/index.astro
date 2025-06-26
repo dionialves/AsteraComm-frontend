@@ -33,7 +33,7 @@ import Layout from "../../layouts/LayoutLogin.astro";
     </div>
 </Layout>
 
-<script type="module">
+<script type="module" defer>
     const form = document.querySelector('#loginForm');
 
     form.addEventListener('submit', async (e) => {
@@ -53,12 +53,6 @@ import Layout from "../../layouts/LayoutLogin.astro";
             if (!response.ok) {
                 throw new Error('Login inválido');
             }
-
-            const result = await response.json();
-            console.log('Token recebido:', result.token);
-
-
-            document.cookie = `token=${result.token}; path=/; SameSite=Lax`;
 
             window.location.assign('/');
 
