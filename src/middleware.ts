@@ -12,7 +12,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	}
 
 	if (token && !publicPaths.includes(path)) {
-		const response = await fetch("/api/login/validate", {
+		const response = await fetch('/api/auth/validate', {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
