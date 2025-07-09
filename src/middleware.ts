@@ -12,12 +12,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	}
 
 	if (token && !publicPaths.includes(path)) {
-		const response = await fetch('/api/auth/validate', {
+		const response = await fetch('http://backend:8090/api/auth/validate', {
 			method: "POST",
 			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({ token }),
+				Authorization: `Bearer ${token}`,
+			}
 		});
 
 		if (response.status !== 200) {
