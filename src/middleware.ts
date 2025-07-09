@@ -11,6 +11,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
 		return context.redirect("/login");
 	}
 
+	if (token && !publicPaths.includes(path)) {
+		const response = await fetch("/api/login/validate", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ token }),
+		});
+
+		if (response.status !== 200) {
+			return context.redirect("/login");
+		}
+	}
+
 	return next();
 });
 
