@@ -25,6 +25,7 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                         <nav class="space-y-2 ">
                             <a href="/" class="block px-3 py-2 rounded hover:text-white hover:bg-zinc-600 transition">Dashboard</a>
                             <a href="/circuits" class="block px-3 py-2 rounded hover:text-white hover:bg-zinc-600 transition">Circuitos</a>
+                            <a id="menuUsers" href="/users" class="hidden block px-3 py-2 rounded hover:text-white hover:bg-zinc-600 transition">Usuários</a>
                         </nav>
                     </div>
 
@@ -69,6 +70,9 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                     .then(data => {
                         if (data?.name) {
                             document.getElementById('userName').textContent = data.name;
+                        }
+                        if (data?.role === 'SUPER_ADMIN') {
+                            document.getElementById('menuUsers')?.classList.remove('hidden');
                         }
                     })
                     .catch(() => {});

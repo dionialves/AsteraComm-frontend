@@ -1,0 +1,399 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout title="AsteraComm - Usuários">
+    <div class="flex justify-between items-center mb-2">
+        <h1 class="text-2xl font-semibold mb-4">Lista de Usuários</h1>
+        <button id="btnAdd" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700">Adicionar</button>
+    </div>
+
+    <div class="overflow-x-auto p-4 bg-white rounded-lg shadow">
+
+        <!-- Container para pesquisa + paginação -->
+        <div class="flex items-center justify-between mb-2" id="pagination-container">
+            <!-- Campo de pesquisa -->
+            <div class="flex items-center space-x-2">
+                <input
+                    id="search-input"
+                    type="text"
+                    placeholder="Pesquisar..."
+                    class="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300 w-96"
+                />
+            </div>
+
+            <!-- Botões de paginação -->
+            <div class="flex justify-between items-center space-x-2 w-96">
+                <button id="btn-prev" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Anterior</button>
+                <span id="page-info" class="text-sm text-gray-700">Página 1 de 1</span>
+                <button id="btn-next" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Próxima</button>
+            </div>
+        </div>
+
+        <table id="table-users" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm">
+            <thead class="bg-gray-100 text-gray-900">
+                <tr class="font-semibold">
+                    <th data-field="id" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">ID</th>
+                    <th data-field="name" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Nome</th>
+                    <th data-field="username" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Username</th>
+                    <th data-field="role" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Role</th>
+                    <th data-field="createdAt" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Data de Criação</th>
+                    <th data-field="updatedAt" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Data de Atualização</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-users" class="divide-y divide-gray-200">
+                <tr id="loading" class="py-4 px-4 text-gray-500">
+                    <td>
+                        Carregando...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div id="modalOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+
+    <!-- Modal -->
+    <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg">
+
+            <!-- Header do Modal -->
+            <div class="bg-gray-50 flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center gap-3">
+                    <h2 id="modalTitle" class="text-lg font-semibold text-gray-800">Novo Usuário</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="btnSave" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700 transition">
+                        Salvar
+                    </button>
+                    <button id="btnCancel" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body do Modal -->
+            <div class="px-6 py-4">
+                <div id="formMessage" class="hidden mb-4 px-4 py-2 rounded text-sm"></div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                        <input
+                            id="inputName"
+                            type="text"
+                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                            placeholder="Nome completo"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <input
+                            id="inputUsername"
+                            type="text"
+                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                            placeholder="Nome de usuário"
+                        />
+                    </div>
+
+                    <div id="passwordField">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                        <input
+                            id="inputPassword"
+                            type="password"
+                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                            placeholder="Senha"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nível de Acesso</label>
+                        <select
+                            id="inputRole"
+                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                        >
+                            <option value="USER">Usuário</option>
+                            <option value="ADMIN">Administrador</option>
+                            <option value="SUPER_ADMIN">Super Administrador</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+<script type="module" defer>
+    // === Elementos da tabela ===
+    const tbody = document.getElementById("tbody-users");
+    const loading = document.getElementById("loading");
+    const table = document.getElementById("table-users");
+    const btnPrev = document.getElementById("btn-prev");
+    const btnNext = document.getElementById("btn-next");
+    const pageInfo = document.getElementById("page-info");
+    const paginationControls = document.getElementById("pagination-container");
+
+    // === Elementos do modal ===
+    const modal = document.getElementById("modal");
+    const modalOverlay = document.getElementById("modalOverlay");
+    const modalTitle = document.getElementById("modalTitle");
+    const inputName = document.getElementById("inputName");
+    const inputUsername = document.getElementById("inputUsername");
+    const inputPassword = document.getElementById("inputPassword");
+    const passwordField = document.getElementById("passwordField");
+    const inputRole = document.getElementById("inputRole");
+    const formMessage = document.getElementById("formMessage");
+
+    let currentPage = 0;
+    let totalPages = 0;
+    let currentSortField = "name";
+    let currentSortDirection = "asc";
+    let editingUserId = null;
+
+    // === Ordenação ===
+    const headers = document.querySelectorAll("thead th[data-field]");
+    headers.forEach(th => {
+        th.addEventListener("click", () => {
+            const field = th.getAttribute("data-field");
+            if (currentSortField === field) {
+                currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+            } else {
+                currentSortField = field;
+                currentSortDirection = "asc";
+            }
+            carregarDados(0);
+        });
+    });
+
+    // === Pesquisa ===
+    const searchInput = document.getElementById("search-input");
+    searchInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            currentPage = 0;
+            carregarDados(currentPage);
+        }
+    });
+
+    // === Funções auxiliares ===
+    function formatarData(dataStr) {
+        if (!dataStr) return '—';
+        const data = new Date(dataStr);
+        return data.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function formatarRole(role) {
+        switch (role) {
+            case 'SUPER_ADMIN': return 'Super Admin';
+            case 'ADMIN': return 'Administrador';
+            case 'USER': return 'Usuário';
+            default: return role;
+        }
+    }
+
+    function showMessage(text, type) {
+        formMessage.textContent = text;
+        formMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+        if (type === 'success') {
+            formMessage.classList.add('bg-green-100', 'text-green-700');
+        } else {
+            formMessage.classList.add('bg-red-100', 'text-red-700');
+        }
+    }
+
+    // === Modal ===
+    function openModal(userId) {
+        editingUserId = userId || null;
+        const isEdit = !!editingUserId;
+
+        // Reset do formulário
+        inputName.value = '';
+        inputUsername.value = '';
+        inputPassword.value = '';
+        inputRole.value = 'USER';
+        formMessage.classList.add('hidden');
+
+        // Configurar modo
+        modalTitle.textContent = isEdit ? 'Editar Usuário' : 'Novo Usuário';
+
+        if (isEdit) {
+            inputUsername.readOnly = true;
+            inputUsername.classList.add('bg-gray-100', 'cursor-not-allowed');
+
+            fetch(`/api/user/${userId}`)
+                .then(res => {
+                    if (!res.ok) throw new Error('Erro ao carregar usuário');
+                    return res.json();
+                })
+                .then(data => {
+                    inputName.value = data.name || '';
+                    inputUsername.value = data.username || '';
+                    inputRole.value = data.role || 'USER';
+                })
+                .catch(() => {
+                    showMessage('Erro ao carregar dados do usuário.', 'error');
+                });
+        } else {
+            inputUsername.readOnly = false;
+            inputUsername.classList.remove('bg-gray-100', 'cursor-not-allowed');
+        }
+
+        modal.classList.remove('hidden');
+        modalOverlay.classList.remove('hidden');
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+        modalOverlay.classList.add('hidden');
+        editingUserId = null;
+    }
+
+    // Botão Adicionar
+    document.getElementById("btnAdd").addEventListener("click", () => openModal(null));
+
+    // Botão Cancelar
+    document.getElementById("btnCancel").addEventListener("click", closeModal);
+
+    // Overlay fecha o modal
+    modalOverlay.addEventListener("click", closeModal);
+
+    // Tecla Escape fecha o modal
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+            closeModal();
+        }
+    });
+
+    // Botão Salvar
+    document.getElementById("btnSave").addEventListener("click", async () => {
+        const name = inputName.value.trim();
+        const username = inputUsername.value.trim();
+        const password = inputPassword.value;
+        const role = inputRole.value;
+        const isEdit = !!editingUserId;
+
+        if (!name) {
+            showMessage('O nome é obrigatório.', 'error');
+            return;
+        }
+        if (!username) {
+            showMessage('O username é obrigatório.', 'error');
+            return;
+        }
+        if (!isEdit && !password) {
+            showMessage('A senha é obrigatória para novos usuários.', 'error');
+            return;
+        }
+
+        try {
+            let res;
+            if (isEdit) {
+                res = await fetch(`/api/user/${editingUserId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, role }),
+                });
+
+                if (res.ok && password) {
+                    const pwRes = await fetch(`/api/user/${editingUserId}/password`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password }),
+                    });
+                    if (!pwRes.ok) {
+                        showMessage('Dados atualizados, mas erro ao alterar senha.', 'error');
+                        carregarDados(currentPage);
+                        return;
+                    }
+                }
+            } else {
+                res = await fetch('/api/user/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, username, password, role }),
+                });
+            }
+
+            if (res.ok) {
+                closeModal();
+                carregarDados(currentPage);
+            } else {
+                const errorText = await res.text();
+                showMessage(errorText || 'Erro ao salvar usuário.', 'error');
+            }
+        } catch {
+            showMessage('Erro ao comunicar com o servidor.', 'error');
+        }
+    });
+
+    // === Tabela ===
+    function carregarDados(pagina) {
+        loading.style.display = "block";
+        table.style.visibility = "visible";
+
+        const termoPesquisa = encodeURIComponent(searchInput.value.trim());
+        const url = `/api/user/users?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${termoPesquisa}`;
+
+        fetch(url)
+            .then(res => {
+                if (!res.ok) throw new Error("Erro na resposta da API");
+                return res.json();
+            })
+            .then(data => {
+                loading.style.display = "none";
+                table.style.display = "table";
+                paginationControls.style.display = "flex";
+
+                currentPage = pagina;
+                totalPages = data.totalPages;
+
+                tbody.innerHTML = "";
+
+                if (data.content.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">Nenhum usuário encontrado.</td></tr>`;
+                } else {
+                    data.content.forEach(item => {
+                        const tr = document.createElement("tr");
+                        tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
+
+                        tr.innerHTML = `
+                            <td class="px-4 py-2">${item.id}</td>
+                            <td class="px-4 py-2">${item.name || '—'}</td>
+                            <td class="px-4 py-2">${item.username}</td>
+                            <td class="px-4 py-2">${formatarRole(item.role)}</td>
+                            <td class="px-4 py-2 text-gray-500">${formatarData(item.createdAt)}</td>
+                            <td class="px-4 py-2 text-gray-500">${formatarData(item.updatedAt)}</td>
+                        `;
+
+                        tr.addEventListener('click', () => openModal(item.id));
+
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
+            })
+            .catch(err => {
+                loading.textContent = "Erro ao carregar dados.";
+                console.error(err);
+            });
+    }
+
+    btnPrev.addEventListener("click", () => {
+        if (currentPage > 0) carregarDados(currentPage - 1);
+    });
+
+    btnNext.addEventListener("click", () => {
+        if (currentPage < totalPages - 1) carregarDados(currentPage + 1);
+    });
+
+    carregarDados(0);
+</script>
+</Layout>
