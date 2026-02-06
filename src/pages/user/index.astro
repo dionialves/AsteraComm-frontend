@@ -1,0 +1,198 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout title="AsteraComm - Dados do Usuário">
+    <h1 class="text-2xl font-semibold mb-6">Dados do Usuário</h1>
+
+    <!-- Dados Pessoais -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-lg font-semibold mb-4 text-gray-800">Dados Pessoais</h2>
+
+        <div id="profileMessage" class="hidden mb-4 px-4 py-2 rounded text-sm"></div>
+
+        <div class="space-y-4 max-w-lg">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                <input
+                    id="inputName"
+                    type="text"
+                    class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                    placeholder="Seu nome"
+                />
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                <input
+                    id="inputUsername"
+                    type="text"
+                    class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed"
+                    readonly
+                />
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Perfil</label>
+                <input
+                    id="inputRole"
+                    type="text"
+                    class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed"
+                    readonly
+                />
+            </div>
+
+            <div>
+                <button id="btnSaveProfile" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700 transition">
+                    Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alterar Senha -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold mb-4 text-gray-800">Alterar Senha</h2>
+
+        <div id="passwordMessage" class="hidden mb-4 px-4 py-2 rounded text-sm"></div>
+
+        <div class="space-y-4 max-w-lg">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Senha atual</label>
+                <input
+                    id="inputCurrentPassword"
+                    type="password"
+                    class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                    placeholder="Digite sua senha atual"
+                />
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nova senha</label>
+                <input
+                    id="inputNewPassword"
+                    type="password"
+                    class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                    placeholder="Digite a nova senha"
+                />
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Confirmar nova senha</label>
+                <input
+                    id="inputConfirmPassword"
+                    type="password"
+                    class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                    placeholder="Confirme a nova senha"
+                />
+            </div>
+
+            <div>
+                <button id="btnChangePassword" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700 transition">
+                    Alterar Senha
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+    const inputName = document.getElementById('inputName');
+    const inputUsername = document.getElementById('inputUsername');
+    const inputRole = document.getElementById('inputRole');
+    const profileMessage = document.getElementById('profileMessage');
+    const passwordMessage = document.getElementById('passwordMessage');
+
+    // Carregar dados do usuário
+    fetch('/api/auth/me')
+        .then(res => {
+            if (!res.ok) throw new Error('Erro ao carregar dados');
+            return res.json();
+        })
+        .then(data => {
+            inputName.value = data.name || '';
+            inputUsername.value = data.username || '';
+            inputRole.value = data.role === 'ADMIN' ? 'Administrador' : 'Usuário';
+        })
+        .catch(() => {
+            showMessage(profileMessage, 'Erro ao carregar dados do usuário.', 'error');
+        });
+
+    // Salvar perfil
+    document.getElementById('btnSaveProfile')?.addEventListener('click', async () => {
+        const name = inputName.value.trim();
+        if (!name) {
+            showMessage(profileMessage, 'O nome não pode estar vazio.', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/me', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name }),
+            });
+
+            if (res.ok) {
+                showMessage(profileMessage, 'Dados atualizados com sucesso!', 'success');
+            } else {
+                showMessage(profileMessage, 'Erro ao atualizar dados.', 'error');
+            }
+        } catch {
+            showMessage(profileMessage, 'Erro ao comunicar com o servidor.', 'error');
+        }
+    });
+
+    // Alterar senha
+    document.getElementById('btnChangePassword')?.addEventListener('click', async () => {
+        const currentPassword = document.getElementById('inputCurrentPassword').value;
+        const newPassword = document.getElementById('inputNewPassword').value;
+        const confirmPassword = document.getElementById('inputConfirmPassword').value;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            showMessage(passwordMessage, 'Preencha todos os campos.', 'error');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showMessage(passwordMessage, 'As senhas não coincidem.', 'error');
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            showMessage(passwordMessage, 'A nova senha deve ter no mínimo 6 caracteres.', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/me/password', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentPassword, newPassword }),
+            });
+
+            if (res.ok) {
+                showMessage(passwordMessage, 'Senha alterada com sucesso!', 'success');
+                document.getElementById('inputCurrentPassword').value = '';
+                document.getElementById('inputNewPassword').value = '';
+                document.getElementById('inputConfirmPassword').value = '';
+            } else if (res.status === 400) {
+                showMessage(passwordMessage, 'Senha atual incorreta.', 'error');
+            } else {
+                showMessage(passwordMessage, 'Erro ao alterar senha.', 'error');
+            }
+        } catch {
+            showMessage(passwordMessage, 'Erro ao comunicar com o servidor.', 'error');
+        }
+    });
+
+    function showMessage(el, text, type) {
+        el.textContent = text;
+        el.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+        if (type === 'success') {
+            el.classList.add('bg-green-100', 'text-green-700');
+        } else {
+            el.classList.add('bg-red-100', 'text-red-700');
+        }
+    }
+</script>
+</Layout>

@@ -12,9 +12,9 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
         <title>{title}</title>
     </head>
     <body class="h-screen flex flex-col font-medium">
- 
+
         <div class="flex flex-1 overflow-hidden h-full">
-     
+
             <!-- Sidebar -->
             <aside class="w-64 bg-zinc-800/90 p-2 border-r border-indigo-200 shadow h-full flex flex-col">
                 <a href="/" ><img class="px-3 pt-2" src="/images/logo.png" alt="Logo AsteraComm"></a>
@@ -28,8 +28,29 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                         </nav>
                     </div>
 
-                    <div>
-                        <a id="buttonLogout" href="#" class="block px-3 py-2 rounded hover:text-white hover:bg-zinc-600 transition">Sair</a>
+                    <!-- Menu do Usuário -->
+                    <div class="relative">
+                        <!-- Dropdown (abre para cima) -->
+                        <div id="userMenu" class="hidden absolute bottom-full left-0 right-0 mb-1 bg-zinc-700 rounded shadow-lg border border-zinc-600 overflow-hidden">
+                            <a href="/user" class="block px-3 py-2 hover:text-white hover:bg-zinc-600 transition text-sm">
+                                Dados do usuário
+                            </a>
+                            <hr class="border-zinc-600" />
+                            <button id="buttonLogout" class="w-full text-left px-3 py-2 hover:text-white hover:bg-zinc-600 transition text-sm">
+                                Sair
+                            </button>
+                        </div>
+
+                        <!-- Botão do menu -->
+                        <button id="userMenuToggle" class="w-full flex items-center gap-2 px-3 py-2 rounded hover:text-white hover:bg-zinc-600 transition">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span id="userName" class="truncate text-sm">Carregando...</span>
+                            <svg id="userMenuArrow" class="w-4 h-4 ml-auto flex-shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                            </svg>
+                        </button>
                     </div>
 
                 </nav>
@@ -40,8 +61,43 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
             <main class="flex-1 p-8 overflow-y-auto">
                 <slot />
             </main>
-            
+
             <script type="module">
+                // Carregar dados do usuário
+                fetch('/api/auth/me')
+                    .then(res => res.ok ? res.json() : null)
+                    .then(data => {
+                        if (data?.name) {
+                            document.getElementById('userName').textContent = data.name;
+                        }
+                    })
+                    .catch(() => {});
+
+                // Toggle do menu
+                const toggle = document.getElementById('userMenuToggle');
+                const menu = document.getElementById('userMenu');
+                const arrow = document.getElementById('userMenuArrow');
+
+                toggle?.addEventListener('click', () => {
+                    const isOpen = !menu.classList.contains('hidden');
+                    if (isOpen) {
+                        menu.classList.add('hidden');
+                        arrow.classList.remove('rotate-180');
+                    } else {
+                        menu.classList.remove('hidden');
+                        arrow.classList.add('rotate-180');
+                    }
+                });
+
+                // Fechar menu ao clicar fora
+                document.addEventListener('click', (e) => {
+                    if (!toggle?.contains(e.target) && !menu?.contains(e.target)) {
+                        menu?.classList.add('hidden');
+                        arrow?.classList.remove('rotate-180');
+                    }
+                });
+
+                // Logout
                 document.getElementById('buttonLogout')?.addEventListener('click', async () => {
                     await fetch('/api/auth/logout', { method: 'GET' });
                     window.location.href = '/login';
@@ -51,4 +107,3 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
         </div>
     </body>
 </html>
-
