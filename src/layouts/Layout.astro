@@ -65,7 +65,7 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
 
             <script type="module">
                 // Carregar dados do usuário
-                fetch('/api/auth/me')
+                fetch('/api/user/me')
                     .then(res => res.ok ? res.json() : null)
                     .then(data => {
                         if (data?.name) {

@@ -103,7 +103,7 @@ import Layout from "../../layouts/Layout.astro";
     const passwordMessage = document.getElementById('passwordMessage');
 
     // Carregar dados do usuário
-    fetch('/api/auth/me')
+    fetch('/api/user/me')
         .then(res => {
             if (!res.ok) throw new Error('Erro ao carregar dados');
             return res.json();
@@ -126,7 +126,7 @@ import Layout from "../../layouts/Layout.astro";
         }
 
         try {
-            const res = await fetch('/api/auth/me', {
+            const res = await fetch('/api/user/me', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name }),
@@ -164,7 +164,7 @@ import Layout from "../../layouts/Layout.astro";
         }
 
         try {
-            const res = await fetch('/api/auth/me/password', {
+            const res = await fetch('/api/user/me/password', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ currentPassword, newPassword }),
