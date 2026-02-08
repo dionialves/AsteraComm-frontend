@@ -33,9 +33,13 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                     <div class="relative">
                         <!-- Dropdown (abre para cima) -->
                         <div id="userMenu" class="hidden absolute bottom-full left-0 right-0 mb-1 bg-zinc-700 rounded shadow-lg border border-zinc-600 overflow-hidden">
-                            <a href="/user" class="block px-3 py-2 hover:text-white hover:bg-zinc-600 transition text-sm">
-                                Dados do usuário
-                            </a>
+                            <button id="btnOpenProfile" class="w-full text-left px-3 py-2 hover:text-white hover:bg-zinc-600 transition text-sm">
+                                Dados cadastrais
+                            </button>
+                            <hr class="border-zinc-600" />
+                            <button id="btnOpenPassword" class="w-full text-left px-3 py-2 hover:text-white hover:bg-zinc-600 transition text-sm">
+                                Alterar Senha
+                            </button>
                             <hr class="border-zinc-600" />
                             <button id="buttonLogout" class="w-full text-left px-3 py-2 hover:text-white hover:bg-zinc-600 transition text-sm">
                                 Sair
@@ -63,21 +67,179 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                 <slot />
             </main>
 
+            <!-- Modal Overlay -->
+            <div id="modalOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+
+            <!-- Modal Dados Cadastrais -->
+            <div id="modalProfile" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+                <div class="bg-white rounded-lg shadow-lg w-full max-w-lg">
+
+                    <!-- Header do Modal -->
+                    <div class="bg-gray-50 flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-semibold text-gray-800">Dados Cadastrais</h2>
+                        <div class="flex items-center gap-2">
+                            <button id="btnSaveProfile" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700 transition">
+                                Salvar
+                            </button>
+                            <button id="btnCancelProfile" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Body do Modal -->
+                    <div class="px-6 py-4">
+                        <div id="profileMessage" class="hidden mb-4 px-4 py-2 rounded text-sm"></div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">ID</label>
+                                <input id="profileId" type="text" class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" readonly />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                                <input id="profileName" type="text" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300" placeholder="Nome completo" />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                <input id="profileUsername" type="text" class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" readonly />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                                <input id="profileRole" type="text" class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" readonly />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Ativo</label>
+                                <input id="profileEnabled" type="text" class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" readonly />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Data de Criação</label>
+                                <input id="profileCreatedAt" type="text" class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" readonly />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Data de Atualização</label>
+                                <input id="profileUpdatedAt" type="text" class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" readonly />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Modal Alterar Senha -->
+            <div id="modalPassword" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+                <div class="bg-white rounded-lg shadow-lg w-full max-w-lg">
+
+                    <!-- Header do Modal -->
+                    <div class="bg-gray-50 flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-semibold text-gray-800">Alterar Senha</h2>
+                        <div class="flex items-center gap-2">
+                            <button id="btnSavePassword" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700 transition">
+                                Salvar
+                            </button>
+                            <button id="btnCancelPassword" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Body do Modal -->
+                    <div class="px-6 py-4">
+                        <div id="passwordMessage" class="hidden mb-4 px-4 py-2 rounded text-sm"></div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">ID</label>
+                                <input id="pwId" type="text" class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" readonly />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                                <input id="pwName" type="text" class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" readonly />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                <input id="pwUsername" type="text" class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-gray-100 cursor-not-allowed" readonly />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nova Senha</label>
+                                <input id="pwNewPassword" type="password" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300" placeholder="Nova senha" />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Repetir Senha</label>
+                                <input id="pwConfirmPassword" type="password" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300" placeholder="Repetir nova senha" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
             <script type="module">
-                // Carregar dados do usuário
+                let userData = null;
+
+                // === Funções auxiliares ===
+                function formatarData(dataStr) {
+                    if (!dataStr) return '—';
+                    const data = new Date(dataStr);
+                    return data.toLocaleDateString('pt-BR', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                    });
+                }
+
+                function formatarRole(role) {
+                    switch (role) {
+                        case 'SUPER_ADMIN': return 'Super Admin';
+                        case 'ADMIN': return 'Administrador';
+                        case 'USER': return 'Usuário';
+                        default: return role;
+                    }
+                }
+
+                function showMessage(el, text, type) {
+                    el.textContent = text;
+                    el.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+                    if (type === 'success') {
+                        el.classList.add('bg-green-100', 'text-green-700');
+                    } else {
+                        el.classList.add('bg-red-100', 'text-red-700');
+                    }
+                }
+
+                // === Elementos ===
+                const modalOverlay = document.getElementById('modalOverlay');
+                const modalProfile = document.getElementById('modalProfile');
+                const modalPassword = document.getElementById('modalPassword');
+                const profileMessage = document.getElementById('profileMessage');
+                const passwordMessage = document.getElementById('passwordMessage');
+
+                // === Carregar dados do usuário ===
                 fetch('/api/user/me')
                     .then(res => res.ok ? res.json() : null)
                     .then(data => {
-                        if (data?.name) {
-                            document.getElementById('userName').textContent = data.name;
-                        }
-                        if (data?.role === 'SUPER_ADMIN') {
-                            document.getElementById('menuUsers')?.classList.remove('hidden');
+                        if (data) {
+                            userData = data;
+                            if (data.name) {
+                                document.getElementById('userName').textContent = data.name;
+                            }
+                            if (data.role === 'SUPER_ADMIN') {
+                                document.getElementById('menuUsers')?.classList.remove('hidden');
+                            }
                         }
                     })
                     .catch(() => {});
 
-                // Toggle do menu
+                // === Toggle do menu do usuário ===
                 const toggle = document.getElementById('userMenuToggle');
                 const menu = document.getElementById('userMenu');
                 const arrow = document.getElementById('userMenuArrow');
@@ -93,11 +255,130 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                     }
                 });
 
-                // Fechar menu ao clicar fora
                 document.addEventListener('click', (e) => {
                     if (!toggle?.contains(e.target) && !menu?.contains(e.target)) {
                         menu?.classList.add('hidden');
                         arrow?.classList.remove('rotate-180');
+                    }
+                });
+
+                // === Modais ===
+                function closeModals() {
+                    modalProfile.classList.add('hidden');
+                    modalPassword.classList.add('hidden');
+                    modalOverlay.classList.add('hidden');
+                }
+
+                function openProfileModal() {
+                    if (!userData) return;
+                    menu.classList.add('hidden');
+                    arrow.classList.remove('rotate-180');
+                    profileMessage.classList.add('hidden');
+
+                    document.getElementById('profileId').value = userData.id || '';
+                    document.getElementById('profileName').value = userData.name || '';
+                    document.getElementById('profileUsername').value = userData.username || '';
+                    document.getElementById('profileRole').value = formatarRole(userData.role);
+                    document.getElementById('profileEnabled').value = userData.enabled ? 'Sim' : 'Não';
+                    document.getElementById('profileCreatedAt').value = formatarData(userData.createdAt);
+                    document.getElementById('profileUpdatedAt').value = formatarData(userData.updatedAt);
+
+                    modalProfile.classList.remove('hidden');
+                    modalOverlay.classList.remove('hidden');
+                }
+
+                function openPasswordModal() {
+                    if (!userData) return;
+                    menu.classList.add('hidden');
+                    arrow.classList.remove('rotate-180');
+                    passwordMessage.classList.add('hidden');
+
+                    document.getElementById('pwId').value = userData.id || '';
+                    document.getElementById('pwName').value = userData.name || '';
+                    document.getElementById('pwUsername').value = userData.username || '';
+                    document.getElementById('pwNewPassword').value = '';
+                    document.getElementById('pwConfirmPassword').value = '';
+
+                    modalPassword.classList.remove('hidden');
+                    modalOverlay.classList.remove('hidden');
+                }
+
+                // === Event Listeners ===
+                document.getElementById('btnOpenProfile').addEventListener('click', openProfileModal);
+                document.getElementById('btnOpenPassword').addEventListener('click', openPasswordModal);
+                document.getElementById('btnCancelProfile').addEventListener('click', closeModals);
+                document.getElementById('btnCancelPassword').addEventListener('click', closeModals);
+                modalOverlay.addEventListener('click', closeModals);
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') closeModals();
+                });
+
+                // === Salvar Dados Cadastrais ===
+                document.getElementById('btnSaveProfile').addEventListener('click', async () => {
+                    const name = document.getElementById('profileName').value.trim();
+                    if (!name) {
+                        showMessage(profileMessage, 'O nome não pode estar vazio.', 'error');
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch('/api/user/me', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name }),
+                        });
+
+                        if (res.ok) {
+                            userData.name = name;
+                            document.getElementById('userName').textContent = name;
+                            showMessage(profileMessage, 'Dados atualizados com sucesso!', 'success');
+                        } else {
+                            showMessage(profileMessage, 'Erro ao atualizar dados.', 'error');
+                        }
+                    } catch {
+                        showMessage(profileMessage, 'Erro ao comunicar com o servidor.', 'error');
+                    }
+                });
+
+                // === Alterar Senha ===
+                document.getElementById('btnSavePassword').addEventListener('click', async () => {
+                    const newPassword = document.getElementById('pwNewPassword').value;
+                    const confirmPassword = document.getElementById('pwConfirmPassword').value;
+
+                    if (!newPassword || !confirmPassword) {
+                        showMessage(passwordMessage, 'Preencha todos os campos.', 'error');
+                        return;
+                    }
+
+                    if (newPassword !== confirmPassword) {
+                        showMessage(passwordMessage, 'As senhas não coincidem.', 'error');
+                        return;
+                    }
+
+                    if (newPassword.length < 6) {
+                        showMessage(passwordMessage, 'A nova senha deve ter no mínimo 6 caracteres.', 'error');
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch('/api/user/me/password', {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ newPassword }),
+                        });
+
+                        if (res.ok) {
+                            showMessage(passwordMessage, 'Senha alterada com sucesso!', 'success');
+                            document.getElementById('pwNewPassword').value = '';
+                            document.getElementById('pwConfirmPassword').value = '';
+                        } else if (res.status === 400) {
+                            showMessage(passwordMessage, 'Erro ao alterar senha.', 'error');
+                        } else {
+                            showMessage(passwordMessage, 'Erro ao alterar senha.', 'error');
+                        }
+                    } catch {
+                        showMessage(passwordMessage, 'Erro ao comunicar com o servidor.', 'error');
                     }
                 });
 

@@ -33,12 +33,13 @@ import Layout from "../../layouts/Layout.astro";
         <table id="table-users" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm">
             <thead class="bg-gray-100 text-gray-900">
                 <tr class="font-semibold">
-                    <th data-field="id" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">ID</th>
-                    <th data-field="name" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Nome</th>
-                    <th data-field="username" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Username</th>
-                    <th data-field="role" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Role</th>
-                    <th data-field="createdAt" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Data de Criação</th>
-                    <th data-field="updatedAt" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Data de Atualização</th>
+                    <th data-field="id" class="w-1/7 px-4 py-2 text-left font-semibold cursor-pointer">ID</th>
+                    <th data-field="enabled" class="w-1/7 px-4 py-2 text-left font-semibold cursor-pointer">Status</th>
+                    <th data-field="name" class="w-1/7 px-4 py-2 text-left font-semibold cursor-pointer">Nome</th>
+                    <th data-field="username" class="w-1/7 px-4 py-2 text-left font-semibold cursor-pointer">Username</th>
+                    <th data-field="role" class="w-1/7 px-4 py-2 text-left font-semibold cursor-pointer">Role</th>
+                    <th data-field="createdAt" class="w-1/7 px-4 py-2 text-left font-semibold cursor-pointer">Data de Criação</th>
+                    <th data-field="updatedAt" class="w-1/7 px-4 py-2 text-left font-semibold cursor-pointer">Data de Atualização</th>
                 </tr>
             </thead>
             <tbody id="tbody-users" class="divide-y divide-gray-200">
@@ -196,6 +197,13 @@ import Layout from "../../layouts/Layout.astro";
             case 'USER': return 'Usuário';
             default: return role;
         }
+    }
+
+    function formatarStatus(enabled) {
+        if (enabled === true) {
+            return 'Ativo'
+        }
+        return 'Desativado'
     }
 
     function showMessage(text, type) {
@@ -365,6 +373,7 @@ import Layout from "../../layouts/Layout.astro";
 
                         tr.innerHTML = `
                             <td class="px-4 py-2">${item.id}</td>
+                            <td class="px-4 py-2">${formatarStatus(item.enabled)}</td>
                             <td class="px-4 py-2">${item.name || '—'}</td>
                             <td class="px-4 py-2">${item.username}</td>
                             <td class="px-4 py-2">${formatarRole(item.role)}</td>
