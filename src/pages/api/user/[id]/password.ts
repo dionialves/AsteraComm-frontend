@@ -13,7 +13,7 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
   try {
     const body = await request.text();
 
-    const response = await fetch(`http://backend:8090/api/users/${params.id}/password`, {
+    const response = await fetch(`http://backend:8090/api/user/${params.id}/password`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,

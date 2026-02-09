@@ -5,7 +5,7 @@ import Layout from "../../layouts/Layout.astro";
 <Layout>
     <div class="flex justify-between items-center mb-2">
         <h1 class="text-2xl font-semibold mb-4">Lista de Circuitos</h1>
-        <a href="/circuits/new" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700">Adicionar</a>
+        <button id="btnAdd" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700">Adicionar</button>
     </div>
 
     <div class="overflow-x-auto p-4 bg-white rounded-lg shadow">
@@ -30,7 +30,6 @@ import Layout from "../../layouts/Layout.astro";
             </div>
         </div>
 
-
         <table id="table-circuits" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm">
             <thead class="bg-gray-100 text-gray-900">
                 <tr class="font-semibold">
@@ -51,7 +50,65 @@ import Layout from "../../layouts/Layout.astro";
         </table>
     </div>
 
+    <!-- Modal Overlay -->
+    <div id="modalOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+
+    <!-- Modal Criar/Editar -->
+    <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg">
+
+            <!-- Header do Modal -->
+            <div class="bg-gray-50 flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h2 id="modalTitle" class="text-lg font-semibold text-gray-800">Novo Circuito</h2>
+                <div class="flex items-center gap-2">
+                    <button id="btnSave" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700 transition">
+                        Salvar
+                    </button>
+                    <button id="btnDelete" class="hidden bg-red-600 text-white rounded px-4 py-2 text-sm hover:bg-red-700 transition">
+                        Excluir
+                    </button>
+                    <button id="btnCancel" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body do Modal -->
+            <div class="px-6 py-4">
+                <div id="formMessage" class="hidden mb-4 px-4 py-2 rounded text-sm"></div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Número</label>
+                        <input
+                            id="inputNumber"
+                            type="text"
+                            maxlength="15"
+                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                            placeholder="(49) 0000-0000"
+                        />
+                        <p class="text-xs text-gray-400 mt-1">Formato: (49) xxxx-xxxx</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                        <input
+                            id="inputPassword"
+                            type="text"
+                            maxlength="10"
+                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                            placeholder="Senha de 10 caracteres"
+                        />
+                        <p class="text-xs text-gray-400 mt-1">10 caracteres: letras maiúsculas, minúsculas e números</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 <script type="module" defer>
+    // === Elementos da tabela ===
     const tbody = document.getElementById("tbody-circuits");
     const loading = document.getElementById("loading");
     const table = document.getElementById("table-circuits");
@@ -60,32 +117,55 @@ import Layout from "../../layouts/Layout.astro";
     const pageInfo = document.getElementById("page-info");
     const paginationControls = document.getElementById("pagination-container");
 
+    // === Elementos do modal ===
+    const modal = document.getElementById("modal");
+    const modalOverlay = document.getElementById("modalOverlay");
+    const modalTitle = document.getElementById("modalTitle");
+    const inputNumber = document.getElementById("inputNumber");
+    const inputPassword = document.getElementById("inputPassword");
+    const formMessage = document.getElementById("formMessage");
+    const btnDelete = document.getElementById("btnDelete");
+
     let currentPage = 0;
     let totalPages = 0;
-    let currentSortField = "id";       // campo inicial para ordenar
-    let currentSortDirection = "asc";  // direção inicial (ascendente)
+    let currentSortField = "id";
+    let currentSortDirection = "asc";
+    let editingCircuitId = null;
 
+    // === Máscara do número: (49) xxxx-xxxx ===
+    inputNumber.addEventListener("input", () => {
+        let digits = inputNumber.value.replace(/\D/g, '');
+
+        // Limita a 10 dígitos
+        if (digits.length > 10) digits = digits.substring(0, 10);
+
+        // Aplica a máscara
+        let formatted = '';
+        if (digits.length > 0) formatted = '(' + digits.substring(0, 2);
+        if (digits.length >= 2) formatted += ') ';
+        if (digits.length > 2) formatted += digits.substring(2, 6);
+        if (digits.length > 6) formatted += '-' + digits.substring(6, 10);
+
+        inputNumber.value = formatted;
+    });
+
+    // === Ordenação ===
     const headers = document.querySelectorAll("thead th[data-field]");
     headers.forEach(th => {
         th.addEventListener("click", () => {
             const field = th.getAttribute("data-field");
-
             if (currentSortField === field) {
-                // alterna direção se clicar na mesma coluna
                 currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
             } else {
                 currentSortField = field;
-                currentSortDirection = "asc"; // padrão quando muda coluna
+                currentSortDirection = "asc";
             }
-
-            // Sempre que ordenar, volta para a primeira página
             carregarDados(0);
         });
     });
 
-    // Campo pesquisar
+    // === Pesquisa ===
     const searchInput = document.getElementById("search-input");
-
     searchInput.addEventListener("keydown", function (event) {
         if (event.key === "Enter") {
             currentPage = 0;
@@ -93,13 +173,165 @@ import Layout from "../../layouts/Layout.astro";
         }
     });
 
+    // === Funções auxiliares ===
+    function showMessage(text, type) {
+        formMessage.textContent = text;
+        formMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+        if (type === 'success') {
+            formMessage.classList.add('bg-green-100', 'text-green-700');
+        } else {
+            formMessage.classList.add('bg-red-100', 'text-red-700');
+        }
+    }
+
+    function extractDigits(masked) {
+        return masked.replace(/\D/g, '');
+    }
+
+    function formatNumber(digits) {
+        if (!digits || digits.length !== 10) return digits;
+        return `(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-${digits.substring(6, 10)}`;
+    }
+
+    function validatePassword(pw) {
+        if (pw.length !== 10) return 'A senha deve ter exatamente 10 caracteres.';
+        if (/[^a-zA-Z0-9]/.test(pw)) return 'A senha não pode conter caracteres especiais.';
+        if (!/[a-z]/.test(pw)) return 'A senha deve conter letras minúsculas.';
+        if (!/[A-Z]/.test(pw)) return 'A senha deve conter letras maiúsculas.';
+        if (!/[0-9]/.test(pw)) return 'A senha deve conter números.';
+        return null;
+    }
+
+    // === Modal ===
+    function openModal(circuitId) {
+        editingCircuitId = circuitId || null;
+        const isEdit = !!editingCircuitId;
+
+        // Reset
+        inputNumber.value = '';
+        inputPassword.value = '';
+        formMessage.classList.add('hidden');
+
+        modalTitle.textContent = isEdit ? 'Editar Circuito' : 'Novo Circuito';
+
+        if (isEdit) {
+            inputNumber.value = formatNumber(editingCircuitId);
+            inputNumber.readOnly = true;
+            inputNumber.classList.add('bg-gray-100', 'cursor-not-allowed');
+            btnDelete.classList.remove('hidden');
+        } else {
+            inputNumber.readOnly = false;
+            inputNumber.classList.remove('bg-gray-100', 'cursor-not-allowed');
+            btnDelete.classList.add('hidden');
+        }
+
+        modal.classList.remove('hidden');
+        modalOverlay.classList.remove('hidden');
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+        modalOverlay.classList.add('hidden');
+        editingCircuitId = null;
+    }
+
+    // Botão Adicionar
+    document.getElementById("btnAdd").addEventListener("click", () => openModal(null));
+
+    // Botão Cancelar
+    document.getElementById("btnCancel").addEventListener("click", closeModal);
+
+    // Overlay fecha o modal
+    modalOverlay.addEventListener("click", closeModal);
+
+    // Tecla Escape fecha o modal
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+            closeModal();
+        }
+    });
+
+    // === Salvar ===
+    document.getElementById("btnSave").addEventListener("click", async () => {
+        const number = extractDigits(inputNumber.value);
+        const password = inputPassword.value;
+        const isEdit = !!editingCircuitId;
+
+        // Validações
+        if (!isEdit && number.length !== 10) {
+            showMessage('O número deve ter 10 dígitos: (49) xxxx-xxxx.', 'error');
+            return;
+        }
+
+        if (!password) {
+            showMessage('A senha é obrigatória.', 'error');
+            return;
+        }
+
+        const pwError = validatePassword(password);
+        if (pwError) {
+            showMessage(pwError, 'error');
+            return;
+        }
+
+        try {
+            let res;
+            if (isEdit) {
+                res = await fetch(`/api/circuit/${editingCircuitId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ number: editingCircuitId, password }),
+                });
+            } else {
+                res = await fetch('/api/circuit/circuits', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ number, password }),
+                });
+            }
+
+            if (res.ok || res.status === 201) {
+                closeModal();
+                carregarDados(currentPage);
+                window.showToast(isEdit ? 'Circuito atualizado com sucesso!' : 'Circuito criado com sucesso!', 'success');
+            } else {
+                const errorText = await res.text();
+                showMessage(errorText || 'Erro ao salvar circuito.', 'error');
+            }
+        } catch {
+            showMessage('Erro ao comunicar com o servidor.', 'error');
+        }
+    });
+
+    // === Excluir ===
+    btnDelete.addEventListener("click", async () => {
+        if (!editingCircuitId) return;
+
+        if (!confirm('Tem certeza que deseja excluir este circuito?')) return;
+
+        try {
+            const res = await fetch(`/api/circuit/${editingCircuitId}`, {
+                method: 'DELETE',
+            });
+
+            if (res.ok || res.status === 204) {
+                closeModal();
+                carregarDados(currentPage);
+                window.showToast('Circuito excluído com sucesso!', 'success');
+            } else {
+                showMessage('Erro ao excluir circuito.', 'error');
+            }
+        } catch {
+            showMessage('Erro ao comunicar com o servidor.', 'error');
+        }
+    });
+
+    // === Tabela ===
     function carregarDados(pagina) {
         loading.style.display = "block";
         table.style.visibility = "visible";
 
         const termoPesquisa = encodeURIComponent(searchInput.value.trim());
-
-        // Monta a URL incluindo sort
         const url = `/api/circuit/circuits?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${termoPesquisa}`;
 
         fetch(url)
@@ -134,9 +366,7 @@ import Layout from "../../layouts/Layout.astro";
                             </td>
                         `;
 
-                        tr.addEventListener('click', () => {
-                            window.location.href = `/circuits/${item.id}`;
-                        });
+                        tr.addEventListener('click', () => openModal(item.id));
 
                         tbody.appendChild(tr);
                     });
@@ -158,9 +388,6 @@ import Layout from "../../layouts/Layout.astro";
         if (currentPage < totalPages - 1) carregarDados(currentPage + 1);
     });
 
-    // Carrega a primeira página ao iniciar
     carregarDados(0);
-
 </script>
 </Layout>
-

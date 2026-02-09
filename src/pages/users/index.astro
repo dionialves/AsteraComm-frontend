@@ -332,6 +332,7 @@ import Layout from "../../layouts/Layout.astro";
             if (res.ok) {
                 closeModal();
                 carregarDados(currentPage);
+                window.showToast(isEdit ? 'Usuário atualizado com sucesso!' : 'Usuário criado com sucesso!', 'success');
             } else {
                 const errorText = await res.text();
                 showMessage(errorText || 'Erro ao salvar usuário.', 'error');

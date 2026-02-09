@@ -332,7 +332,8 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                         if (res.ok) {
                             userData.name = name;
                             document.getElementById('userName').textContent = name;
-                            showMessage(profileMessage, 'Dados atualizados com sucesso!', 'success');
+                            closeModals();
+                            window.showToast('Dados atualizados com sucesso!', 'success');
                         } else {
                             showMessage(profileMessage, 'Erro ao atualizar dados.', 'error');
                         }
@@ -369,9 +370,8 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                         });
 
                         if (res.ok) {
-                            showMessage(passwordMessage, 'Senha alterada com sucesso!', 'success');
-                            document.getElementById('pwNewPassword').value = '';
-                            document.getElementById('pwConfirmPassword').value = '';
+                            closeModals();
+                            window.showToast('Senha alterada com sucesso!', 'success');
                         } else if (res.status === 400) {
                             showMessage(passwordMessage, 'Erro ao alterar senha.', 'error');
                         } else {
@@ -390,5 +390,46 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
             </script>
 
         </div>
+
+        <!-- Toast Container -->
+        <div id="toast-container" class="fixed bottom-4 right-4 z-[60] flex flex-col gap-2"></div>
+
+        <script>
+            window.showToast = function(message, type = 'success') {
+                const container = document.getElementById('toast-container');
+
+                const toast = document.createElement('div');
+                toast.className = `flex items-center gap-3 px-4 py-3 rounded shadow-lg text-white text-sm transition-all duration-300 translate-x-full ${
+                    type === 'success' ? 'bg-green-600' : 'bg-red-600'
+                }`;
+
+                const text = document.createElement('span');
+                text.textContent = message;
+
+                const btn = document.createElement('button');
+                btn.innerHTML = '&times;';
+                btn.className = 'text-white text-lg font-bold leading-none hover:opacity-70 ml-2';
+                btn.addEventListener('click', () => removeToast(toast));
+
+                toast.appendChild(text);
+                toast.appendChild(btn);
+                container.appendChild(toast);
+
+                requestAnimationFrame(() => {
+                    toast.classList.remove('translate-x-full');
+                    toast.classList.add('translate-x-0');
+                });
+
+                const timeout = setTimeout(() => removeToast(toast), 2000);
+                toast._timeout = timeout;
+
+                function removeToast(el) {
+                    clearTimeout(el._timeout);
+                    el.classList.remove('translate-x-0');
+                    el.classList.add('translate-x-full');
+                    setTimeout(() => el.remove(), 300);
+                }
+            };
+        </script>
     </body>
 </html>
