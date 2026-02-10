@@ -1,11 +1,27 @@
+# =============================================================================
+# AsteraComm Frontend - Dockerfile de Produção (Multi-stage Build)
+# =============================================================================
+
+# Stage 1: Build
+FROM node:18-alpine AS builder
+
+WORKDIR /build
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+# Stage 2: Runtime (imagem limpa, apenas artefatos de produção)
 FROM node:18-alpine
 
 WORKDIR /app
 
-COPY app/package*.json ./
-RUN npm install
-RUN npm install @astrojs/node
+COPY --from=builder /build/dist ./dist
+COPY --from=builder /build/node_modules ./node_modules
+COPY --from=builder /build/package.json ./
 
 EXPOSE 4321
 
-CMD ["sh", "-c", "npm install && npm run build && node dist/server/entry.mjs"]
+CMD ["node", "dist/server/entry.mjs"]
