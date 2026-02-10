@@ -235,7 +235,7 @@ import Layout from "../../layouts/Layout.astro";
             inputUsername.readOnly = true;
             inputUsername.classList.add('bg-gray-100', 'cursor-not-allowed');
 
-            fetch(`/api/user/${userId}`)
+            fetch(`/api/users/${userId}`)
                 .then(res => {
                     if (!res.ok) throw new Error('Erro ao carregar usuário');
                     return res.json();
@@ -303,14 +303,14 @@ import Layout from "../../layouts/Layout.astro";
         try {
             let res;
             if (isEdit) {
-                res = await fetch(`/api/user/${editingUserId}`, {
+                res = await fetch(`/api/users/${editingUserId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, role }),
                 });
 
                 if (res.ok && password) {
-                    const pwRes = await fetch(`/api/user/${editingUserId}/password`, {
+                    const pwRes = await fetch(`/api/users/${editingUserId}/password`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ password }),
@@ -322,7 +322,7 @@ import Layout from "../../layouts/Layout.astro";
                     }
                 }
             } else {
-                res = await fetch('/api/user/users', {
+                res = await fetch('/api/users/users', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, username, password, role }),

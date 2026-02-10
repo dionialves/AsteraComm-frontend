@@ -11,7 +11,7 @@ export const GET: APIRoute = async ({ cookies, params }) => {
   }
 
   try {
-    const response = await fetch(`http://backend:8090/api/user/${params.id}`, {
+    const response = await fetch(`http://backend:8090/api/users/${params.id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
@@ -47,7 +47,7 @@ export const PUT: APIRoute = async ({ cookies, params, request }) => {
   try {
     const body = await request.text();
 
-    const response = await fetch(`http://backend:8090/api/user/${params.id}`, {
+    const response = await fetch(`http://backend:8090/api/users/${params.id}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -84,7 +84,7 @@ export const DELETE: APIRoute = async ({ cookies, params }) => {
   }
 
   try {
-    const response = await fetch(`http://backend:8090/api/user/${params.id}`, {
+    const response = await fetch(`http://backend:8090/api/users/${params.id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,

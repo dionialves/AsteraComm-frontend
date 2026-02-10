@@ -224,7 +224,7 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                 const passwordMessage = document.getElementById('passwordMessage');
 
                 // === Carregar dados do usuário ===
-                fetch('/api/user/me')
+                fetch('/api/auth/me')
                     .then(res => res.ok ? res.json() : null)
                     .then(data => {
                         if (data) {
@@ -323,7 +323,7 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                     }
 
                     try {
-                        const res = await fetch('/api/user/me', {
+                        const res = await fetch('/api/auth/me', {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ name }),
@@ -363,7 +363,7 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                     }
 
                     try {
-                        const res = await fetch('/api/user/me/password', {
+                        const res = await fetch('/api/auth/me/password', {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ newPassword }),

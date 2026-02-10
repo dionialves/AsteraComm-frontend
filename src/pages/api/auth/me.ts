@@ -11,7 +11,7 @@ export const GET: APIRoute = async ({ cookies }) => {
   }
 
   try {
-    const response = await fetch("http://backend:8090/api/user/me", {
+    const response = await fetch("http://backend:8090/api/auth/me", {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
@@ -47,7 +47,7 @@ export const PUT: APIRoute = async ({ cookies, request }) => {
   try {
     const body = await request.text();
 
-    const response = await fetch("http://backend:8090/api/user/me", {
+    const response = await fetch("http://backend:8090/api/auth/me", {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
