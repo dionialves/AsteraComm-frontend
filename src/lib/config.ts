@@ -1,6 +1,6 @@
 const getApiUrl = () => {
     if (typeof window === 'undefined') {
-        return 'http://172.18.0.1/api/v1';
+        return 'http://host.docker.internal/api/v1';
     }
     
     return '/api/v1';
