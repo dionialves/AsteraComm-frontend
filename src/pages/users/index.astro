@@ -348,7 +348,7 @@ import Layout from "../../layouts/Layout.astro";
         table.style.visibility = "visible";
 
         const termoPesquisa = encodeURIComponent(searchInput.value.trim());
-        const url = `/api/user/users?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${termoPesquisa}`;
+        const url = `/api/users/users?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${termoPesquisa}`;
 
         fetch(url)
             .then(res => {

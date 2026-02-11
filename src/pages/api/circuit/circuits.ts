@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import config from "@/lib/config";
 
 export const GET: APIRoute = async ({ cookies, url }) => {
   const token = cookies.get("token")?.value;
@@ -18,7 +19,7 @@ export const GET: APIRoute = async ({ cookies, url }) => {
   });
 
   try {
-    const response = await fetch(`http://backend:8090/api/circuits?${query.toString()}`, {
+    const response = await fetch(`${config.api.baseUrl}/circuits?${query.toString()}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
@@ -54,7 +55,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
   try {
     const body = await request.text();
 
-    const response = await fetch("http://backend:8090/api/circuits", {
+    const response = await fetch(`${config.api.baseUrl}/circuits`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

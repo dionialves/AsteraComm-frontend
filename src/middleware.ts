@@ -1,4 +1,5 @@
 import { defineMiddleware } from "astro/middleware";
+import config from "@/lib/config";
 
 export const onRequest = defineMiddleware(async (context, next) => {
 
@@ -12,7 +13,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	}
 
 	if (token && !publicPaths.includes(path)) {
-		const response = await fetch('http://backend:8090/api/auth/validate', {
+		const response = await fetch(`${config.api.baseUrl}/auth/validate`, {
 			method: "POST",
 			headers: {
 				Authorization: `Bearer ${token}`,

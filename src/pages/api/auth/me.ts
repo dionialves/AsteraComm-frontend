@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import config from "@/lib/config";
 
 export const GET: APIRoute = async ({ cookies }) => {
   const token = cookies.get("token")?.value;
@@ -11,7 +12,7 @@ export const GET: APIRoute = async ({ cookies }) => {
   }
 
   try {
-    const response = await fetch("http://backend:8090/api/auth/me", {
+    const response = await fetch(`${config.api.baseUrl}/auth/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
@@ -47,7 +48,7 @@ export const PUT: APIRoute = async ({ cookies, request }) => {
   try {
     const body = await request.text();
 
-    const response = await fetch("http://backend:8090/api/auth/me", {
+    const response = await fetch(`${config.api.baseUrl}/auth/me`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,

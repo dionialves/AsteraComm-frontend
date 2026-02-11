@@ -357,8 +357,8 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                         return;
                     }
 
-                    if (newPassword.length < 6) {
-                        showMessage(passwordMessage, 'A nova senha deve ter no mínimo 6 caracteres.', 'error');
+                    if (newPassword.length < 8) {
+                        showMessage(passwordMessage, 'A nova senha deve ter no mínimo 8 caracteres.', 'error');
                         return;
                     }
 
@@ -366,7 +366,7 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                         const res = await fetch('/api/auth/me/password', {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ newPassword }),
+                            body: JSON.stringify({ password: newPassword }),
                         });
 
                         if (res.ok) {

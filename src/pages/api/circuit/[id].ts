@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import config from "@/lib/config";
 
 export const PUT: APIRoute = async ({ cookies, params, request }) => {
   const token = cookies.get("token")?.value;
@@ -13,7 +14,7 @@ export const PUT: APIRoute = async ({ cookies, params, request }) => {
   try {
     const body = await request.text();
 
-    const response = await fetch(`http://backend:8090/api/circuits/${params.id}`, {
+    const response = await fetch(`${config.api.baseUrl}/circuits/${params.id}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -50,7 +51,7 @@ export const DELETE: APIRoute = async ({ cookies, params }) => {
   }
 
   try {
-    const response = await fetch(`http://backend:8090/api/circuits/${params.id}`, {
+    const response = await fetch(`${config.api.baseUrl}/circuits/${params.id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,

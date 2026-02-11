@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import config from "@/lib/config";
 
 export const PATCH: APIRoute = async ({ cookies, params, request }) => {
   const token = cookies.get("token")?.value;
@@ -13,7 +14,7 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
   try {
     const body = await request.text();
 
-    const response = await fetch(`http://backend:8090/api/users/${params.id}/password`, {
+    const response = await fetch(`${config.api.baseUrl}/users/${params.id}/password`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,

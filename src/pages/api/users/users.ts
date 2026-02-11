@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
+import config from "@/lib/config";
 
-export const GET: APIRoute = async ({ cookies, params }) => {
+export const GET: APIRoute = async ({ cookies, url }) => {
   const token = cookies.get("token")?.value;
 
   if (!token) {
@@ -10,8 +11,15 @@ export const GET: APIRoute = async ({ cookies, params }) => {
     });
   }
 
+  const query = new URLSearchParams({
+    page: url.searchParams.get("page") ?? "0",
+    size: url.searchParams.get("size") ?? "20",
+    sort: url.searchParams.get("sort") ?? "name,asc",
+    search: url.searchParams.get("search") ?? "",
+  });
+
   try {
-    const response = await fetch(`http://backend:8090/api/users/${params.id}`, {
+    const response = await fetch(`${config.api.baseUrl}/users?${query.toString()}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
@@ -34,7 +42,7 @@ export const GET: APIRoute = async ({ cookies, params }) => {
   }
 };
 
-export const PUT: APIRoute = async ({ cookies, params, request }) => {
+export const POST: APIRoute = async ({ cookies, request }) => {
   const token = cookies.get("token")?.value;
 
   if (!token) {
@@ -47,8 +55,8 @@ export const PUT: APIRoute = async ({ cookies, params, request }) => {
   try {
     const body = await request.text();
 
-    const response = await fetch(`http://backend:8090/api/users/${params.id}`, {
-      method: "PUT",
+    const response = await fetch(`${config.api.baseUrl}/users`, {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -56,45 +64,6 @@ export const PUT: APIRoute = async ({ cookies, params, request }) => {
       },
       body,
     });
-
-    const contentType = response.headers.get("content-type") || "application/json";
-    const responseBody = await response.text();
-
-    return new Response(responseBody, {
-      status: response.status,
-      headers: { "Content-Type": contentType },
-    });
-  } catch (err) {
-    console.error("Erro ao comunicar com backend:", err);
-    return new Response(JSON.stringify({ message: "Erro interno" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-};
-
-export const DELETE: APIRoute = async ({ cookies, params }) => {
-  const token = cookies.get("token")?.value;
-
-  if (!token) {
-    return new Response(JSON.stringify({ message: "Não autenticado" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  try {
-    const response = await fetch(`http://backend:8090/api/users/${params.id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-    });
-
-    if (response.status === 204) {
-      return new Response(null, { status: 204 });
-    }
 
     const contentType = response.headers.get("content-type") || "application/json";
     const responseBody = await response.text();
