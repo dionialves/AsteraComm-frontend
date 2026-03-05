@@ -1,9 +1,8 @@
 const getApiUrl = () => {
     if (typeof window === 'undefined') {
-        return 'http://host.docker.internal/api/v1';
+        return import.meta.env.API_URL_SERVER;
     }
-    
-    return '/api/v1';
+    return import.meta.env.PUBLIC_API_URL_CLIENT;
 };
 
 const config = {
