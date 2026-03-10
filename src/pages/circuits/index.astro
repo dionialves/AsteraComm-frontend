@@ -33,11 +33,11 @@ import Layout from "../../layouts/Layout.astro";
         <table id="table-circuits" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm">
             <thead class="bg-gray-100 text-gray-900">
                 <tr class="font-semibold">
-                    <th data-field="id" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Circuito</th>
-                    <th data-field="username" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Username</th>
-                    <th data-field="password" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Password</th>
-                    <th data-field="trunkName" class="w-1/5 px-4 py-2 text-left font-semibold">Tronco</th>
-                    <th data-field="online" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Status</th>
+                    <th data-field="id" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Código</th>
+                    <th data-field="password" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Senha</th>
+                    <th data-field="trunkName" class="w-1/6 px-4 py-2 text-left font-semibold">Tronco</th>
+                    <th data-field="online" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Status</th>
+                    <th class="w-1/6 px-4 py-2 text-left font-semibold">Ações</th>
                 </tr>
             </thead>
             <tbody id="tbody-circuits" class="divide-y divide-gray-200">
@@ -79,18 +79,6 @@ import Layout from "../../layouts/Layout.astro";
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Número</label>
-                        <input
-                            id="inputNumber"
-                            type="text"
-                            maxlength="15"
-                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                            placeholder="(49) 0000-0000"
-                        />
-                        <p class="text-xs text-gray-400 mt-1">Formato: (49) xxxx-xxxx</p>
-                    </div>
-
-                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
                         <input
                             id="inputPassword"
@@ -131,7 +119,6 @@ import Layout from "../../layouts/Layout.astro";
     const modal = document.getElementById("modal");
     const modalOverlay = document.getElementById("modalOverlay");
     const modalTitle = document.getElementById("modalTitle");
-    const inputNumber = document.getElementById("inputNumber");
     const inputPassword = document.getElementById("inputPassword");
     const selectTrunk = document.getElementById("selectTrunk");
     const formMessage = document.getElementById("formMessage");
@@ -142,23 +129,6 @@ import Layout from "../../layouts/Layout.astro";
     let currentSortField = "id";
     let currentSortDirection = "asc";
     let editingCircuitId = null;
-
-    // === Máscara do número: (49) xxxx-xxxx ===
-    inputNumber.addEventListener("input", () => {
-        let digits = inputNumber.value.replace(/\D/g, '');
-
-        // Limita a 10 dígitos
-        if (digits.length > 10) digits = digits.substring(0, 10);
-
-        // Aplica a máscara
-        let formatted = '';
-        if (digits.length > 0) formatted = '(' + digits.substring(0, 2);
-        if (digits.length >= 2) formatted += ') ';
-        if (digits.length > 2) formatted += digits.substring(2, 6);
-        if (digits.length > 6) formatted += '-' + digits.substring(6, 10);
-
-        inputNumber.value = formatted;
-    });
 
     // === Ordenação ===
     const headers = document.querySelectorAll("thead th[data-field]");
@@ -193,15 +163,6 @@ import Layout from "../../layouts/Layout.astro";
         } else {
             formMessage.classList.add('bg-red-100', 'text-red-700');
         }
-    }
-
-    function extractDigits(masked) {
-        return masked.replace(/\D/g, '');
-    }
-
-    function formatNumber(digits) {
-        if (!digits || digits.length !== 10) return digits;
-        return `(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-${digits.substring(6, 10)}`;
     }
 
     function validatePassword(pw) {
@@ -240,31 +201,25 @@ import Layout from "../../layouts/Layout.astro";
         const isEdit = !!editingCircuitId;
 
         // Reset
-        inputNumber.value = '';
         inputPassword.value = '';
         formMessage.classList.add('hidden');
 
-        modalTitle.textContent = isEdit ? 'Editar Circuito' : 'Novo Circuito';
+        modalTitle.textContent = isEdit ? `Editar Circuito ${editingCircuitId}` : 'Novo Circuito';
 
         let currentTrunk = null;
 
         if (isEdit) {
-            inputNumber.value = formatNumber(editingCircuitId);
-            inputNumber.readOnly = true;
-            inputNumber.classList.add('bg-gray-100', 'cursor-not-allowed');
             btnDelete.classList.remove('hidden');
 
-            // Busca dados atuais do circuito para pré-selecionar o tronco
             try {
                 const res = await fetch(`/api/circuit/${editingCircuitId}`);
                 if (res.ok) {
                     const circuit = await res.json();
                     currentTrunk = circuit.trunkName;
+                    inputPassword.value = circuit.password || '';
                 }
             } catch {}
         } else {
-            inputNumber.readOnly = false;
-            inputNumber.classList.remove('bg-gray-100', 'cursor-not-allowed');
             btnDelete.classList.add('hidden');
         }
 
@@ -298,16 +253,9 @@ import Layout from "../../layouts/Layout.astro";
 
     // === Salvar ===
     document.getElementById("btnSave").addEventListener("click", async () => {
-        const number = extractDigits(inputNumber.value);
         const password = inputPassword.value;
         const trunkName = selectTrunk.value;
         const isEdit = !!editingCircuitId;
-
-        // Validações
-        if (!isEdit && number.length !== 10) {
-            showMessage('O número deve ter 10 dígitos: (49) xxxx-xxxx.', 'error');
-            return;
-        }
 
         if (!password) {
             showMessage('A senha é obrigatória.', 'error');
@@ -331,13 +279,13 @@ import Layout from "../../layouts/Layout.astro";
                 res = await fetch(`/api/circuit/${editingCircuitId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ number: editingCircuitId, password, trunkName }),
+                    body: JSON.stringify({ password, trunkName }),
                 });
             } else {
                 res = await fetch('/api/circuit/circuits', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ number, password, trunkName }),
+                    body: JSON.stringify({ password, trunkName }),
                 });
             }
 
@@ -409,11 +357,17 @@ import Layout from "../../layouts/Layout.astro";
 
                         tr.innerHTML = `
                             <td class="px-4 py-2">${item.id}</td>
-                            <td class="px-4 py-2">${item.username || item.id}</td>
                             <td class="px-4 py-2">${item.password}</td>
                             <td class="px-4 py-2 text-gray-600">${item.trunkName || '—'}</td>
                             <td class="px-4 py-2 font-semibold ${item.online ? 'text-green-600' : 'text-red-600'}">
                                 ${item.online ? `OK (${item.rtt})` : 'Offline'}
+                            </td>
+                            <td class="px-4 py-2">
+                                <a href="/circuits/${item.id}/dids"
+                                   class="inline-block px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition"
+                                   onclick="event.stopPropagation()">
+                                    DIDs
+                                </a>
                             </td>
                         `;
 
