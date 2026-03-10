@@ -115,6 +115,18 @@ import Layout from "../../layouts/Layout.astro";
                             placeholder="Deixe em branco para não alterar"
                         />
                     </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Prefixo de discagem</label>
+                        <input
+                            id="inputPrefix"
+                            type="text"
+                            maxlength="20"
+                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                            placeholder="Ex: 8712 (opcional)"
+                        />
+                        <p class="text-xs text-gray-400 mt-1">Adicionado antes do número discado. Deixe em branco se não usar.</p>
+                    </div>
                 </div>
             </div>
 
@@ -137,6 +149,7 @@ import Layout from "../../layouts/Layout.astro";
     const inputHost = document.getElementById("inputHost");
     const inputUsername = document.getElementById("inputUsername");
     const inputPassword = document.getElementById("inputPassword");
+    const inputPrefix = document.getElementById("inputPrefix");
     const formMessage = document.getElementById("formMessage");
     const btnDelete = document.getElementById("btnDelete");
 
@@ -185,6 +198,7 @@ import Layout from "../../layouts/Layout.astro";
         inputHost.value = '';
         inputUsername.value = '';
         inputPassword.value = '';
+        inputPrefix.value = '';
         formMessage.classList.add('hidden');
 
         modalTitle.textContent = isEdit ? 'Editar Tronco' : 'Novo Tronco';
@@ -201,6 +215,7 @@ import Layout from "../../layouts/Layout.astro";
                     if (data) {
                         inputHost.value = data.host || '';
                         inputUsername.value = data.username || '';
+                        inputPrefix.value = data.prefix || '';
                     }
                 })
                 .catch(() => {});
@@ -233,6 +248,7 @@ import Layout from "../../layouts/Layout.astro";
         const host = inputHost.value.trim();
         const username = inputUsername.value.trim();
         const password = inputPassword.value;
+        const prefix = inputPrefix.value.trim() || null;
         const isEdit = !!editingTrunkName;
 
         if (!name) { showMessage('O nome é obrigatório.', 'error'); return; }
@@ -246,13 +262,13 @@ import Layout from "../../layouts/Layout.astro";
                 res = await fetch(`/api/trunk/${editingTrunkName}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: editingTrunkName, host, username, password }),
+                    body: JSON.stringify({ name: editingTrunkName, host, username, password, prefix }),
                 });
             } else {
                 res = await fetch('/api/trunk/trunks', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, host, username, password }),
+                    body: JSON.stringify({ name, host, username, password, prefix }),
                 });
             }
 
