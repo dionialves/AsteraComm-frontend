@@ -1,0 +1,313 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout>
+    <div class="flex justify-between items-center mb-2">
+        <h1 class="text-2xl font-semibold mb-4">Ligações Realizadas</h1>
+    </div>
+
+    <div class="overflow-x-auto p-4 bg-white rounded-lg shadow">
+
+        <!-- Filtros -->
+        <div class="grid grid-cols-2 gap-3 mb-4 lg:grid-cols-5">
+            <input
+                id="filter-src"
+                type="text"
+                placeholder="Origem"
+                class="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+            />
+            <input
+                id="filter-dst"
+                type="text"
+                placeholder="Destino"
+                class="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+            />
+            <select
+                id="filter-disposition"
+                class="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+            >
+                <option value="">Todos os status</option>
+                <option value="ANSWERED">Atendida</option>
+                <option value="NO ANSWER">Sem resposta</option>
+                <option value="BUSY">Ocupado</option>
+                <option value="FAILED">Falha</option>
+            </select>
+            <input
+                id="filter-from"
+                type="datetime-local"
+                class="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+            />
+            <input
+                id="filter-to"
+                type="datetime-local"
+                class="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+            />
+        </div>
+
+        <div class="flex justify-between items-center mb-2">
+            <button id="btn-filter" class="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700">
+                Filtrar
+            </button>
+            <div class="flex items-center space-x-2">
+                <button id="btn-prev" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Anterior</button>
+                <span id="page-info" class="text-sm text-gray-700">Página 1 de 1</span>
+                <button id="btn-next" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Próxima</button>
+            </div>
+        </div>
+
+        <table id="table-cdrs" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm">
+            <thead class="bg-gray-100 text-gray-900">
+                <tr class="font-semibold">
+                    <th data-field="calldate" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Data/Hora</th>
+                    <th data-field="src" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Origem</th>
+                    <th data-field="dst" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Destino</th>
+                    <th data-field="duration" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Duração</th>
+                    <th class="w-1/5 px-4 py-2 text-left font-semibold">Status</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-cdrs" class="divide-y divide-gray-200">
+                <tr id="loading">
+                    <td colspan="5" class="py-4 px-4 text-gray-500">Carregando...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div id="modalOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+
+    <!-- Modal Detalhes -->
+    <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg">
+
+            <!-- Header do Modal -->
+            <div class="bg-gray-50 flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800">Detalhes da Ligação</h2>
+                <button id="btnClose" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">
+                    Fechar
+                </button>
+            </div>
+
+            <!-- Body do Modal -->
+            <div class="px-6 py-4 space-y-3 text-sm">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">ID Único</span>
+                        <span id="detUniqueId" class="block text-gray-800 font-mono text-xs break-all"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Data/Hora</span>
+                        <span id="detCalldate" class="block text-gray-800"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">ID do Chamador</span>
+                        <span id="detClid" class="block text-gray-800"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Status</span>
+                        <span id="detDisposition" class="block font-semibold"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Origem</span>
+                        <span id="detSrc" class="block text-gray-800"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Destino</span>
+                        <span id="detDst" class="block text-gray-800"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Contexto</span>
+                        <span id="detDcontext" class="block text-gray-800"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Duração Total</span>
+                        <span id="detDuration" class="block text-gray-800"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Segundos Tarifados</span>
+                        <span id="detBillsec" class="block text-gray-800"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Código de Conta</span>
+                        <span id="detAccountcode" class="block text-gray-800"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Canal</span>
+                        <span id="detChannel" class="block text-gray-800 font-mono text-xs break-all"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Canal Destino</span>
+                        <span id="detDstchannel" class="block text-gray-800 font-mono text-xs break-all"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script type="module" defer>
+    const tbody = document.getElementById("tbody-cdrs");
+    const loading = document.getElementById("loading");
+    const btnPrev = document.getElementById("btn-prev");
+    const btnNext = document.getElementById("btn-next");
+    const pageInfo = document.getElementById("page-info");
+    const modal = document.getElementById("modal");
+    const modalOverlay = document.getElementById("modalOverlay");
+
+    let currentPage = 0;
+    let totalPages = 0;
+    let currentSortField = "calldate";
+    let currentSortDirection = "desc";
+
+    // === Formatadores ===
+    function formatDateTime(dateStr) {
+        if (!dateStr) return "—";
+        const d = new Date(dateStr);
+        return d.toLocaleString("pt-BR", {
+            day: "2-digit", month: "2-digit", year: "numeric",
+            hour: "2-digit", minute: "2-digit", second: "2-digit"
+        });
+    }
+
+    function formatDuration(seconds) {
+        if (seconds == null) return "—";
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        if (h > 0) return `${h}h ${m}m ${s}s`;
+        if (m > 0) return `${m}m ${s}s`;
+        return `${s}s`;
+    }
+
+    function dispositionLabel(d) {
+        const map = {
+            "ANSWERED": { label: "Atendida", cls: "text-green-600" },
+            "NO ANSWER": { label: "Sem resposta", cls: "text-yellow-600" },
+            "BUSY": { label: "Ocupado", cls: "text-orange-600" },
+            "FAILED": { label: "Falha", cls: "text-red-600" },
+        };
+        return map[d] || { label: d, cls: "text-gray-600" };
+    }
+
+    // === Ordenação ===
+    document.querySelectorAll("thead th[data-field]").forEach(th => {
+        th.addEventListener("click", () => {
+            const field = th.getAttribute("data-field");
+            if (currentSortField === field) {
+                currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+            } else {
+                currentSortField = field;
+                currentSortDirection = "asc";
+            }
+            carregarDados(0);
+        });
+    });
+
+    // === Filtro ===
+    document.getElementById("btn-filter").addEventListener("click", () => carregarDados(0));
+
+    // === Modal ===
+    function openModal(uniqueid) {
+        fetch(`/api/cdr/${encodeURIComponent(uniqueid)}`)
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (!data) return;
+                const disp = dispositionLabel(data.disposition);
+                document.getElementById("detUniqueId").textContent = data.uniqueid || "—";
+                document.getElementById("detCalldate").textContent = formatDateTime(data.calldate);
+                document.getElementById("detClid").textContent = data.clid || "—";
+                document.getElementById("detDisposition").textContent = disp.label;
+                document.getElementById("detDisposition").className = `block font-semibold ${disp.cls}`;
+                document.getElementById("detSrc").textContent = data.src || "—";
+                document.getElementById("detDst").textContent = data.dst || "—";
+                document.getElementById("detDcontext").textContent = data.dcontext || "—";
+                document.getElementById("detDuration").textContent = formatDuration(data.duration);
+                document.getElementById("detBillsec").textContent = formatDuration(data.billsec);
+                document.getElementById("detAccountcode").textContent = data.accountcode || "—";
+                document.getElementById("detChannel").textContent = data.channel || "—";
+                document.getElementById("detDstchannel").textContent = data.dstchannel || "—";
+
+                modal.classList.remove("hidden");
+                modalOverlay.classList.remove("hidden");
+            })
+            .catch(() => {});
+    }
+
+    function closeModal() {
+        modal.classList.add("hidden");
+        modalOverlay.classList.add("hidden");
+    }
+
+    document.getElementById("btnClose").addEventListener("click", closeModal);
+    modalOverlay.addEventListener("click", closeModal);
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
+    });
+
+    // === Tabela ===
+    function carregarDados(pagina) {
+        loading.style.display = "table-row";
+
+        const src = document.getElementById("filter-src").value.trim();
+        const dst = document.getElementById("filter-dst").value.trim();
+        const disposition = document.getElementById("filter-disposition").value;
+        const from = document.getElementById("filter-from").value;
+        const to = document.getElementById("filter-to").value;
+
+        const query = new URLSearchParams({
+            page: pagina,
+            size: 20,
+            sort: `${currentSortField},${currentSortDirection}`,
+        });
+        if (src) query.set("src", src);
+        if (dst) query.set("dst", dst);
+        if (disposition) query.set("disposition", disposition);
+        if (from) query.set("from", from + ":00");
+        if (to) query.set("to", to + ":00");
+
+        fetch(`/api/cdr/cdrs?${query.toString()}`)
+            .then(res => {
+                if (!res.ok) throw new Error("Erro na resposta da API");
+                return res.json();
+            })
+            .then(data => {
+                loading.style.display = "none";
+
+                currentPage = pagina;
+                totalPages = data.totalPages;
+
+                tbody.innerHTML = "";
+
+                if (data.content.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhuma ligação encontrada.</td></tr>`;
+                } else {
+                    data.content.forEach(item => {
+                        const disp = dispositionLabel(item.disposition);
+                        const tr = document.createElement("tr");
+                        tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
+                        tr.innerHTML = `
+                            <td class="px-4 py-2">${formatDateTime(item.calldate)}</td>
+                            <td class="px-4 py-2">${item.src || "—"}</td>
+                            <td class="px-4 py-2">${item.dst || "—"}</td>
+                            <td class="px-4 py-2">${formatDuration(item.duration)}</td>
+                            <td class="px-4 py-2 font-semibold ${disp.cls}">${disp.label}</td>
+                        `;
+                        tr.addEventListener("click", () => openModal(item.uniqueId));
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
+            })
+            .catch(err => {
+                loading.innerHTML = `<td colspan="5" class="py-4 px-4 text-red-500">Erro ao carregar dados.</td>`;
+                console.error(err);
+            });
+    }
+
+    btnPrev.addEventListener("click", () => { if (currentPage > 0) carregarDados(currentPage - 1); });
+    btnNext.addEventListener("click", () => { if (currentPage < totalPages - 1) carregarDados(currentPage + 1); });
+
+    carregarDados(0);
+</script>
+</Layout>
