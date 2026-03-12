@@ -1,0 +1,470 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout>
+    <div class="flex justify-between items-center mb-2">
+        <h1 class="text-2xl font-semibold mb-4">Planos</h1>
+        <button id="btnAdd" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700">Adicionar</button>
+    </div>
+
+    <div class="overflow-x-auto p-4 bg-white rounded-lg shadow">
+
+        <div class="flex items-center justify-between mb-2" id="pagination-container">
+            <div></div>
+            <div class="flex justify-between items-center space-x-2 w-64">
+                <button id="btn-prev" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Anterior</button>
+                <span id="page-info" class="text-sm text-gray-700">Página 1 de 1</span>
+                <button id="btn-next" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Próxima</button>
+            </div>
+        </div>
+
+        <table id="table-plans" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm">
+            <thead class="bg-gray-100 text-gray-900">
+                <tr class="font-semibold">
+                    <th class="w-2/12 px-4 py-2 text-left">Nome</th>
+                    <th class="w-1/12 px-4 py-2 text-right">Mensalidade</th>
+                    <th class="w-1/12 px-4 py-2 text-right">Fixo Local</th>
+                    <th class="w-1/12 px-4 py-2 text-right">Fixo Interurb.</th>
+                    <th class="w-1/12 px-4 py-2 text-right">Móvel Local</th>
+                    <th class="w-1/12 px-4 py-2 text-right">Móvel LD</th>
+                    <th class="w-2/12 px-4 py-2 text-left">Pacote</th>
+                    <th class="w-1/12 px-4 py-2 text-left">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-plans" class="divide-y divide-gray-200">
+                <tr id="loading" class="py-4 px-4 text-gray-500">
+                    <td>Carregando...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div id="modalOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+
+    <!-- Modal Criar / Editar -->
+    <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-screen overflow-y-auto">
+
+            <div class="bg-gray-50 flex items-center justify-between px-6 py-4 border-b border-gray-200 sticky top-0">
+                <h2 id="modalTitle" class="text-lg font-semibold text-gray-800">Novo Plano</h2>
+                <div class="flex items-center gap-2">
+                    <button id="btnSave" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700 transition">
+                        Salvar
+                    </button>
+                    <button id="btnCancel" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 space-y-5">
+                <div id="formMessage" class="hidden px-4 py-2 rounded text-sm"></div>
+
+                <!-- Nome e Mensalidade -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                        <input id="inputName" type="text"
+                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                            placeholder="Ex: Plano Básico" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Mensalidade (R$)</label>
+                        <input id="inputMonthlyPrice" type="text" inputmode="numeric"
+                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                            placeholder="0,00" />
+                    </div>
+                </div>
+
+                <!-- Pacote de minutos -->
+                <div>
+                    <p class="text-sm font-semibold text-gray-700 mb-2">Pacote de minutos</p>
+                    <div class="mb-3">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Tipo de pacote</label>
+                        <select id="selectPackageType"
+                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
+                            <option value="UNIFIED">Unificado (pool compartilhado)</option>
+                            <option value="PER_CATEGORY">Por categoria</option>
+                            <option value="NONE">Sem pacote</option>
+                        </select>
+                    </div>
+
+                    <!-- UNIFIED -->
+                    <div id="sectionUnified">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Total de minutos</label>
+                        <input id="inputPackageTotalMinutes" type="number" min="1" step="1"
+                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                            placeholder="Ex: 400" />
+                    </div>
+
+                    <!-- PER_CATEGORY -->
+                    <div id="sectionPerCategory" class="hidden grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Fixo Local (min)</label>
+                            <input id="inputPkgFixedLocal" type="number" min="0" step="1"
+                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                                placeholder="0" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Fixo Interurbano (min)</label>
+                            <input id="inputPkgFixedLongDistance" type="number" min="0" step="1"
+                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                                placeholder="0" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Móvel Local (min)</label>
+                            <input id="inputPkgMobileLocal" type="number" min="0" step="1"
+                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                                placeholder="0" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Móvel LD (min)</label>
+                            <input id="inputPkgMobileLongDistance" type="number" min="0" step="1"
+                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                                placeholder="0" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarifas por minuto -->
+                <div>
+                    <p class="text-sm font-semibold text-gray-700 mb-2">Tarifas por minuto (R$)</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Fixo Local</label>
+                            <input id="inputFixedLocal" type="text" inputmode="numeric"
+                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                                placeholder="0,0000" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Fixo Interurbano</label>
+                            <input id="inputFixedLongDistance" type="text" inputmode="numeric"
+                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                                placeholder="0,0000" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Móvel Local</label>
+                            <input id="inputMobileLocal" type="text" inputmode="numeric"
+                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                                placeholder="0,0000" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Móvel Longa Distância</label>
+                            <input id="inputMobileLongDistance" type="text" inputmode="numeric"
+                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                                placeholder="0,0000" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script type="module" defer>
+    const tbody = document.getElementById("tbody-plans");
+    const loading = document.getElementById("loading");
+    const table = document.getElementById("table-plans");
+    const btnPrev = document.getElementById("btn-prev");
+    const btnNext = document.getElementById("btn-next");
+    const pageInfo = document.getElementById("page-info");
+    const paginationControls = document.getElementById("pagination-container");
+
+    const modal = document.getElementById("modal");
+    const modalOverlay = document.getElementById("modalOverlay");
+    const modalTitle = document.getElementById("modalTitle");
+    const formMessage = document.getElementById("formMessage");
+
+    const inputName = document.getElementById("inputName");
+    const inputMonthlyPrice = document.getElementById("inputMonthlyPrice");
+    const inputFixedLocal = document.getElementById("inputFixedLocal");
+    const inputFixedLongDistance = document.getElementById("inputFixedLongDistance");
+    const inputMobileLocal = document.getElementById("inputMobileLocal");
+    const inputMobileLongDistance = document.getElementById("inputMobileLongDistance");
+    const selectPackageType = document.getElementById("selectPackageType");
+    const sectionUnified = document.getElementById("sectionUnified");
+    const sectionPerCategory = document.getElementById("sectionPerCategory");
+    const inputPackageTotalMinutes = document.getElementById("inputPackageTotalMinutes");
+    const inputPkgFixedLocal = document.getElementById("inputPkgFixedLocal");
+    const inputPkgFixedLongDistance = document.getElementById("inputPkgFixedLongDistance");
+    const inputPkgMobileLocal = document.getElementById("inputPkgMobileLocal");
+    const inputPkgMobileLongDistance = document.getElementById("inputPkgMobileLongDistance");
+
+    let currentPage = 0;
+    let totalPages = 0;
+    let editingId = null;
+
+    // === Máscaras ===
+
+    // Mensalidade: x.xxx,xx (2 casas decimais)
+    function applyMaskCurrency(input) {
+        const digits = input.value.replace(/\D/g, '');
+        if (!digits) { input.value = ''; return; }
+        const cents = parseInt(digits, 10);
+        const intPart = Math.floor(cents / 100)
+            .toString()
+            .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        const decPart = (cents % 100).toString().padStart(2, '0');
+        input.value = `${intPart},${decPart}`;
+    }
+
+    // Tarifa/min: x,xxxx (4 casas decimais)
+    function applyMaskRate(input) {
+        const digits = input.value.replace(/\D/g, '');
+        if (!digits) { input.value = ''; return; }
+        const value = parseInt(digits, 10);
+        const intPart = Math.floor(value / 10000);
+        const decPart = (value % 10000).toString().padStart(4, '0');
+        input.value = `${intPart},${decPart}`;
+    }
+
+    // Converter máscara → número para o backend
+    function parseCurrency(masked) {
+        if (!masked) return null;
+        return parseFloat(masked.replace(/\./g, '').replace(',', '.'));
+    }
+
+    function parseRate(masked) {
+        if (!masked) return null;
+        return parseFloat(masked.replace(',', '.'));
+    }
+
+    // Converter número do backend → máscara para exibir no input
+    function toMaskedCurrency(value) {
+        if (value == null) return '';
+        const cents = Math.round(parseFloat(value) * 100);
+        const intPart = Math.floor(cents / 100)
+            .toString()
+            .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        const decPart = (cents % 100).toString().padStart(2, '0');
+        return `${intPart},${decPart}`;
+    }
+
+    function toMaskedRate(value) {
+        if (value == null) return '';
+        const tenths = Math.round(parseFloat(value) * 10000);
+        const intPart = Math.floor(tenths / 10000);
+        const decPart = (tenths % 10000).toString().padStart(4, '0');
+        return `${intPart},${decPart}`;
+    }
+
+    inputMonthlyPrice.addEventListener('input', () => applyMaskCurrency(inputMonthlyPrice));
+    [inputFixedLocal, inputFixedLongDistance, inputMobileLocal, inputMobileLongDistance]
+        .forEach(el => el.addEventListener('input', () => applyMaskRate(el)));
+
+    // === Pacote ===
+    selectPackageType.addEventListener("change", updatePackageSections);
+
+    function updatePackageSections() {
+        const type = selectPackageType.value;
+        sectionUnified.classList.toggle("hidden", type !== "UNIFIED");
+        sectionPerCategory.classList.toggle("hidden", type !== "PER_CATEGORY");
+    }
+
+    // === Formatação da tabela ===
+    function formatPrice(value) {
+        if (value == null) return "—";
+        return `R$ ${parseFloat(value).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    function formatRate(value) {
+        if (value == null) return "—";
+        return parseFloat(value).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    }
+
+    function formatPackage(item) {
+        if (item.packageType === "NONE") return "Sem pacote";
+        if (item.packageType === "UNIFIED") return `Unif. ${item.packageTotalMinutes} min`;
+        if (item.packageType === "PER_CATEGORY") {
+            return `FL:${item.packageFixedLocal} FI:${item.packageFixedLongDistance} ML:${item.packageMobileLocal} MLD:${item.packageMobileLongDistance}`;
+        }
+        return "—";
+    }
+
+    function showMessage(text, type) {
+        formMessage.textContent = text;
+        formMessage.classList.remove("hidden", "bg-green-100", "text-green-700", "bg-red-100", "text-red-700");
+        formMessage.classList.add(type === "success" ? "bg-green-100" : "bg-red-100",
+                                   type === "success" ? "text-green-700" : "text-red-700");
+    }
+
+    function openModal(item = null) {
+        editingId = item ? item.id : null;
+        modalTitle.textContent = item ? "Editar Plano" : "Novo Plano";
+        formMessage.classList.add("hidden");
+
+        inputName.value = item?.name ?? "";
+        inputMonthlyPrice.value = item ? toMaskedCurrency(item.monthlyPrice) : "";
+        inputFixedLocal.value = item ? toMaskedRate(item.fixedLocal) : "";
+        inputFixedLongDistance.value = item ? toMaskedRate(item.fixedLongDistance) : "";
+        inputMobileLocal.value = item ? toMaskedRate(item.mobileLocal) : "";
+        inputMobileLongDistance.value = item ? toMaskedRate(item.mobileLongDistance) : "";
+        selectPackageType.value = item?.packageType ?? "UNIFIED";
+
+        inputPackageTotalMinutes.value = item?.packageTotalMinutes ?? "";
+        inputPkgFixedLocal.value = item?.packageFixedLocal ?? "";
+        inputPkgFixedLongDistance.value = item?.packageFixedLongDistance ?? "";
+        inputPkgMobileLocal.value = item?.packageMobileLocal ?? "";
+        inputPkgMobileLongDistance.value = item?.packageMobileLongDistance ?? "";
+
+        updatePackageSections();
+        modal.classList.remove("hidden");
+        modalOverlay.classList.remove("hidden");
+    }
+
+    function closeModal() {
+        modal.classList.add("hidden");
+        modalOverlay.classList.add("hidden");
+        editingId = null;
+    }
+
+    document.getElementById("btnAdd").addEventListener("click", () => openModal());
+    document.getElementById("btnCancel").addEventListener("click", closeModal);
+    modalOverlay.addEventListener("click", closeModal);
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
+    });
+
+    // === Salvar ===
+    document.getElementById("btnSave").addEventListener("click", async () => {
+        const name = inputName.value.trim();
+        const monthlyPrice = parseCurrency(inputMonthlyPrice.value);
+        const fixedLocal = parseRate(inputFixedLocal.value);
+        const fixedLongDistance = parseRate(inputFixedLongDistance.value);
+        const mobileLocal = parseRate(inputMobileLocal.value);
+        const mobileLongDistance = parseRate(inputMobileLongDistance.value);
+        const packageType = selectPackageType.value;
+
+        if (!name || monthlyPrice == null || fixedLocal == null || fixedLongDistance == null
+                || mobileLocal == null || mobileLongDistance == null) {
+            showMessage("Preencha todos os campos obrigatórios.", "error");
+            return;
+        }
+
+        const payload = { name, monthlyPrice, fixedLocal, fixedLongDistance, mobileLocal, mobileLongDistance, packageType };
+
+        if (packageType === "UNIFIED") {
+            const total = inputPackageTotalMinutes.value;
+            if (!total || parseInt(total) < 1) {
+                showMessage("Informe o total de minutos para o pacote unificado.", "error");
+                return;
+            }
+            payload.packageTotalMinutes = parseInt(total);
+        } else if (packageType === "PER_CATEGORY") {
+            const fl = inputPkgFixedLocal.value;
+            const fld = inputPkgFixedLongDistance.value;
+            const ml = inputPkgMobileLocal.value;
+            const mld = inputPkgMobileLongDistance.value;
+            if (fl === "" || fld === "" || ml === "" || mld === "") {
+                showMessage("Preencha todos os campos do pacote por categoria.", "error");
+                return;
+            }
+            payload.packageFixedLocal = parseInt(fl);
+            payload.packageFixedLongDistance = parseInt(fld);
+            payload.packageMobileLocal = parseInt(ml);
+            payload.packageMobileLongDistance = parseInt(mld);
+        }
+
+        try {
+            const url = editingId ? `/api/plan/${editingId}` : "/api/plan/plans";
+            const method = editingId ? "PUT" : "POST";
+
+            const res = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+
+            if (res.ok || res.status === 201) {
+                closeModal();
+                carregarDados(currentPage);
+                window.showToast(editingId ? "Plano atualizado com sucesso!" : "Plano cadastrado com sucesso!", "success");
+            } else {
+                const errorText = await res.text();
+                showMessage(errorText || "Erro ao salvar.", "error");
+            }
+        } catch {
+            showMessage("Erro ao comunicar com o servidor.", "error");
+        }
+    });
+
+    // === Excluir ===
+    async function deletePlan(id) {
+        if (!confirm("Tem certeza que deseja excluir este plano?")) return;
+
+        try {
+            const res = await fetch(`/api/plan/${id}`, { method: "DELETE" });
+
+            if (res.ok || res.status === 204) {
+                carregarDados(currentPage);
+                window.showToast("Plano excluído com sucesso!", "success");
+            } else {
+                const errorText = await res.text();
+                window.showToast(errorText || "Erro ao excluir.", "error");
+            }
+        } catch {
+            window.showToast("Erro ao comunicar com o servidor.", "error");
+        }
+    }
+
+    // === Tabela ===
+    function carregarDados(pagina) {
+        loading.style.display = "block";
+
+        fetch(`/api/plan/plans?page=${pagina}&size=20`)
+            .then(res => {
+                if (!res.ok) throw new Error("Erro na resposta da API");
+                return res.json();
+            })
+            .then(data => {
+                loading.style.display = "none";
+                table.style.display = "table";
+                paginationControls.style.display = "flex";
+
+                currentPage = pagina;
+                totalPages = data.totalPages;
+                tbody.innerHTML = "";
+
+                if (data.content.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-gray-500">Nenhum plano cadastrado.</td></tr>`;
+                } else {
+                    data.content.forEach(item => {
+                        const tr = document.createElement("tr");
+                        tr.className = "odd:bg-gray-50 text-gray-700";
+
+                        tr.innerHTML = `
+                            <td class="px-4 py-2 font-medium">${item.name}</td>
+                            <td class="px-4 py-2 text-right">${formatPrice(item.monthlyPrice)}</td>
+                            <td class="px-4 py-2 text-right font-mono text-xs">${formatRate(item.fixedLocal)}</td>
+                            <td class="px-4 py-2 text-right font-mono text-xs">${formatRate(item.fixedLongDistance)}</td>
+                            <td class="px-4 py-2 text-right font-mono text-xs">${formatRate(item.mobileLocal)}</td>
+                            <td class="px-4 py-2 text-right font-mono text-xs">${formatRate(item.mobileLongDistance)}</td>
+                            <td class="px-4 py-2 text-xs text-gray-600">${formatPackage(item)}</td>
+                            <td class="px-4 py-2 flex gap-2">
+                                <button class="btn-edit px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition">Editar</button>
+                                <button class="btn-delete px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition">Excluir</button>
+                            </td>
+                        `;
+
+                        tr.querySelector(".btn-edit").addEventListener("click", () => openModal(item));
+                        tr.querySelector(".btn-delete").addEventListener("click", () => deletePlan(item.id));
+
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
+            })
+            .catch(err => {
+                loading.textContent = "Erro ao carregar dados.";
+                console.error(err);
+            });
+    }
+
+    btnPrev.addEventListener("click", () => { if (currentPage > 0) carregarDados(currentPage - 1); });
+    btnNext.addEventListener("click", () => { if (currentPage < totalPages - 1) carregarDados(currentPage + 1); });
+
+    carregarDados(0);
+</script>
+</Layout>
