@@ -1,0 +1,334 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout>
+    <div class="flex justify-between items-center mb-2">
+        <h1 class="text-2xl font-semibold mb-4">Clientes</h1>
+        <button id="btnAdd" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700">Adicionar</button>
+    </div>
+
+    <div class="overflow-x-auto p-4 bg-white rounded-lg shadow">
+
+        <div class="flex items-center justify-between mb-2" id="pagination-container">
+            <div class="flex items-center space-x-2">
+                <input
+                    id="search-input"
+                    type="text"
+                    placeholder="Pesquisar..."
+                    class="hidden"
+                />
+            </div>
+            <div class="flex justify-between items-center space-x-2 w-96">
+                <button id="btn-prev" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Anterior</button>
+                <span id="page-info" class="text-sm text-gray-700">Página 1 de 1</span>
+                <button id="btn-next" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Próxima</button>
+            </div>
+        </div>
+
+        <table id="table-customers" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm">
+            <thead class="bg-gray-100 text-gray-900">
+                <tr class="font-semibold">
+                    <th class="w-2/5 px-4 py-2 text-left font-semibold">Nome</th>
+                    <th class="w-1/5 px-4 py-2 text-left font-semibold">Status</th>
+                    <th class="w-1/5 px-4 py-2 text-left font-semibold">Criado em</th>
+                    <th class="w-1/5 px-4 py-2 text-left font-semibold">Atualizado em</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-customers" class="divide-y divide-gray-200">
+                <tr id="loading" class="py-4 px-4 text-gray-500">
+                    <td>Carregando...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div id="modalOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+
+    <!-- Modal Criar/Editar -->
+    <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg">
+
+            <div class="bg-gray-50 flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h2 id="modalTitle" class="text-lg font-semibold text-gray-800">Novo Cliente</h2>
+                <div class="flex items-center gap-2">
+                    <button id="btnSave" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700 transition">
+                        Salvar
+                    </button>
+                    <button id="btnDisable" class="hidden bg-yellow-500 text-white rounded px-4 py-2 text-sm hover:bg-yellow-600 transition">
+                        Desativar
+                    </button>
+                    <button id="btnDelete" class="hidden bg-red-600 text-white rounded px-4 py-2 text-sm hover:bg-red-700 transition">
+                        Excluir
+                    </button>
+                    <button id="btnCancel" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+
+            <div class="px-6 py-4">
+                <div id="formMessage" class="hidden mb-4 px-4 py-2 rounded text-sm"></div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome <span class="text-red-500">*</span></label>
+                        <input
+                            id="inputName"
+                            type="text"
+                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                            placeholder="Nome do cliente"
+                        />
+                    </div>
+
+                    <div id="enabledRow" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ativo</label>
+                        <select
+                            id="selectEnabled"
+                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                        >
+                            <option value="true">Sim</option>
+                            <option value="false">Não</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+<script type="module" defer>
+    const tbody = document.getElementById("tbody-customers");
+    const loading = document.getElementById("loading");
+    const table = document.getElementById("table-customers");
+    const btnPrev = document.getElementById("btn-prev");
+    const btnNext = document.getElementById("btn-next");
+    const pageInfo = document.getElementById("page-info");
+    const paginationControls = document.getElementById("pagination-container");
+
+    const modal = document.getElementById("modal");
+    const modalOverlay = document.getElementById("modalOverlay");
+    const modalTitle = document.getElementById("modalTitle");
+    const inputName = document.getElementById("inputName");
+    const selectEnabled = document.getElementById("selectEnabled");
+    const enabledRow = document.getElementById("enabledRow");
+    const formMessage = document.getElementById("formMessage");
+    const btnDelete = document.getElementById("btnDelete");
+    const btnDisable = document.getElementById("btnDisable");
+
+    let currentPage = 0;
+    let totalPages = 0;
+    let editingCustomerId = null;
+
+    function showMessage(text, type) {
+        formMessage.textContent = text;
+        formMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+        formMessage.classList.add(type === 'success' ? 'bg-green-100' : 'bg-red-100');
+        formMessage.classList.add(type === 'success' ? 'text-green-700' : 'text-red-700');
+    }
+
+    function formatarData(dataStr) {
+        if (!dataStr) return '—';
+        return new Date(dataStr).toLocaleDateString('pt-BR', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    }
+
+    async function openModal(customerId) {
+        editingCustomerId = customerId || null;
+        const isEdit = !!editingCustomerId;
+
+        inputName.value = '';
+        formMessage.classList.add('hidden');
+
+        if (isEdit) {
+            modalTitle.textContent = 'Editar Cliente';
+            btnDelete.classList.remove('hidden');
+            enabledRow.classList.remove('hidden');
+
+            try {
+                const res = await fetch(`/api/customer/${editingCustomerId}`);
+                if (res.ok) {
+                    const customer = await res.json();
+                    inputName.value = customer.name || '';
+                    selectEnabled.value = customer.enabled ? 'true' : 'false';
+                    btnDisable.classList.toggle('hidden', !customer.enabled);
+                }
+            } catch {}
+        } else {
+            modalTitle.textContent = 'Novo Cliente';
+            btnDelete.classList.add('hidden');
+            btnDisable.classList.add('hidden');
+            enabledRow.classList.add('hidden');
+        }
+
+        modal.classList.remove('hidden');
+        modalOverlay.classList.remove('hidden');
+        inputName.focus();
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+        modalOverlay.classList.add('hidden');
+        editingCustomerId = null;
+    }
+
+    document.getElementById("btnAdd").addEventListener("click", () => openModal(null));
+    document.getElementById("btnCancel").addEventListener("click", closeModal);
+    modalOverlay.addEventListener("click", closeModal);
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
+    });
+
+    document.getElementById("btnSave").addEventListener("click", async () => {
+        const name = inputName.value.trim();
+        const isEdit = !!editingCustomerId;
+
+        if (!name) {
+            showMessage('O nome é obrigatório.', 'error');
+            return;
+        }
+
+        const payload = { name };
+        if (isEdit) {
+            payload.enabled = selectEnabled.value === 'true';
+        }
+
+        try {
+            let res;
+            if (isEdit) {
+                res = await fetch(`/api/customer/${editingCustomerId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+            } else {
+                res = await fetch('/api/customer/customers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+            }
+
+            if (res.ok || res.status === 201) {
+                closeModal();
+                carregarDados(currentPage);
+                window.showToast(isEdit ? 'Cliente atualizado com sucesso!' : 'Cliente criado com sucesso!', 'success');
+            } else {
+                const err = await res.json().catch(() => ({}));
+                showMessage(err.message || 'Erro ao salvar cliente.', 'error');
+            }
+        } catch {
+            showMessage('Erro ao comunicar com o servidor.', 'error');
+        }
+    });
+
+    btnDisable.addEventListener("click", async () => {
+        if (!editingCustomerId) return;
+        if (!confirm('Desativar este cliente?')) return;
+
+        try {
+            const res = await fetch(`/api/customer/${editingCustomerId}?action=disable`, {
+                method: 'PATCH',
+            });
+
+            if (res.ok) {
+                closeModal();
+                carregarDados(currentPage);
+                window.showToast('Cliente desativado com sucesso!', 'success');
+            } else {
+                const err = await res.json().catch(() => ({}));
+                showMessage(err.message || 'Erro ao desativar cliente.', 'error');
+            }
+        } catch {
+            showMessage('Erro ao comunicar com o servidor.', 'error');
+        }
+    });
+
+    btnDelete.addEventListener("click", async () => {
+        if (!editingCustomerId) return;
+        if (!confirm('Tem certeza que deseja excluir este cliente?')) return;
+
+        try {
+            const res = await fetch(`/api/customer/${editingCustomerId}`, {
+                method: 'DELETE',
+            });
+
+            if (res.ok || res.status === 204) {
+                closeModal();
+                carregarDados(currentPage);
+                window.showToast('Cliente excluído com sucesso!', 'success');
+            } else {
+                const err = await res.json().catch(() => ({}));
+                showMessage(err.message || 'Erro ao excluir cliente.', 'error');
+            }
+        } catch {
+            showMessage('Erro ao comunicar com o servidor.', 'error');
+        }
+    });
+
+    function carregarDados(pagina) {
+        loading.style.display = "block";
+        table.style.visibility = "visible";
+
+        const url = `/api/customer/customers?page=${pagina}&size=20&sort=name,asc`;
+
+        fetch(url)
+            .then(res => {
+                if (!res.ok) throw new Error("Erro na resposta da API");
+                return res.json();
+            })
+            .then(data => {
+                loading.style.display = "none";
+                table.style.display = "table";
+                paginationControls.style.display = "flex";
+
+                currentPage = pagina;
+                totalPages = data.totalPages;
+
+                tbody.innerHTML = "";
+
+                if (data.content.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">Nenhum cliente encontrado.</td></tr>`;
+                } else {
+                    data.content.forEach(item => {
+                        const tr = document.createElement("tr");
+                        tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
+
+                        tr.innerHTML = `
+                            <td class="px-4 py-2 font-medium">${item.name}</td>
+                            <td class="px-4 py-2">
+                                <span class="px-2 py-0.5 rounded text-xs font-semibold ${item.enabled ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                                    ${item.enabled ? 'Ativo' : 'Inativo'}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2 text-gray-500">${formatarData(item.createdAt)}</td>
+                            <td class="px-4 py-2 text-gray-500">${formatarData(item.updatedAt)}</td>
+                        `;
+
+                        tr.addEventListener('click', () => openModal(item.id));
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
+            })
+            .catch(err => {
+                loading.textContent = "Erro ao carregar dados.";
+                console.error(err);
+            });
+    }
+
+    btnPrev.addEventListener("click", () => {
+        if (currentPage > 0) carregarDados(currentPage - 1);
+    });
+
+    btnNext.addEventListener("click", () => {
+        if (currentPage < totalPages - 1) carregarDados(currentPage + 1);
+    });
+
+    carregarDados(0);
+</script>
+</Layout>
