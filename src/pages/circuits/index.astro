@@ -37,6 +37,7 @@ import Layout from "../../layouts/Layout.astro";
                     <th data-field="password" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Senha</th>
                     <th data-field="trunkName" class="w-1/6 px-4 py-2 text-left font-semibold">Tronco</th>
                     <th data-field="customerName" class="w-1/6 px-4 py-2 text-left font-semibold">Cliente</th>
+                    <th data-field="planName" class="w-1/6 px-4 py-2 text-left font-semibold">Plano</th>
                     <th data-field="online" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Status</th>
                     <th class="w-1/6 px-4 py-2 text-left font-semibold">Ações</th>
                 </tr>
@@ -110,6 +111,16 @@ import Layout from "../../layouts/Layout.astro";
                             <option value="">Selecione um cliente...</option>
                         </select>
                     </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Plano <span class="text-red-500">*</span></label>
+                        <select
+                            id="selectPlan"
+                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+                        >
+                            <option value="">Sem plano</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -133,6 +144,7 @@ import Layout from "../../layouts/Layout.astro";
     const inputPassword = document.getElementById("inputPassword");
     const selectTrunk = document.getElementById("selectTrunk");
     const selectCustomer = document.getElementById("selectCustomer");
+    const selectPlan = document.getElementById("selectPlan");
     const formMessage = document.getElementById("formMessage");
     const btnDelete = document.getElementById("btnDelete");
 
@@ -228,6 +240,27 @@ import Layout from "../../layouts/Layout.astro";
         }
     }
 
+    // === Carregar lista de planos ===
+    async function carregarPlanos(planIdSelecionado) {
+        try {
+            const res = await fetch('/api/plan/plans?size=200&sort=name,asc');
+            if (!res.ok) return;
+            const data = await res.json();
+            const plans = data.content || data;
+
+            selectPlan.innerHTML = '<option value="">Sem plano</option>';
+            plans.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.name;
+                if (p.id === planIdSelecionado) opt.selected = true;
+                selectPlan.appendChild(opt);
+            });
+        } catch {
+            selectPlan.innerHTML = '<option value="">Erro ao carregar planos</option>';
+        }
+    }
+
     // === Modal ===
     async function openModal(circuitId) {
         editingCircuitId = circuitId || null;
@@ -241,6 +274,7 @@ import Layout from "../../layouts/Layout.astro";
 
         let currentTrunk = null;
         let currentCustomerId = null;
+        let currentPlanId = null;
 
         if (isEdit) {
             btnDelete.classList.remove('hidden');
@@ -251,6 +285,7 @@ import Layout from "../../layouts/Layout.astro";
                     const circuit = await res.json();
                     currentTrunk = circuit.trunkName;
                     currentCustomerId = circuit.customer?.id ?? null;
+                    currentPlanId = circuit.plan?.id ?? null;
                     inputPassword.value = circuit.password || '';
                 }
             } catch {}
@@ -261,6 +296,7 @@ import Layout from "../../layouts/Layout.astro";
         await Promise.all([
             carregarTroncos(currentTrunk),
             carregarClientes(currentCustomerId),
+            carregarPlanos(currentPlanId),
         ]);
 
         modal.classList.remove('hidden');
@@ -294,6 +330,7 @@ import Layout from "../../layouts/Layout.astro";
         const password = inputPassword.value;
         const trunkName = selectTrunk.value;
         const customerId = selectCustomer.value ? Number(selectCustomer.value) : null;
+        const planId = selectPlan.value ? Number(selectPlan.value) : null;
         const isEdit = !!editingCircuitId;
 
         if (!password) {
@@ -317,19 +354,24 @@ import Layout from "../../layouts/Layout.astro";
             return;
         }
 
+        if (!planId) {
+            showMessage('Selecione um plano.', 'error');
+            return;
+        }
+
         try {
             let res;
             if (isEdit) {
                 res = await fetch(`/api/circuit/${editingCircuitId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password, trunkName, customerId }),
+                    body: JSON.stringify({ password, trunkName, customerId, planId }),
                 });
             } else {
                 res = await fetch('/api/circuit/circuits', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password, trunkName, customerId }),
+                    body: JSON.stringify({ password, trunkName, customerId, planId }),
                 });
             }
 
@@ -393,7 +435,7 @@ import Layout from "../../layouts/Layout.astro";
                 tbody.innerHTML = "";
 
                 if (data.content.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">Nenhum circuito encontrado.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-gray-500">Nenhum circuito encontrado.</td></tr>`;
                 } else {
                     data.content.forEach(item => {
                         const tr = document.createElement("tr");
@@ -404,6 +446,7 @@ import Layout from "../../layouts/Layout.astro";
                             <td class="px-4 py-2">${item.password}</td>
                             <td class="px-4 py-2 text-gray-600">${item.trunkName || '—'}</td>
                             <td class="px-4 py-2 text-gray-600">${item.customerName || '—'}</td>
+                            <td class="px-4 py-2 text-gray-600">${item.planName || '—'}</td>
                             <td class="px-4 py-2 font-semibold ${item.online ? 'text-green-600' : 'text-red-600'}">
                                 ${item.online ? `OK (${item.rtt})` : 'Offline'}
                             </td>
