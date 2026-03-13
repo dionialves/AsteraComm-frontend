@@ -22,12 +22,14 @@ export const GET: APIRoute = async ({ cookies, url }) => {
   const disposition = url.searchParams.get("disposition");
   const from = url.searchParams.get("from");
   const to = url.searchParams.get("to");
+  const circuitNumber = url.searchParams.get("circuitNumber");
 
   if (src) query.set("src", src);
   if (dst) query.set("dst", dst);
   if (disposition) query.set("disposition", disposition);
   if (from) query.set("from", from);
   if (to) query.set("to", to);
+  if (circuitNumber) query.set("circuitNumber", circuitNumber);
 
   try {
     const response = await fetch(`${config.api.baseUrl}/calls?${query.toString()}`, {
