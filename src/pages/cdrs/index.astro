@@ -59,16 +59,17 @@ import Layout from "../../layouts/Layout.astro";
         <table id="table-cdrs" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm">
             <thead class="bg-gray-100 text-gray-900">
                 <tr class="font-semibold">
-                    <th data-field="calldate" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Data/Hora</th>
-                    <th data-field="src" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Origem</th>
-                    <th data-field="dst" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Destino</th>
-                    <th data-field="duration" class="w-1/5 px-4 py-2 text-left font-semibold cursor-pointer">Duração</th>
-                    <th class="w-1/5 px-4 py-2 text-left font-semibold">Status</th>
+                    <th data-field="callDate" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Data/Hora</th>
+                    <th data-field="callerNumber" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Origem</th>
+                    <th data-field="dst" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Destino</th>
+                    <th class="w-1/6 px-4 py-2 text-left font-semibold">Tipo</th>
+                    <th data-field="durationSeconds" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Duração</th>
+                    <th class="w-1/6 px-4 py-2 text-left font-semibold">Status</th>
                 </tr>
             </thead>
             <tbody id="tbody-cdrs" class="divide-y divide-gray-200">
                 <tr id="loading">
-                    <td colspan="5" class="py-4 px-4 text-gray-500">Carregando...</td>
+                    <td colspan="6" class="py-4 px-4 text-gray-500">Carregando...</td>
                 </tr>
             </tbody>
         </table>
@@ -101,14 +102,6 @@ import Layout from "../../layouts/Layout.astro";
                         <span id="detCalldate" class="block text-gray-800"></span>
                     </div>
                     <div>
-                        <span class="block text-xs font-medium text-gray-500 mb-1">ID do Chamador</span>
-                        <span id="detClid" class="block text-gray-800"></span>
-                    </div>
-                    <div>
-                        <span class="block text-xs font-medium text-gray-500 mb-1">Status</span>
-                        <span id="detDisposition" class="block font-semibold"></span>
-                    </div>
-                    <div>
                         <span class="block text-xs font-medium text-gray-500 mb-1">Origem</span>
                         <span id="detSrc" class="block text-gray-800"></span>
                     </div>
@@ -117,8 +110,12 @@ import Layout from "../../layouts/Layout.astro";
                         <span id="detDst" class="block text-gray-800"></span>
                     </div>
                     <div>
-                        <span class="block text-xs font-medium text-gray-500 mb-1">Contexto</span>
-                        <span id="detDcontext" class="block text-gray-800"></span>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Tipo</span>
+                        <span id="detCallType" class="block text-gray-800"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Status</span>
+                        <span id="detDisposition" class="block font-semibold"></span>
                     </div>
                     <div>
                         <span class="block text-xs font-medium text-gray-500 mb-1">Duração Total</span>
@@ -128,17 +125,9 @@ import Layout from "../../layouts/Layout.astro";
                         <span class="block text-xs font-medium text-gray-500 mb-1">Segundos Tarifados</span>
                         <span id="detBillsec" class="block text-gray-800"></span>
                     </div>
-                    <div>
-                        <span class="block text-xs font-medium text-gray-500 mb-1">Código de Conta</span>
-                        <span id="detAccountcode" class="block text-gray-800"></span>
-                    </div>
-                    <div>
-                        <span class="block text-xs font-medium text-gray-500 mb-1">Canal</span>
-                        <span id="detChannel" class="block text-gray-800 font-mono text-xs break-all"></span>
-                    </div>
-                    <div>
-                        <span class="block text-xs font-medium text-gray-500 mb-1">Canal Destino</span>
-                        <span id="detDstchannel" class="block text-gray-800 font-mono text-xs break-all"></span>
+                    <div class="col-span-2">
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Processado em</span>
+                        <span id="detProcessedAt" class="block text-gray-800"></span>
                     </div>
                 </div>
             </div>
@@ -156,7 +145,7 @@ import Layout from "../../layouts/Layout.astro";
 
     let currentPage = 0;
     let totalPages = 0;
-    let currentSortField = "calldate";
+    let currentSortField = "callDate";
     let currentSortDirection = "desc";
 
     // === Formatadores ===
@@ -181,12 +170,23 @@ import Layout from "../../layouts/Layout.astro";
 
     function dispositionLabel(d) {
         const map = {
-            "ANSWERED": { label: "Atendida", cls: "text-green-600" },
-            "NO ANSWER": { label: "Sem resposta", cls: "text-yellow-600" },
-            "BUSY": { label: "Ocupado", cls: "text-orange-600" },
-            "FAILED": { label: "Falha", cls: "text-red-600" },
+            "ANSWERED":  { label: "Atendida",     cls: "text-green-600" },
+            "NO ANSWER": { label: "Sem resposta",  cls: "text-yellow-600" },
+            "BUSY":      { label: "Ocupado",       cls: "text-orange-600" },
+            "FAILED":    { label: "Falha",         cls: "text-red-600" },
         };
         return map[d] || { label: d, cls: "text-gray-600" };
+    }
+
+    function callTypeLabel(t) {
+        const map = {
+            "FIXED_LOCAL":          "Fixo Local",
+            "MOBILE_LOCAL":         "Móvel Local",
+            "FIXED_LONG_DISTANCE":  "Fixo LD",
+            "MOBILE_LONG_DISTANCE": "Móvel LD",
+            "UNKNOWN":              "—",
+        };
+        return map[t] || t || "—";
     }
 
     // === Ordenação ===
@@ -208,24 +208,21 @@ import Layout from "../../layouts/Layout.astro";
 
     // === Modal ===
     function openModal(uniqueid) {
-        fetch(`/api/cdr/${encodeURIComponent(uniqueid)}`)
+        fetch(`/api/calls/${encodeURIComponent(uniqueid)}`)
             .then(r => r.ok ? r.json() : null)
             .then(data => {
                 if (!data) return;
                 const disp = dispositionLabel(data.disposition);
-                document.getElementById("detUniqueId").textContent = data.uniqueid || "—";
-                document.getElementById("detCalldate").textContent = formatDateTime(data.calldate);
-                document.getElementById("detClid").textContent = data.clid || "—";
+                document.getElementById("detUniqueId").textContent = data.uniqueId || "—";
+                document.getElementById("detCalldate").textContent = formatDateTime(data.callDate);
+                document.getElementById("detSrc").textContent = data.callerNumber || "—";
+                document.getElementById("detDst").textContent = data.dst || "—";
+                document.getElementById("detCallType").textContent = callTypeLabel(data.callType);
                 document.getElementById("detDisposition").textContent = disp.label;
                 document.getElementById("detDisposition").className = `block font-semibold ${disp.cls}`;
-                document.getElementById("detSrc").textContent = data.src || "—";
-                document.getElementById("detDst").textContent = data.dst || "—";
-                document.getElementById("detDcontext").textContent = data.dcontext || "—";
-                document.getElementById("detDuration").textContent = formatDuration(data.duration);
-                document.getElementById("detBillsec").textContent = formatDuration(data.billsec);
-                document.getElementById("detAccountcode").textContent = data.accountcode || "—";
-                document.getElementById("detChannel").textContent = data.channel || "—";
-                document.getElementById("detDstchannel").textContent = data.dstchannel || "—";
+                document.getElementById("detDuration").textContent = formatDuration(data.durationSeconds);
+                document.getElementById("detBillsec").textContent = formatDuration(data.billSeconds);
+                document.getElementById("detProcessedAt").textContent = formatDateTime(data.processedAt);
 
                 modal.classList.remove("hidden");
                 modalOverlay.classList.remove("hidden");
@@ -265,7 +262,7 @@ import Layout from "../../layouts/Layout.astro";
         if (from) query.set("from", from + ":00");
         if (to) query.set("to", to + ":00");
 
-        fetch(`/api/cdr/cdrs?${query.toString()}`)
+        fetch(`/api/calls/calls?${query.toString()}`)
             .then(res => {
                 if (!res.ok) throw new Error("Erro na resposta da API");
                 return res.json();
@@ -279,17 +276,18 @@ import Layout from "../../layouts/Layout.astro";
                 tbody.innerHTML = "";
 
                 if (data.content.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhuma ligação encontrada.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">Nenhuma ligação encontrada.</td></tr>`;
                 } else {
                     data.content.forEach(item => {
                         const disp = dispositionLabel(item.disposition);
                         const tr = document.createElement("tr");
                         tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
                         tr.innerHTML = `
-                            <td class="px-4 py-2">${formatDateTime(item.calldate)}</td>
-                            <td class="px-4 py-2">${item.src || "—"}</td>
+                            <td class="px-4 py-2">${formatDateTime(item.callDate)}</td>
+                            <td class="px-4 py-2">${item.callerNumber || "—"}</td>
                             <td class="px-4 py-2">${item.dst || "—"}</td>
-                            <td class="px-4 py-2">${formatDuration(item.duration)}</td>
+                            <td class="px-4 py-2 text-gray-500">${callTypeLabel(item.callType)}</td>
+                            <td class="px-4 py-2">${formatDuration(item.durationSeconds)}</td>
                             <td class="px-4 py-2 font-semibold ${disp.cls}">${disp.label}</td>
                         `;
                         tr.addEventListener("click", () => openModal(item.uniqueId));
@@ -300,7 +298,7 @@ import Layout from "../../layouts/Layout.astro";
                 pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
             })
             .catch(err => {
-                loading.innerHTML = `<td colspan="5" class="py-4 px-4 text-red-500">Erro ao carregar dados.</td>`;
+                loading.innerHTML = `<td colspan="6" class="py-4 px-4 text-red-500">Erro ao carregar dados.</td>`;
                 console.error(err);
             });
     }
