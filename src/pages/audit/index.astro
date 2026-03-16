@@ -107,15 +107,15 @@ import Layout from "@/layouts/Layout.astro";
           <div id="sumCalls" class="text-xl font-bold text-gray-800">—</div>
         </div>
         <div class="bg-gray-50 rounded-lg p-4">
-          <div class="text-xs text-gray-500 mb-1">Total Minutos</div>
+          <div class="text-xs text-gray-500 mb-1">Tempo Faturável</div>
           <div id="sumMinutes" class="text-xl font-bold text-gray-800">—</div>
         </div>
         <div class="bg-indigo-50 rounded-lg p-4">
-          <div class="text-xs text-indigo-500 mb-1">Min. Pacote Usados</div>
+          <div class="text-xs text-indigo-500 mb-1">Tempo do Pacote</div>
           <div id="sumQuota" class="text-xl font-bold text-indigo-700">—</div>
         </div>
         <div class="bg-orange-50 rounded-lg p-4">
-          <div class="text-xs text-orange-500 mb-1">Min. Excedentes</div>
+          <div class="text-xs text-orange-500 mb-1">Tempo Excedente</div>
           <div id="sumExcess" class="text-xl font-bold text-orange-700">—</div>
         </div>
         <div class="bg-green-50 rounded-lg p-4">
@@ -187,6 +187,14 @@ import Layout from "@/layouts/Layout.astro";
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}m ${String(s).padStart(2, "0")}s`;
+  }
+
+  /** Converte frações de 30s para exibição legível (ex.: 3 frações = 1m 30s) */
+  function formatFractions(fractions: number) {
+    const totalSeconds = fractions * 30;
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return s === 0 ? `${m} min` : `${m}m ${String(s).padStart(2, "0")}s`;
   }
 
   function formatCurrency(value: number) {
@@ -271,10 +279,10 @@ import Layout from "@/layouts/Layout.astro";
         <td class="px-4 py-2 text-right text-gray-600">${formatDuration(line.billSeconds)}</td>
         <td class="px-4 py-2 text-right font-mono text-gray-600">${parseFloat(line.ratePerMinute).toFixed(4)}</td>
         <td class="px-4 py-2 text-right font-mono ${coveredByQuota ? "text-indigo-600 font-semibold" : "text-gray-400"}">
-          ${line.quotaUsedThisCall > 0 ? `+${line.quotaUsedThisCall} min` : "—"}
+          ${line.quotaUsedThisCall > 0 ? `+${formatFractions(line.quotaUsedThisCall)}` : "—"}
         </td>
         <td class="px-4 py-2 text-right font-mono text-indigo-500">
-          ${line.quotaAccumulated > 0 ? `${line.quotaAccumulated} min` : "—"}
+          ${line.quotaAccumulated > 0 ? formatFractions(line.quotaAccumulated) : "—"}
         </td>
         <td class="px-4 py-2 text-right font-semibold ${fullyFree ? "text-indigo-400" : "text-gray-800"}">
           ${formatCurrency(parseFloat(line.cost))}
@@ -315,9 +323,9 @@ import Layout from "@/layouts/Layout.astro";
 
     const s = data.summary;
     document.getElementById("sumCalls")!.textContent   = s.totalCalls;
-    document.getElementById("sumMinutes")!.textContent = `${s.totalMinutes} min`;
-    document.getElementById("sumQuota")!.textContent   = `${s.quotaMinutesUsed} min`;
-    document.getElementById("sumExcess")!.textContent  = `${s.excessMinutes} min`;
+    document.getElementById("sumMinutes")!.textContent = formatFractions(s.totalMinutes);
+    document.getElementById("sumQuota")!.textContent   = formatFractions(s.quotaMinutesUsed);
+    document.getElementById("sumExcess")!.textContent  = formatFractions(s.excessMinutes);
     document.getElementById("sumCost")!.textContent    = formatCurrency(parseFloat(s.totalCost));
 
     document.getElementById("resultContainer")!.classList.remove("hidden");
