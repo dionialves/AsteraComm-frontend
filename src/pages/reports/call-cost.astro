@@ -1,0 +1,345 @@
+---
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout title="Custo por Circuito — AsteraComm">
+
+  <div class="mb-6">
+    <div class="flex items-center gap-2 text-sm text-gray-400 mb-2">
+      <a href="/reports" class="hover:text-indigo-600 transition">Relatórios</a>
+      <span>/</span>
+      <span class="text-gray-600">Custo por Circuito</span>
+    </div>
+    <h1 class="text-2xl font-bold text-gray-800">Custo de Ligações por Circuito</h1>
+    <p class="text-sm text-gray-500 mt-1">
+      Exibe o total de ligações, minutos consumidos e custo excedente gerado por cada circuito no mês selecionado.
+    </p>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="flex flex-wrap gap-4 items-end">
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Mês</label>
+        <select id="selectMonth" class="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
+          <option value="1">Janeiro</option>
+          <option value="2">Fevereiro</option>
+          <option value="3">Março</option>
+          <option value="4">Abril</option>
+          <option value="5">Maio</option>
+          <option value="6">Junho</option>
+          <option value="7">Julho</option>
+          <option value="8">Agosto</option>
+          <option value="9">Setembro</option>
+          <option value="10">Outubro</option>
+          <option value="11">Novembro</option>
+          <option value="12">Dezembro</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Ano</label>
+        <select id="selectYear" class="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
+        </select>
+      </div>
+
+      <div class="flex items-center gap-2 pb-0.5">
+        <input type="checkbox" id="checkOnlyWithCost"
+          class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer" />
+        <label for="checkOnlyWithCost" class="text-sm text-gray-700 cursor-pointer select-none">
+          Apenas com custo
+        </label>
+      </div>
+
+      <button id="btnProcess"
+        class="px-5 py-2 bg-indigo-600 text-white rounded text-sm font-semibold hover:bg-indigo-700 transition disabled:opacity-50">
+        Processar
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div id="statusMsg" class="hidden px-4 py-3 rounded text-sm mb-4"></div>
+
+  <!-- Resultado -->
+  <div id="resultContainer" class="hidden">
+
+    <!-- Botão PDF -->
+    <div class="flex justify-end mb-3">
+      <button id="btnPdf"
+        class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition shadow-sm">
+        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Baixar PDF
+      </button>
+    </div>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-zinc-800 text-gray-300 text-xs uppercase tracking-wide">
+            <tr>
+              <th class="px-4 py-3">Cliente</th>
+              <th class="px-4 py-3">Circuito</th>
+              <th class="px-4 py-3 text-right">Ligações</th>
+              <th class="px-4 py-3 text-right">Minutos</th>
+              <th class="px-4 py-3 text-right">Custo (R$)</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-gray-100 text-gray-700"></tbody>
+        </table>
+      </div>
+      <div id="emptyMsg" class="hidden text-center text-gray-400 text-sm py-10">
+        Nenhum circuito com ligações no período informado.
+      </div>
+    </div>
+
+    <!-- Totalizador -->
+    <div id="totalsRow" class="hidden mt-4 bg-white rounded-lg shadow px-6 py-4 flex flex-wrap gap-8 text-sm text-gray-700">
+      <div>
+        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total de circuitos</span><br />
+        <span id="totalCircuits" class="text-xl font-bold text-gray-800">—</span>
+      </div>
+      <div>
+        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total de ligações</span><br />
+        <span id="totalCalls" class="text-xl font-bold text-gray-800">—</span>
+      </div>
+      <div>
+        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total de minutos</span><br />
+        <span id="totalMinutes" class="text-xl font-bold text-gray-800">—</span>
+      </div>
+      <div>
+        <span class="text-xs font-semibold text-green-600 uppercase tracking-wide">Custo total</span><br />
+        <span id="totalCost" class="text-xl font-bold text-green-700">—</span>
+      </div>
+    </div>
+
+  </div>
+
+</Layout>
+
+<script>
+  import jsPDF from "jspdf";
+  import autoTable from "jspdf-autotable";
+
+  const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+  // Estado do relatório atual
+  let currentRows: any[] = [];
+  let currentMonth = "";
+  let currentYear  = "";
+  let currentOnlyWithCost = false;
+
+  // ── Preencher seletor de ano ────────────────────────────────────────────────
+  const selectYear  = document.getElementById("selectYear")  as HTMLSelectElement;
+  const selectMonth = document.getElementById("selectMonth") as HTMLSelectElement;
+  const now = new Date();
+
+  for (let y = now.getFullYear(); y >= now.getFullYear() - 3; y--) {
+    const opt = document.createElement("option");
+    opt.value = String(y);
+    opt.textContent = String(y);
+    selectYear.appendChild(opt);
+  }
+
+  selectMonth.value = String(now.getMonth() + 1);
+
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+  function formatCurrency(value: number) {
+    return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  function showStatus(msg: string, type: "info" | "error") {
+    const el = document.getElementById("statusMsg")!;
+    el.textContent = msg;
+    el.className = `px-4 py-3 rounded text-sm mb-4 ${
+      type === "error" ? "bg-red-100 text-red-700" : "bg-blue-50 text-blue-700"
+    }`;
+  }
+
+  function hideStatus() {
+    document.getElementById("statusMsg")!.classList.add("hidden");
+  }
+
+  // ── Processar ───────────────────────────────────────────────────────────────
+  document.getElementById("btnProcess")!.addEventListener("click", async () => {
+    const month        = selectMonth.value;
+    const year         = selectYear.value;
+    const onlyWithCost = (document.getElementById("checkOnlyWithCost") as HTMLInputElement).checked;
+
+    const btn = document.getElementById("btnProcess") as HTMLButtonElement;
+    btn.disabled = true;
+    showStatus("Processando...", "info");
+    document.getElementById("resultContainer")!.classList.add("hidden");
+
+    try {
+      const params = new URLSearchParams({ month, year, onlyWithCost: String(onlyWithCost) });
+      const res = await fetch(`/api/reports/call-cost?${params.toString()}`);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showStatus(err.message ?? "Erro ao gerar relatório.", "error");
+        return;
+      }
+
+      const data: any[] = await res.json();
+      currentRows         = data;
+      currentMonth        = month;
+      currentYear         = year;
+      currentOnlyWithCost = onlyWithCost;
+
+      hideStatus();
+      renderResult(data);
+    } catch {
+      showStatus("Erro ao comunicar com o servidor.", "error");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ── Gerar PDF ────────────────────────────────────────────────────────────────
+  document.getElementById("btnPdf")!.addEventListener("click", () => {
+    const mesNome = MESES[parseInt(currentMonth) - 1];
+    const filtroTexto = currentOnlyWithCost ? "Apenas circuitos com custo" : "Todos os circuitos com ligações";
+
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const pageW = doc.internal.pageSize.getWidth();
+
+    // ── Header ──────────────────────────────────────────────────────────────
+    // Linha azul/índigo no topo
+    doc.setFillColor(63, 63, 70); // zinc-700
+    doc.rect(0, 0, pageW, 18, "F");
+
+    // Logo — carrega a imagem do servidor
+    const img = new Image();
+    img.src = "/images/logo.png";
+    img.onload = () => {
+      // Proporção da logo mantida em altura 10mm
+      const ratio = img.naturalWidth / img.naturalHeight;
+      const imgH  = 10;
+      const imgW  = imgH * ratio;
+      doc.addImage(img, "PNG", 8, 4, imgW, imgH);
+
+      // Título à direita
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(13);
+      doc.setFont("helvetica", "bold");
+      doc.text("Relatório — Custo de Ligações por Circuito", pageW - 8, 10, { align: "right" });
+
+      // Sub-linha com filtros
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(209, 213, 219); // gray-300
+      doc.text(
+        `Periodo: ${mesNome} / ${currentYear}   |   Filtro: ${filtroTexto}   |   Gerado em: ${new Date().toLocaleString("pt-BR")}`,
+        pageW - 8, 15, { align: "right" }
+      );
+
+      // ── Tabela ─────────────────────────────────────────────────────────────
+      let sumCalls = 0, sumMinutes = 0, sumCost = 0;
+      const body = currentRows.map(row => {
+        const cost = parseFloat(row.totalCost);
+        sumCalls   += row.callCount;
+        sumMinutes += row.totalMinutes;
+        sumCost    += cost;
+        return [
+          row.customerName,
+          row.circuitName,
+          row.callCount,
+          row.totalMinutes,
+          formatCurrency(cost),
+        ];
+      });
+
+      autoTable(doc, {
+        startY: 22,
+        head: [["Cliente", "Circuito", "Ligações", "Minutos", "Custo (R$)"]],
+        body,
+        foot: [[
+          { content: `${currentRows.length} circuito(s)`, colSpan: 2, styles: { halign: "left" } },
+          String(sumCalls),
+          String(sumMinutes),
+          formatCurrency(sumCost),
+        ]],
+        headStyles: {
+          fillColor: [39, 39, 42],   // zinc-800
+          textColor: [209, 213, 219],
+          fontStyle: "bold",
+          fontSize: 9,
+        },
+        footStyles: {
+          fillColor: [243, 244, 246], // gray-100
+          textColor: [55, 65, 81],    // gray-700
+          fontStyle: "bold",
+          fontSize: 9,
+        },
+        bodyStyles: { fontSize: 9, textColor: [55, 65, 81] },
+        alternateRowStyles: { fillColor: [249, 250, 251] }, // gray-50
+        columnStyles: {
+          0: { cellWidth: "auto" },
+          1: { cellWidth: 35, fontStyle: "normal" },
+          2: { halign: "right", cellWidth: 22 },
+          3: { halign: "right", cellWidth: 22 },
+          4: { halign: "right", cellWidth: 32 },
+        },
+        margin: { left: 8, right: 8 },
+        showFoot: "lastPage",
+      });
+
+      const mesSlug = mesNome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      doc.save(`relatorio-custo-${mesSlug}-${currentYear}.pdf`);
+    };
+  });
+
+  // ── Renderizar tabela na tela ────────────────────────────────────────────────
+  function renderResult(rows: any[]) {
+    const tbody     = document.getElementById("tableBody")!;
+    const emptyMsg  = document.getElementById("emptyMsg")!;
+    const totalsRow = document.getElementById("totalsRow")!;
+
+    tbody.innerHTML = "";
+
+    if (rows.length === 0) {
+      emptyMsg.classList.remove("hidden");
+      totalsRow.classList.add("hidden");
+      document.getElementById("resultContainer")!.classList.remove("hidden");
+      return;
+    }
+
+    emptyMsg.classList.add("hidden");
+
+    let sumCalls = 0, sumMinutes = 0, sumCost = 0;
+
+    for (const row of rows) {
+      const cost = parseFloat(row.totalCost);
+      sumCalls   += row.callCount;
+      sumMinutes += row.totalMinutes;
+      sumCost    += cost;
+
+      const tr = document.createElement("tr");
+      tr.className = "hover:bg-gray-50";
+      tr.innerHTML = `
+        <td class="px-4 py-3">${row.customerName}</td>
+        <td class="px-4 py-3 font-mono text-gray-500">${row.circuitName}</td>
+        <td class="px-4 py-3 text-right">${row.callCount}</td>
+        <td class="px-4 py-3 text-right">${row.totalMinutes}</td>
+        <td class="px-4 py-3 text-right font-semibold ${cost > 0 ? "text-gray-800" : "text-gray-400"}">
+          ${formatCurrency(cost)}
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    document.getElementById("totalCircuits")!.textContent = String(rows.length);
+    document.getElementById("totalCalls")!.textContent    = String(sumCalls);
+    document.getElementById("totalMinutes")!.textContent  = String(sumMinutes);
+    document.getElementById("totalCost")!.textContent     = formatCurrency(sumCost);
+
+    totalsRow.classList.remove("hidden");
+    document.getElementById("resultContainer")!.classList.remove("hidden");
+  }
+</script>
