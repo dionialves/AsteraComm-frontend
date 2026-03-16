@@ -72,11 +72,13 @@ import Layout from "../../layouts/Layout.astro";
                     <th class="px-4 py-2 text-left font-semibold">Tipo</th>
                     <th data-field="durationSeconds" class="px-4 py-2 text-left font-semibold cursor-pointer">Duração</th>
                     <th class="px-4 py-2 text-left font-semibold">Status</th>
+                    <th class="px-4 py-2 text-left font-semibold">Custeio</th>
+                    <th class="px-4 py-2 text-right font-semibold">Valor</th>
                 </tr>
             </thead>
             <tbody id="tbody-cdrs" class="divide-y divide-gray-200">
                 <tr id="loading">
-                    <td colspan="7" class="py-4 px-4 text-gray-500">Carregando...</td>
+                    <td colspan="9" class="py-4 px-4 text-gray-500">Carregando...</td>
                 </tr>
             </tbody>
         </table>
@@ -136,6 +138,14 @@ import Layout from "../../layouts/Layout.astro";
                         <span class="block text-xs font-medium text-gray-500 mb-1">Segundos Tarifados</span>
                         <span id="detBillsec" class="block text-gray-800"></span>
                     </div>
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Status Custeio</span>
+                        <span id="detCallStatus" class="block font-semibold"></span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-gray-500 mb-1">Valor</span>
+                        <span id="detCost" class="block text-gray-800 font-mono"></span>
+                    </div>
                     <div class="col-span-2">
                         <span class="block text-xs font-medium text-gray-500 mb-1">Processado em</span>
                         <span id="detProcessedAt" class="block text-gray-800"></span>
@@ -189,6 +199,21 @@ import Layout from "../../layouts/Layout.astro";
         return map[d] || { label: d, cls: "text-gray-600" };
     }
 
+    function callStatusLabel(s) {
+        const map = {
+            "PROCESSED":    { label: "Processado",    cls: "text-green-600" },
+            "NO_CIRCUIT":   { label: "Sem circuito",  cls: "text-gray-500" },
+            "NO_PLAN":      { label: "Sem plano",     cls: "text-orange-500" },
+            "OUT_OF_SCOPE": { label: "Fora de escopo", cls: "text-blue-500" },
+        };
+        return map[s] || { label: s || "—", cls: "text-gray-400" };
+    }
+
+    function formatCost(value) {
+        if (value == null) return "—";
+        return Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
     function callTypeLabel(t) {
         const map = {
             "FIXED_LOCAL":          "Fixo Local",
@@ -234,6 +259,10 @@ import Layout from "../../layouts/Layout.astro";
                 document.getElementById("detDisposition").className = `block font-semibold ${disp.cls}`;
                 document.getElementById("detDuration").textContent = formatDuration(data.durationSeconds);
                 document.getElementById("detBillsec").textContent = formatDuration(data.billSeconds);
+                const cs = callStatusLabel(data.callStatus);
+                document.getElementById("detCallStatus").textContent = cs.label;
+                document.getElementById("detCallStatus").className = `block font-semibold ${cs.cls}`;
+                document.getElementById("detCost").textContent = formatCost(data.cost);
                 document.getElementById("detProcessedAt").textContent = formatDateTime(data.processedAt);
 
                 modal.classList.remove("hidden");
@@ -290,13 +319,14 @@ import Layout from "../../layouts/Layout.astro";
                 tbody.innerHTML = "";
 
                 if (data.content.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-gray-500">Nenhuma ligação encontrada.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-gray-500">Nenhuma ligação encontrada.</td></tr>`;
                 } else {
                     data.content.forEach(item => {
                         const disp = dispositionLabel(item.disposition);
                         const circuitNumber = item.circuit?.number || "—";
                         const tr = document.createElement("tr");
                         tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
+                        const cs = callStatusLabel(item.callStatus);
                         tr.innerHTML = `
                             <td class="px-4 py-2">${formatDateTime(item.callDate)}</td>
                             <td class="px-4 py-2">${item.callerNumber || "—"}</td>
@@ -305,6 +335,8 @@ import Layout from "../../layouts/Layout.astro";
                             <td class="px-4 py-2 text-gray-500">${callTypeLabel(item.callType)}</td>
                             <td class="px-4 py-2">${formatDuration(item.durationSeconds)}</td>
                             <td class="px-4 py-2 font-semibold ${disp.cls}">${disp.label}</td>
+                            <td class="px-4 py-2 font-semibold ${cs.cls}">${cs.label}</td>
+                            <td class="px-4 py-2 text-right font-mono">${formatCost(item.cost)}</td>
                         `;
                         tr.addEventListener("click", () => openModal(item.uniqueId));
                         tbody.appendChild(tr);
@@ -314,7 +346,7 @@ import Layout from "../../layouts/Layout.astro";
                 pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
             })
             .catch(err => {
-                loading.innerHTML = `<td colspan="6" class="py-4 px-4 text-red-500">Erro ao carregar dados.</td>`;
+                loading.innerHTML = `<td colspan="9" class="py-4 px-4 text-red-500">Erro ao carregar dados.</td>`;
                 console.error(err);
             });
     }
