@@ -333,7 +333,7 @@ import Layout from "../../layouts/Layout.astro";
                             <td class="px-4 py-2">${item.dst || "—"}</td>
                             <td class="px-4 py-2 font-mono text-xs">${circuitNumber}</td>
                             <td class="px-4 py-2 text-gray-500">${callTypeLabel(item.callType)}</td>
-                            <td class="px-4 py-2">${formatDuration(item.durationSeconds)}</td>
+                            <td class="px-4 py-2">${formatDuration(item.billSeconds)}</td>
                             <td class="px-4 py-2 font-semibold ${disp.cls}">${disp.label}</td>
                             <td class="px-4 py-2 font-semibold ${cs.cls}">${cs.label}</td>
                             <td class="px-4 py-2 text-right font-mono">${formatCost(item.cost)}</td>

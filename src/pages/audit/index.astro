@@ -1,0 +1,325 @@
+---
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout title="Auditoria de Custo — AsteraComm">
+
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Auditoria de Custo de Ligações</h1>
+    <p class="text-sm text-gray-500 mt-1">Simula o cálculo de custo chamada a chamada para validar a lógica de billing.</p>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="flex flex-wrap gap-4 items-end">
+
+      <div class="flex flex-col gap-1 min-w-[220px]">
+        <label class="text-sm font-medium text-gray-700">Circuito</label>
+        <select id="selectCircuit" class="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
+          <option value="">Carregando circuitos...</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Mês</label>
+        <select id="selectMonth" class="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
+          <option value="1">Janeiro</option>
+          <option value="2">Fevereiro</option>
+          <option value="3">Março</option>
+          <option value="4">Abril</option>
+          <option value="5">Maio</option>
+          <option value="6">Junho</option>
+          <option value="7">Julho</option>
+          <option value="8">Agosto</option>
+          <option value="9">Setembro</option>
+          <option value="10">Outubro</option>
+          <option value="11">Novembro</option>
+          <option value="12">Dezembro</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Ano</label>
+        <select id="selectYear" class="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
+        </select>
+      </div>
+
+      <button id="btnProcess"
+        class="px-5 py-2 bg-indigo-600 text-white rounded text-sm font-semibold hover:bg-indigo-700 transition disabled:opacity-50">
+        Processar
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Estado de carregamento / erro -->
+  <div id="statusMsg" class="hidden px-4 py-3 rounded text-sm mb-4"></div>
+
+  <!-- Resultado -->
+  <div id="resultContainer" class="hidden">
+
+    <!-- Cabeçalho do resultado -->
+    <div class="bg-white rounded-lg shadow px-6 py-4 mb-4 flex flex-wrap gap-6 text-sm text-gray-700">
+      <div><span class="font-semibold text-gray-500 uppercase text-xs tracking-wide">Circuito</span><br /><span id="resCircuit" class="text-base font-bold text-gray-800"></span></div>
+      <div><span class="font-semibold text-gray-500 uppercase text-xs tracking-wide">Plano</span><br /><span id="resPlan" class="text-base font-bold text-gray-800"></span></div>
+      <div><span class="font-semibold text-gray-500 uppercase text-xs tracking-wide">Período</span><br /><span id="resPeriod" class="text-base font-bold text-gray-800"></span></div>
+    </div>
+
+    <!-- Toggle de filtro -->
+    <div class="flex items-center gap-3 mb-3">
+      <label class="relative inline-flex items-center cursor-pointer">
+        <input type="checkbox" id="toggleRelevant" class="sr-only peer" />
+        <div class="w-10 h-6 bg-gray-300 rounded-full peer peer-checked:bg-indigo-600 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-4"></div>
+      </label>
+      <span class="text-sm text-gray-600">Exibir apenas chamadas relevantes <span class="text-gray-400">(consumiram pacote ou geraram custo)</span></span>
+      <span id="filterCount" class="hidden text-xs text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full"></span>
+    </div>
+
+    <!-- Tabela de ligações -->
+    <div class="bg-white rounded-lg shadow overflow-hidden mb-4">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-zinc-800 text-gray-300 text-xs uppercase tracking-wide">
+            <tr>
+              <th class="px-4 py-3">Data/Hora</th>
+              <th class="px-4 py-3">Destino</th>
+              <th class="px-4 py-3">Tipo</th>
+              <th class="px-4 py-3 text-right">Duração</th>
+              <th class="px-4 py-3 text-right">Tarifa R$/min</th>
+              <th class="px-4 py-3 text-right">Min. Pacote</th>
+              <th class="px-4 py-3 text-right">Acumulado Pacote</th>
+              <th class="px-4 py-3 text-right">Custo</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-gray-100 text-gray-700">
+          </tbody>
+        </table>
+      </div>
+      <div id="emptyMsg" class="hidden text-center text-gray-400 text-sm py-10">Nenhuma ligação processada encontrada no período.</div>
+    </div>
+
+    <!-- Resumo -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Resumo do Período</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
+        <div class="bg-gray-50 rounded-lg p-4">
+          <div class="text-xs text-gray-500 mb-1">Total Ligações</div>
+          <div id="sumCalls" class="text-xl font-bold text-gray-800">—</div>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-4">
+          <div class="text-xs text-gray-500 mb-1">Total Minutos</div>
+          <div id="sumMinutes" class="text-xl font-bold text-gray-800">—</div>
+        </div>
+        <div class="bg-indigo-50 rounded-lg p-4">
+          <div class="text-xs text-indigo-500 mb-1">Min. Pacote Usados</div>
+          <div id="sumQuota" class="text-xl font-bold text-indigo-700">—</div>
+        </div>
+        <div class="bg-orange-50 rounded-lg p-4">
+          <div class="text-xs text-orange-500 mb-1">Min. Excedentes</div>
+          <div id="sumExcess" class="text-xl font-bold text-orange-700">—</div>
+        </div>
+        <div class="bg-green-50 rounded-lg p-4">
+          <div class="text-xs text-green-600 mb-1">Custo Total</div>
+          <div id="sumCost" class="text-xl font-bold text-green-700">—</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</Layout>
+
+<script>
+  const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+  const CALL_TYPE_LABEL: Record<string, string> = {
+    FIXED_LOCAL:          "Fixo Local",
+    FIXED_LONG_DISTANCE:  "Fixo DDD",
+    MOBILE_LOCAL:         "Móvel Local",
+    MOBILE_LONG_DISTANCE: "Móvel DDD",
+    UNKNOWN:              "Desconhecido",
+  };
+
+  // ── Preencher seletor de ano ──────────────────────────────────────────────
+  const selectYear = document.getElementById("selectYear") as HTMLSelectElement;
+  const now = new Date();
+  for (let y = now.getFullYear(); y >= now.getFullYear() - 3; y--) {
+    const opt = document.createElement("option");
+    opt.value = String(y);
+    opt.textContent = String(y);
+    selectYear.appendChild(opt);
+  }
+
+  // Pré-selecionar mês corrente
+  const selectMonth = document.getElementById("selectMonth") as HTMLSelectElement;
+  selectMonth.value = String(now.getMonth() + 1);
+
+  // ── Carregar circuitos ────────────────────────────────────────────────────
+  const selectCircuit = document.getElementById("selectCircuit") as HTMLSelectElement;
+
+  async function loadCircuits() {
+    try {
+      const res = await fetch("/api/circuit/circuits?size=1000&sort=id,asc&search=");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const items = data.content ?? [];
+      selectCircuit.innerHTML = items.length === 0
+        ? `<option value="">Nenhum circuito cadastrado</option>`
+        : `<option value="">Selecione um circuito</option>` +
+          items.map((c: any) => `<option value="${c.id}">${c.id} — ${c.customerName ?? ""}</option>`).join("");
+    } catch {
+      selectCircuit.innerHTML = `<option value="">Erro ao carregar circuitos</option>`;
+    }
+  }
+
+  loadCircuits();
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function formatDate(iso: string) {
+    const d = new Date(iso);
+    return d.toLocaleString("pt-BR", {
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+    });
+  }
+
+  function formatDuration(seconds: number) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}m ${String(s).padStart(2, "0")}s`;
+  }
+
+  function formatCurrency(value: number) {
+    return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 3 });
+  }
+
+  function showStatus(msg: string, type: "info" | "error") {
+    const el = document.getElementById("statusMsg")!;
+    el.textContent = msg;
+    el.className = `px-4 py-3 rounded text-sm mb-4 ${type === "error" ? "bg-red-100 text-red-700" : "bg-blue-50 text-blue-700"}`;
+  }
+
+  function hideStatus() {
+    document.getElementById("statusMsg")!.classList.add("hidden");
+  }
+
+  // ── Processar ─────────────────────────────────────────────────────────────
+  document.getElementById("btnProcess")!.addEventListener("click", async () => {
+    const circuitNumber = selectCircuit.value;
+    const month         = selectMonth.value;
+    const year          = selectYear.value;
+
+    if (!circuitNumber) {
+      showStatus("Selecione um circuito.", "error");
+      return;
+    }
+
+    const btn = document.getElementById("btnProcess") as HTMLButtonElement;
+    btn.disabled = true;
+    showStatus("Processando...", "info");
+    document.getElementById("resultContainer")!.classList.add("hidden");
+
+    try {
+      const params = new URLSearchParams({ circuitNumber, month, year });
+      const res = await fetch(`/api/audit/simulate?${params.toString()}`);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showStatus(err.message ?? "Erro ao processar auditoria.", "error");
+        return;
+      }
+
+      const data = await res.json();
+      hideStatus();
+      renderResult(data);
+    } catch {
+      showStatus("Erro ao comunicar com o servidor.", "error");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ── Estado global das linhas ──────────────────────────────────────────────
+  let allLines: any[] = [];
+
+  function isRelevant(line: any) {
+    return line.quotaUsedThisCall > 0 || parseFloat(line.cost) > 0;
+  }
+
+  function renderLines(lines: any[]) {
+    const tbody    = document.getElementById("tableBody")!;
+    const emptyMsg = document.getElementById("emptyMsg")!;
+    tbody.innerHTML = "";
+
+    if (lines.length === 0) {
+      emptyMsg.classList.remove("hidden");
+      return;
+    }
+    emptyMsg.classList.add("hidden");
+
+    for (const line of lines) {
+      const coveredByQuota = line.quotaUsedThisCall > 0;
+      const fullyFree      = parseFloat(line.cost) === 0;
+
+      const tr = document.createElement("tr");
+      tr.className = `hover:bg-gray-50 ${fullyFree && coveredByQuota ? "bg-indigo-50/40" : ""}`;
+
+      tr.innerHTML = `
+        <td class="px-4 py-2 whitespace-nowrap text-gray-600">${formatDate(line.callDate)}</td>
+        <td class="px-4 py-2 font-mono">${line.dst}</td>
+        <td class="px-4 py-2">${CALL_TYPE_LABEL[line.callType] ?? line.callType}</td>
+        <td class="px-4 py-2 text-right text-gray-600">${formatDuration(line.billSeconds)}</td>
+        <td class="px-4 py-2 text-right font-mono text-gray-600">${parseFloat(line.ratePerMinute).toFixed(4)}</td>
+        <td class="px-4 py-2 text-right font-mono ${coveredByQuota ? "text-indigo-600 font-semibold" : "text-gray-400"}">
+          ${line.quotaUsedThisCall > 0 ? `+${line.quotaUsedThisCall} min` : "—"}
+        </td>
+        <td class="px-4 py-2 text-right font-mono text-indigo-500">
+          ${line.quotaAccumulated > 0 ? `${line.quotaAccumulated} min` : "—"}
+        </td>
+        <td class="px-4 py-2 text-right font-semibold ${fullyFree ? "text-indigo-400" : "text-gray-800"}">
+          ${formatCurrency(parseFloat(line.cost))}
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  // ── Toggle dinâmico ───────────────────────────────────────────────────────
+  const toggleRelevant  = document.getElementById("toggleRelevant") as HTMLInputElement;
+  const filterCount     = document.getElementById("filterCount")!;
+
+  toggleRelevant.addEventListener("change", () => {
+    const filtered = toggleRelevant.checked ? allLines.filter(isRelevant) : allLines;
+    renderLines(filtered);
+    if (toggleRelevant.checked) {
+      filterCount.textContent = `${filtered.length} de ${allLines.length}`;
+      filterCount.classList.remove("hidden");
+    } else {
+      filterCount.classList.add("hidden");
+    }
+  });
+
+  // ── Renderizar resultado ──────────────────────────────────────────────────
+  function renderResult(data: any) {
+    document.getElementById("resCircuit")!.textContent = data.circuitNumber;
+    document.getElementById("resPlan")!.textContent    = data.planName;
+    document.getElementById("resPeriod")!.textContent  = `${MESES[data.month - 1]} / ${data.year}`;
+
+    allLines = data.lines ?? [];
+
+    // Resetar toggle ao carregar novo resultado
+    toggleRelevant.checked = false;
+    filterCount.classList.add("hidden");
+
+    renderLines(allLines);
+
+    const s = data.summary;
+    document.getElementById("sumCalls")!.textContent   = s.totalCalls;
+    document.getElementById("sumMinutes")!.textContent = `${s.totalMinutes} min`;
+    document.getElementById("sumQuota")!.textContent   = `${s.quotaMinutesUsed} min`;
+    document.getElementById("sumExcess")!.textContent  = `${s.excessMinutes} min`;
+    document.getElementById("sumCost")!.textContent    = formatCurrency(parseFloat(s.totalCost));
+
+    document.getElementById("resultContainer")!.classList.remove("hidden");
+  }
+</script>
