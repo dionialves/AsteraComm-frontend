@@ -170,7 +170,7 @@ import Layout from "@/layouts/Layout.astro";
       selectCircuit.innerHTML = items.length === 0
         ? `<option value="">Nenhum circuito cadastrado</option>`
         : `<option value="">Selecione um circuito</option>` +
-          items.map((c: any) => `<option value="${c.id}">${c.id} — ${c.customerName ?? ""}</option>`).join("");
+          items.map((c: any) => `<option value="${c.number}">${c.number} — ${c.customerName ?? ""}</option>`).join("");
     } catch {
       selectCircuit.innerHTML = `<option value="">Erro ao carregar circuitos</option>`;
     }
