@@ -40,6 +40,21 @@ import Layout from "../../layouts/Layout.astro";
           class="w-28 px-3 py-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-500 cursor-not-allowed" />
       </div>
 
+      <!-- Ativo -->
+      <div class="flex items-center py-3 gap-4">
+        <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Ativo</span>
+        <div class="flex items-center gap-4 text-sm text-gray-700">
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="radio" id="activeTrue" name="active" value="true" checked class="accent-green-600" />
+            Sim
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="radio" id="activeFalse" name="active" value="false" class="accent-red-500" />
+            Não
+          </label>
+        </div>
+      </div>
+
       <!-- Senha -->
       <div class="flex items-center py-3 gap-4">
         <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Senha</span>
@@ -156,6 +171,7 @@ import Layout from "../../layouts/Layout.astro";
     const trunkName  = fieldTrunk.value;
     const customerId = fieldCustomer.value ? Number(fieldCustomer.value) : null;
     const planId     = fieldPlan.value     ? Number(fieldPlan.value)     : null;
+    const active     = document.querySelector('input[name="active"]:checked').value === "true";
 
     if (!password)  { showMessage("A senha é obrigatória.", "error"); return; }
     const pwErr = validatePassword(password);
@@ -168,7 +184,7 @@ import Layout from "../../layouts/Layout.astro";
       const res = await fetch("/api/circuit/circuits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password, trunkName, customerId, planId }),
+        body: JSON.stringify({ password, trunkName, customerId, planId, active }),
       });
 
       if (res.ok || res.status === 201) {

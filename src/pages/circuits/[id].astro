@@ -43,6 +43,21 @@ const { id } = Astro.params;
           class="w-28 px-3 py-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-500 cursor-not-allowed" />
       </div>
 
+      <!-- Ativo -->
+      <div class="flex items-center py-3 gap-4">
+        <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Ativo</span>
+        <div class="flex items-center gap-4 text-sm text-gray-700">
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="radio" id="activeTrue" name="active" value="true" class="accent-green-600" />
+            Sim
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="radio" id="activeFalse" name="active" value="false" class="accent-red-500" />
+            Não
+          </label>
+        </div>
+      </div>
+
       <!-- Senha -->
       <div class="flex items-center py-3 gap-4">
         <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Senha</span>
@@ -252,6 +267,9 @@ const { id } = Astro.params;
       fieldNumber.value = c.number;
       fieldPassword.value = c.password || "";
 
+      const activeVal = c.active !== false;
+      document.getElementById(activeVal ? "activeTrue" : "activeFalse").checked = true;
+
       await Promise.all([
         carregarTroncos(c.trunkName),
         carregarClientes(c.customer?.id ?? null),
@@ -318,6 +336,7 @@ const { id } = Astro.params;
     const trunkName  = fieldTrunk.value;
     const customerId = fieldCustomer.value ? Number(fieldCustomer.value) : null;
     const planId     = fieldPlan.value     ? Number(fieldPlan.value)     : null;
+    const active     = document.querySelector('input[name="active"]:checked').value === "true";
 
     if (!password)  { showMessage("A senha é obrigatória.", "error"); return; }
     const pwErr = validatePassword(password);
@@ -330,7 +349,7 @@ const { id } = Astro.params;
       const res = await fetch(`/api/circuit/${circuitId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password, trunkName, customerId, planId }),
+        body: JSON.stringify({ password, trunkName, customerId, planId, active }),
       });
       if (res.ok) {
         showMessage("Circuito atualizado com sucesso!", "success");
@@ -347,11 +366,18 @@ const { id } = Astro.params;
     if (!confirm("Tem certeza que deseja excluir este circuito?")) return;
     try {
       const res = await fetch(`/api/circuit/${circuitId}`, { method: "DELETE" });
-      if (res.ok || res.status === 204) {
+      if (res.status === 204) {
         window.showToast?.("Circuito excluído com sucesso!", "success");
         window.location.href = "/circuits";
+      } else if (res.status === 200) {
+        const updated = await res.json();
+        const activeInput = document.getElementById(updated.active ? "activeTrue" : "activeFalse");
+        if (activeInput) activeInput.checked = true;
+        showMessage("Circuito possui ligações vinculadas e foi desativado em vez de excluído.", "success");
+        window.showToast?.("Circuito desativado.", "success");
       } else {
-        showMessage("Erro ao excluir circuito.", "error");
+        const err = await res.json().catch(() => ({}));
+        showMessage(err.message || "Erro ao excluir circuito.", "error");
       }
     } catch { showMessage("Erro ao comunicar com o servidor.", "error"); }
   });
