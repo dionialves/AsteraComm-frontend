@@ -2,12 +2,536 @@
 import Layout from "../layouts/Layout.astro";
 ---
 
-<Layout>
-  <div class="flex flex-col items-center justify-center min-h-[60vh] text-gray-700">
-    <h1 class="text-4xl font-bold mb-4">Página em Desenvolvimento</h1>
-    <p class="text-lg text-center max-w-xl">
-      Esta funcionalidade ainda está sendo implementada. Em breve estará disponível.
-    </p>
+<Layout title="AsteraComm - Dashboard">
+
+  <style>
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 768px) { .card-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .card-grid { grid-template-columns: 1fr; } }
+
+    .dash-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .chart-box {
+      background: #fff;
+      border: 0.5px solid rgba(0,0,0,0.10);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 16px;
+    }
+    .chart-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .legend-sq {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .chart-wrap {
+      position: relative;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+  </style>
+
+  <!-- 1. Cabeçalho -->
+  <div class="page-header">
+    <div style="display:flex;align-items:baseline;gap:10px">
+      <h1 class="page-title">AsteraComm</h1>
+      <span id="last-updated" style="font-size:12px;color:#9ca3af"></span>
+    </div>
+    <p id="subtitle" class="page-subtitle"></p>
   </div>
+
+  <!-- 2. Cards de resumo -->
+  <div class="card-grid">
+
+    <!-- Circuitos -->
+    <div class="dash-card">
+      <div style="font-size:13px;color:#6b7280;margin-bottom:6px">Circuitos</div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">
+        <span id="c-total" style="font-size:24px;font-weight:500">—</span>
+        <span style="font-size:12px;color:#9ca3af">total</span>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="legend-item">
+          <span class="dot" style="background:#1D9E75"></span>
+          <span id="c-online">— online</span>
+        </div>
+        <div class="legend-item">
+          <span class="dot" style="background:#E24B4A"></span>
+          <span id="c-offline">— offline</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Troncos -->
+    <div class="dash-card">
+      <div style="font-size:13px;color:#6b7280;margin-bottom:6px">Troncos</div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">
+        <span id="t-total" style="font-size:24px;font-weight:500">—</span>
+        <span style="font-size:12px;color:#9ca3af">registrados</span>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="legend-item">
+          <span class="dot" style="background:#1D9E75"></span>
+          <span id="t-active">— ativos</span>
+        </div>
+        <div class="legend-item">
+          <span class="dot" style="background:#E24B4A"></span>
+          <span id="t-inactive">— inativos</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ligações do mês -->
+    <div class="dash-card">
+      <div style="font-size:13px;color:#6b7280;margin-bottom:6px">Ligações do mês</div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">
+        <span id="l-total" style="font-size:24px;font-weight:500">—</span>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="legend-item">
+          <span class="dot" style="background:#1D9E75"></span>
+          <span id="l-answered">— atend.</span>
+        </div>
+        <div class="legend-item">
+          <span class="dot" style="background:#BA7517"></span>
+          <span id="l-noanswer">— n/atend.</span>
+        </div>
+        <div class="legend-item">
+          <span class="dot" style="background:#E24B4A"></span>
+          <span id="l-busy">— ocup.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Faturamento mês -->
+    <div class="dash-card">
+      <div style="font-size:13px;color:#6b7280;margin-bottom:6px">Faturamento mês</div>
+      <div style="margin-bottom:8px">
+        <span id="f-total" style="font-size:24px;font-weight:500;color:#1D9E75">—</span>
+      </div>
+      <div id="f-subscriptions" style="font-size:12px;color:#6b7280">Mensalidades: —</div>
+      <div id="f-excedents" style="font-size:12px;color:#6b7280">Excedentes: —</div>
+    </div>
+
+  </div>
+
+  <!-- 3+4. Faturamento mensal | Ligações por dia — lado a lado -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+
+    <!-- 3. Faturamento mensal — últimos 12 meses -->
+    <div class="chart-box" style="margin-bottom:0">
+      <div class="chart-title">Faturamento mensal — últimos 12 meses</div>
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-sq" style="background:#185FA5"></span>
+          Mensalidades
+        </div>
+        <div class="legend-item">
+          <span class="legend-sq" style="background:#BA7517"></span>
+          Excedentes
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="chartMonthlyBilling"></canvas>
+      </div>
+    </div>
+
+    <!-- 4. Ligações por dia — últimos 30 dias -->
+    <div class="chart-box" style="margin-bottom:0">
+      <div class="chart-title">Ligações por dia — últimos 30 dias</div>
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-sq" style="background:#1D9E75"></span>
+          Atendidas
+        </div>
+        <div class="legend-item">
+          <span class="legend-sq" style="background:#BA7517"></span>
+          Não atendidas
+        </div>
+        <div class="legend-item">
+          <span class="legend-sq" style="background:#E24B4A"></span>
+          Ocupado
+        </div>
+        <div class="legend-item">
+          <span class="legend-sq" style="background:#64748B"></span>
+          Falha
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="chartDailyCalls"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 5. Circuitos próximo do limite | Gráfico de excedência — lado a lado -->
+  <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;margin-bottom:16px;align-items:stretch">
+
+    <!-- Tabela near-limit -->
+    <div class="chart-box" style="margin-bottom:0">
+      <div class="chart-title">Circuitos com consumo próximo do limite</div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="font-size:12px;font-weight:500;color:#6b7280;border-bottom:1px solid rgba(0,0,0,0.08)">
+            <th style="text-align:left;padding:6px 8px">Circuito</th>
+            <th style="text-align:left;padding:6px 8px">Plano</th>
+            <th style="text-align:right;padding:6px 8px">Usado</th>
+            <th style="text-align:right;padding:6px 8px">Pacote</th>
+            <th style="text-align:left;padding:6px 8px;min-width:180px">Consumo</th>
+          </tr>
+        </thead>
+        <tbody id="near-limit-tbody">
+          <tr>
+            <td colspan="5" style="padding:16px 8px;font-size:13px;color:#9ca3af;text-align:center">
+              Carregando...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Donut: excedidos vs. dentro do limite -->
+    <div class="chart-box" style="margin-bottom:0;display:flex;flex-direction:column">
+      <div class="chart-title">Excedência de pacote</div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+        <div class="chart-wrap" style="width:180px;height:180px;flex-shrink:0">
+          <canvas id="chartOverage"></canvas>
+        </div>
+        <div id="overage-legend" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 6. Top 10 circuitos por consumo -->
+  <div class="chart-box" style="margin-bottom:0">
+    <div class="chart-title">Top 10 circuitos por consumo</div>
+    <div class="legend">
+      <div class="legend-item">
+        <span class="legend-sq" style="background:#185FA5"></span>
+        Minutos usados
+      </div>
+      <div class="legend-item">
+        <span class="legend-sq" style="background:rgba(24,95,165,0.12);border:1px solid rgba(24,95,165,0.3)"></span>
+        Pacote contratado
+      </div>
+    </div>
+    <div class="chart-wrap" style="height:340px">
+      <canvas id="chartTopCircuits"></canvas>
+    </div>
+  </div>
+
+  <!-- Erro -->
+  <div id="dashboard-error" class="hidden" style="margin-top:16px;padding:1rem;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;color:#dc2626;font-size:14px"></div>
+
 </Layout>
 
+<script is:inline src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<script type="module" defer>
+  const VERDE    = "#1D9E75";
+  const AMBER    = "#BA7517";
+  const VERMELHO = "#E24B4A";
+  const AZUL     = "#185FA5";
+  const AZUL_T   = "rgba(24,95,165,0.12)";
+  const GRID     = "rgba(0,0,0,0.06)";
+  const TICKS    = "#5f5e5a";
+
+  const MONTHS_PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+                     "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+  function fmt(n) {
+    return Number(n).toLocaleString("pt-BR");
+  }
+
+  function fmtCur(v) {
+    return Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  async function loadDashboard() {
+    try {
+      const res = await fetch("/api/dashboard");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `HTTP ${res.status}`);
+      }
+      const d = await res.json();
+
+      // Cabeçalho
+      const now = new Date();
+      document.getElementById("last-updated").textContent =
+        "Atualizado às " + now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      document.getElementById("subtitle").textContent =
+        `Painel de monitoramento — ${MONTHS_PT[now.getMonth()]}/${now.getFullYear()}`;
+
+      // Card Circuitos
+      document.getElementById("c-total").textContent   = fmt(d.circuits.total);
+      document.getElementById("c-online").textContent  = fmt(d.circuits.online) + " online";
+      document.getElementById("c-offline").textContent = fmt(d.circuits.offline) + " offline";
+
+      // Card Troncos
+      document.getElementById("t-total").textContent    = fmt(d.trunks.total);
+      document.getElementById("t-active").textContent   = fmt(d.trunks.registered) + " ativos";
+      document.getElementById("t-inactive").textContent = fmt(d.trunks.unregistered) + " inativos";
+
+      // Card Ligações
+      document.getElementById("l-total").textContent    = fmt(d.calls.total);
+      document.getElementById("l-answered").textContent = fmt(d.calls.answered) + " atend.";
+      document.getElementById("l-noanswer").textContent = fmt(d.calls.noAnswer) + " n/atend.";
+      document.getElementById("l-busy").textContent     = fmt(d.calls.busy) + " ocup.";
+
+      // Card Faturamento
+      document.getElementById("f-total").textContent         = fmtCur(d.billing.currentMonthCost);
+      document.getElementById("f-subscriptions").textContent = "Mensalidades: " + fmtCur(d.billing.subscriptions);
+      document.getElementById("f-excedents").textContent     = "Excedentes: "   + fmtCur(d.billing.excedents);
+
+      // Gráficos e tabela
+      buildDailyCalls(d.dailyCalls);
+      buildMonthlyBilling(d.monthlyBilling);
+      buildNearLimitTable(d.nearLimitCircuits);
+      buildOverageChart(d.circuitOverage);
+      buildTopCircuits(d.topCircuits);
+
+    } catch (err) {
+      const el = document.getElementById("dashboard-error");
+      el.textContent = "Erro ao carregar o dashboard: " + err.message;
+      el.classList.remove("hidden");
+    }
+  }
+
+  function buildDailyCalls(data) {
+    if (!data || data.length === 0) return;
+    const labels = data.map(d => {
+      const [, m, day] = d.date.split("-");
+      return `${day}/${m}`;
+    });
+    new window.Chart(document.getElementById("chartDailyCalls"), {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          { label: "Atendidas",     data: data.map(d => d.answered), backgroundColor: VERDE,    borderRadius: 2, stack: "s" },
+          { label: "Não atendidas", data: data.map(d => d.noAnswer), backgroundColor: AMBER,    borderRadius: 2, stack: "s" },
+          { label: "Ocupado",       data: data.map(d => d.busy),     backgroundColor: VERMELHO, borderRadius: 2, stack: "s" },
+          { label: "Falha",         data: data.map(d => d.failed),   backgroundColor: "#64748B", borderRadius: 2, stack: "s" },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            stacked: true,
+            ticks: { maxRotation: 45, minRotation: 45, autoSkip: false, font: { size: 10 }, color: TICKS },
+            grid: { display: false },
+          },
+          y: {
+            stacked: true,
+            ticks: { font: { size: 11 }, color: TICKS },
+            grid: { color: GRID },
+          },
+        },
+      },
+    });
+  }
+
+  function buildMonthlyBilling(data) {
+    if (!data || data.length === 0) return;
+    new window.Chart(document.getElementById("chartMonthlyBilling"), {
+      type: "bar",
+      data: {
+        labels: data.map(d => d.month),
+        datasets: [
+          { label: "Mensalidades", data: data.map(d => d.subscriptions), backgroundColor: AZUL,  borderRadius: 2, stack: "s" },
+          { label: "Excedentes",   data: data.map(d => d.excedents),     backgroundColor: AMBER, borderRadius: 2, stack: "s" },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ctx.dataset.label + ": " +
+                Number(ctx.raw).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+            },
+          },
+        },
+        scales: {
+          x: {
+            stacked: true,
+            ticks: { maxRotation: 45, minRotation: 45, autoSkip: false, font: { size: 10 }, color: TICKS },
+            grid: { display: false },
+          },
+          y: {
+            stacked: true,
+            ticks: {
+              font: { size: 11 },
+              color: TICKS,
+              callback: v => "R$ " + (v / 1000).toFixed(0) + "k",
+            },
+            grid: { color: GRID },
+          },
+        },
+      },
+    });
+  }
+
+  function buildNearLimitTable(circuits) {
+    const tbody = document.getElementById("near-limit-tbody");
+    if (!circuits || circuits.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="padding:16px 8px;font-size:13px;color:#9ca3af;text-align:center">
+        Nenhum circuito com pacote de minutos cadastrado
+      </td></tr>`;
+      return;
+    }
+    tbody.innerHTML = circuits.map(c => {
+      const pct = Math.min(100, c.percent);
+      const barColor = pct >= 95 ? VERMELHO : pct >= 85 ? AMBER : VERDE;
+      const pctText  = pct.toFixed(1) + "%";
+      return `
+        <tr style="border-bottom:1px solid rgba(0,0,0,0.05);font-size:13px">
+          <td style="padding:8px 8px;color:#111827">${c.circuit}</td>
+          <td style="padding:8px 8px;color:#6b7280">${c.planName}</td>
+          <td style="padding:8px 8px;color:#111827;text-align:right">${fmt(c.usedMinutes)} min</td>
+          <td style="padding:8px 8px;color:#6b7280;text-align:right">${fmt(c.limitMinutes)} min</td>
+          <td style="padding:8px 8px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="flex:1;height:6px;background:rgba(0,0,0,0.06);border-radius:3px;overflow:hidden">
+                <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px"></div>
+              </div>
+              <span style="font-size:12px;font-weight:500;color:${barColor};white-space:nowrap">${pctText}</span>
+            </div>
+          </td>
+        </tr>`;
+    }).join("");
+  }
+
+  function buildOverageChart(overage) {
+    if (!overage) return;
+    const exceeded    = overage.exceeded    ?? 0;
+    const withinLimit = overage.withinLimit ?? 0;
+    const total = exceeded + withinLimit;
+
+    new window.Chart(document.getElementById("chartOverage"), {
+      type: "doughnut",
+      data: {
+        labels: ["Excedidos", "Dentro do limite"],
+        datasets: [{
+          data: [exceeded, withinLimit],
+          backgroundColor: [VERMELHO, VERDE],
+          borderWidth: 0,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "70%",
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const pct = total > 0 ? ((ctx.raw / total) * 100).toFixed(1) : "0.0";
+                return `${ctx.label}: ${ctx.raw} (${pct}%)`;
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const sq = color =>
+      `<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${color};flex-shrink:0"></span>`;
+
+    document.getElementById("overage-legend").innerHTML = `
+      <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:#6b7280">${sq(VERMELHO)}Excedidos: ${exceeded}</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:#6b7280">${sq(VERDE)}Dentro do limite: ${withinLimit}</div>
+    `;
+  }
+
+  function buildTopCircuits(data) {
+    if (!data || data.length === 0) return;
+    // Reversed so highest appears at top
+    const items = [...data].reverse();
+    const usedColors = items.map(d => d.usedMinutes > d.limitMinutes ? VERMELHO : AZUL);
+    new window.Chart(document.getElementById("chartTopCircuits"), {
+      type: "bar",
+      data: {
+        labels: items.map(d => d.customerName),
+        datasets: [
+          {
+            label: "Minutos usados",
+            data: items.map(d => d.usedMinutes),
+            backgroundColor: usedColors,
+            borderRadius: 2,
+          },
+          {
+            label: "Pacote contratado",
+            data: items.map(d => d.limitMinutes),
+            backgroundColor: AZUL_T,
+            borderRadius: 2,
+          },
+        ],
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ctx.dataset.label + ": " + fmt(ctx.raw) + " min",
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: { font: { size: 11 }, color: TICKS, callback: v => v + " min" },
+            grid: { color: GRID },
+          },
+          y: {
+            ticks: { font: { size: 11 }, color: TICKS },
+            grid: { display: false },
+          },
+        },
+      },
+    });
+  }
+
+  loadDashboard();
+</script>
