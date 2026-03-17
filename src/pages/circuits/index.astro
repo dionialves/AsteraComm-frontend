@@ -2,161 +2,80 @@
 import Layout from "../../layouts/Layout.astro";
 ---
 
+<style is:global>
+    main { background-color: #f9fafb; }
+</style>
+
 <Layout>
-    <div class="flex justify-between items-center mb-2">
-        <h1 class="text-2xl font-semibold mb-4">Lista de Circuitos</h1>
-        <button id="btnAdd" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700">Adicionar</button>
-    </div>
-
-    <div class="overflow-x-auto p-4 bg-white rounded-lg shadow">
-
-        <!-- Container para pesquisa + paginação -->
-        <div class="flex items-center justify-between mb-2" id="pagination-container">
-            <!-- Campo de pesquisa -->
-            <div class="flex items-center space-x-2">
-                <input
-                    id="search-input"
-                    type="text"
-                    placeholder="Pesquisar..."
-                    class="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300 w-96"
-                />
+    <div class="bg-white rounded-lg shadow mb-6">
+        <div class="flex items-center justify-between px-6 py-5">
+            <div>
+                <h1 class="page-title">Circuitos</h1>
+                <p class="page-subtitle">Gerenciamento de ramais SIP e clientes ativos</p>
             </div>
+            <button id="btnAdd" class="bg-green-500 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-green-600">+ Adicionar</button>
+        </div>
 
-            <!-- Botões de paginação -->
-            <div class="flex justify-between items-center space-x-2 w-96">
-                <button id="btn-prev" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Anterior</button>
-                <span id="page-info" class="text-sm text-gray-700">Pagina 1 de 1</span>
-                <button id="btn-next" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Próxima</button>
+        <hr class="border-gray-200" />
+
+        <div class="listing-toolbar px-6 py-3">
+            <div class="listing-search">
+                <input id="input-search" type="text" placeholder="Pesquisar..." class="listing-search-input" />
+                <button id="btn-search" class="listing-search-btn" title="Pesquisar">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="listing-pagination">
+                <button id="btn-prev" class="listing-page-btn">‹ Anterior</button>
+                <span id="page-info" class="listing-page-info">Página 1 de 1</span>
+                <button id="btn-next" class="listing-page-btn">Próxima ›</button>
             </div>
         </div>
 
-        <table id="table-circuits" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm">
-            <thead class="bg-gray-100 text-gray-900">
-                <tr class="font-semibold">
-                    <th data-field="id" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Código</th>
-                    <th data-field="password" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Senha</th>
-                    <th data-field="trunkName" class="w-1/6 px-4 py-2 text-left font-semibold">Tronco</th>
-                    <th data-field="customerName" class="w-1/6 px-4 py-2 text-left font-semibold">Cliente</th>
-                    <th data-field="planName" class="w-1/6 px-4 py-2 text-left font-semibold">Plano</th>
-                    <th data-field="online" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Status</th>
-                    <th class="w-1/6 px-4 py-2 text-left font-semibold">Ações</th>
-                </tr>
-            </thead>
-            <tbody id="tbody-circuits" class="divide-y divide-gray-200">
-                <tr id="loading" class="py-4 px-4 text-gray-500">
-                    <td>
-                        Carregando...
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Modal Overlay -->
-    <div id="modalOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
-
-    <!-- Modal Criar/Editar -->
-    <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg">
-
-            <!-- Header do Modal -->
-            <div class="bg-gray-50 flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                <h2 id="modalTitle" class="text-lg font-semibold text-gray-800">Novo Circuito</h2>
-                <div class="flex items-center gap-2">
-                    <button id="btnSave" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700 transition">
-                        Salvar
-                    </button>
-                    <button id="btnDelete" class="hidden bg-red-600 text-white rounded px-4 py-2 text-sm hover:bg-red-700 transition">
-                        Excluir
-                    </button>
-                    <button id="btnCancel" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">
-                        Cancelar
-                    </button>
-                </div>
-            </div>
-
-            <!-- Body do Modal -->
-            <div class="px-6 py-4">
-                <div id="formMessage" class="hidden mb-4 px-4 py-2 rounded text-sm"></div>
-
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-                        <input
-                            id="inputPassword"
-                            type="text"
-                            maxlength="10"
-                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                            placeholder="Senha de 10 caracteres"
-                        />
-                        <p class="text-xs text-gray-400 mt-1">10 caracteres: letras maiúsculas, minúsculas e números</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tronco <span class="text-red-500">*</span></label>
-                        <select
-                            id="selectTrunk"
-                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                        >
-                            <option value="">Selecione um tronco...</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Cliente <span class="text-red-500">*</span></label>
-                        <select
-                            id="selectCustomer"
-                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                        >
-                            <option value="">Selecione um cliente...</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Plano <span class="text-red-500">*</span></label>
-                        <select
-                            id="selectPlan"
-                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                        >
-                            <option value="">Sem plano</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
+        <div class="overflow-x-auto px-4 pb-4">
+            <table id="table-circuits" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
+                <thead class="bg-gray-100 text-gray-900">
+                    <tr class="font-semibold">
+                        <th data-field="id" class="w-16 px-4 py-2 text-left font-semibold cursor-pointer">ID</th>
+                        <th data-field="number" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Código</th>
+                        <th data-field="password" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Senha</th>
+                        <th data-field="trunkName" class="w-1/6 px-4 py-2 text-left font-semibold">Tronco</th>
+                        <th data-field="customerName" class="w-1/6 px-4 py-2 text-left font-semibold">Cliente</th>
+                        <th data-field="planName" class="w-1/6 px-4 py-2 text-left font-semibold">Plano</th>
+                        <th data-field="online" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-circuits" class="divide-y divide-gray-200">
+                    <tr id="loading" class="py-4 px-4 text-gray-500">
+                        <td>Carregando...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
 <script type="module" defer>
-    // === Elementos da tabela ===
-    const tbody = document.getElementById("tbody-circuits");
-    const loading = document.getElementById("loading");
-    const table = document.getElementById("table-circuits");
-    const btnPrev = document.getElementById("btn-prev");
-    const btnNext = document.getElementById("btn-next");
-    const pageInfo = document.getElementById("page-info");
-    const paginationControls = document.getElementById("pagination-container");
+    const tbody        = document.getElementById("tbody-circuits");
+    const loading      = document.getElementById("loading");
+    const table        = document.getElementById("table-circuits");
+    const btnPrev      = document.getElementById("btn-prev");
+    const btnNext      = document.getElementById("btn-next");
+    const pageInfo     = document.getElementById("page-info");
+    const searchInput  = document.getElementById("input-search");
 
-    // === Elementos do modal ===
-    const modal = document.getElementById("modal");
-    const modalOverlay = document.getElementById("modalOverlay");
-    const modalTitle = document.getElementById("modalTitle");
-    const inputPassword = document.getElementById("inputPassword");
-    const selectTrunk = document.getElementById("selectTrunk");
-    const selectCustomer = document.getElementById("selectCustomer");
-    const selectPlan = document.getElementById("selectPlan");
-    const formMessage = document.getElementById("formMessage");
-    const btnDelete = document.getElementById("btnDelete");
-
-    let currentPage = 0;
-    let totalPages = 0;
-    let currentSortField = "id";
+    let currentPage          = 0;
+    let totalPages           = 0;
+    let currentSortField     = "number";
     let currentSortDirection = "asc";
-    let editingCircuitId = null;
 
-    // === Ordenação ===
-    const headers = document.querySelectorAll("thead th[data-field]");
-    headers.forEach(th => {
+    document.getElementById("btnAdd").addEventListener("click", () => {
+        window.location.href = "/circuits/new";
+    });
+
+    // Ordenação
+    document.querySelectorAll("thead th[data-field]").forEach(th => {
         th.addEventListener("click", () => {
             const field = th.getAttribute("data-field");
             if (currentSortField === field) {
@@ -169,269 +88,24 @@ import Layout from "../../layouts/Layout.astro";
         });
     });
 
-    // === Pesquisa ===
-    const searchInput = document.getElementById("search-input");
-    searchInput.addEventListener("keydown", function (event) {
-        if (event.key === "Enter") {
-            currentPage = 0;
-            carregarDados(currentPage);
-        }
-    });
+    // Pesquisa
+    searchInput.addEventListener("keydown", e => { if (e.key === "Enter") carregarDados(0); });
+    document.getElementById("btn-search").addEventListener("click", () => carregarDados(0));
 
-    // === Funções auxiliares ===
-    function showMessage(text, type) {
-        formMessage.textContent = text;
-        formMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
-        if (type === 'success') {
-            formMessage.classList.add('bg-green-100', 'text-green-700');
-        } else {
-            formMessage.classList.add('bg-red-100', 'text-red-700');
-        }
-    }
-
-    function validatePassword(pw) {
-        if (pw.length !== 10) return 'A senha deve ter exatamente 10 caracteres.';
-        if (/[^a-zA-Z0-9]/.test(pw)) return 'A senha não pode conter caracteres especiais.';
-        if (!/[a-z]/.test(pw)) return 'A senha deve conter letras minúsculas.';
-        if (!/[A-Z]/.test(pw)) return 'A senha deve conter letras maiúsculas.';
-        if (!/[0-9]/.test(pw)) return 'A senha deve conter números.';
-        return null;
-    }
-
-    // === Carregar lista de troncos ===
-    async function carregarTroncos(trunkSelecionado) {
-        try {
-            const res = await fetch('/api/trunk/trunks');
-            if (!res.ok) return;
-            const data = await res.json();
-            const trunks = data.content || data;
-
-            selectTrunk.innerHTML = '<option value="">Selecione um tronco...</option>';
-            trunks.forEach(t => {
-                const opt = document.createElement('option');
-                opt.value = t.name;
-                opt.textContent = `${t.name} (${t.host})`;
-                if (t.name === trunkSelecionado) opt.selected = true;
-                selectTrunk.appendChild(opt);
-            });
-        } catch {
-            selectTrunk.innerHTML = '<option value="">Erro ao carregar troncos</option>';
-        }
-    }
-
-    // === Carregar lista de clientes ===
-    async function carregarClientes(customerIdSelecionado) {
-        try {
-            const res = await fetch('/api/customer/customers?size=200&sort=name,asc');
-            if (!res.ok) return;
-            const data = await res.json();
-            const customers = data.content || data;
-
-            selectCustomer.innerHTML = '<option value="">Selecione um cliente...</option>';
-            customers.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.id;
-                opt.textContent = c.name;
-                if (c.id === customerIdSelecionado) opt.selected = true;
-                selectCustomer.appendChild(opt);
-            });
-        } catch {
-            selectCustomer.innerHTML = '<option value="">Erro ao carregar clientes</option>';
-        }
-    }
-
-    // === Carregar lista de planos ===
-    async function carregarPlanos(planIdSelecionado) {
-        try {
-            const res = await fetch('/api/plan/plans?size=200&sort=name,asc');
-            if (!res.ok) return;
-            const data = await res.json();
-            const plans = data.content || data;
-
-            selectPlan.innerHTML = '<option value="">Sem plano</option>';
-            plans.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.id;
-                opt.textContent = p.name;
-                if (p.id === planIdSelecionado) opt.selected = true;
-                selectPlan.appendChild(opt);
-            });
-        } catch {
-            selectPlan.innerHTML = '<option value="">Erro ao carregar planos</option>';
-        }
-    }
-
-    // === Modal ===
-    async function openModal(circuitId) {
-        editingCircuitId = circuitId || null;
-        const isEdit = !!editingCircuitId;
-
-        // Reset
-        inputPassword.value = '';
-        formMessage.classList.add('hidden');
-
-        modalTitle.textContent = isEdit ? `Editar Circuito ${editingCircuitId}` : 'Novo Circuito';
-
-        let currentTrunk = null;
-        let currentCustomerId = null;
-        let currentPlanId = null;
-
-        if (isEdit) {
-            btnDelete.classList.remove('hidden');
-
-            try {
-                const res = await fetch(`/api/circuit/${editingCircuitId}`);
-                if (res.ok) {
-                    const circuit = await res.json();
-                    currentTrunk = circuit.trunkName;
-                    currentCustomerId = circuit.customer?.id ?? null;
-                    currentPlanId = circuit.plan?.id ?? null;
-                    inputPassword.value = circuit.password || '';
-                }
-            } catch {}
-        } else {
-            btnDelete.classList.add('hidden');
-        }
-
-        await Promise.all([
-            carregarTroncos(currentTrunk),
-            carregarClientes(currentCustomerId),
-            carregarPlanos(currentPlanId),
-        ]);
-
-        modal.classList.remove('hidden');
-        modalOverlay.classList.remove('hidden');
-    }
-
-    function closeModal() {
-        modal.classList.add('hidden');
-        modalOverlay.classList.add('hidden');
-        editingCircuitId = null;
-    }
-
-    // Botão Adicionar
-    document.getElementById("btnAdd").addEventListener("click", () => openModal(null));
-
-    // Botão Cancelar
-    document.getElementById("btnCancel").addEventListener("click", closeModal);
-
-    // Overlay fecha o modal
-    modalOverlay.addEventListener("click", closeModal);
-
-    // Tecla Escape fecha o modal
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && !modal.classList.contains("hidden")) {
-            closeModal();
-        }
-    });
-
-    // === Salvar ===
-    document.getElementById("btnSave").addEventListener("click", async () => {
-        const password = inputPassword.value;
-        const trunkName = selectTrunk.value;
-        const customerId = selectCustomer.value ? Number(selectCustomer.value) : null;
-        const planId = selectPlan.value ? Number(selectPlan.value) : null;
-        const isEdit = !!editingCircuitId;
-
-        if (!password) {
-            showMessage('A senha é obrigatória.', 'error');
-            return;
-        }
-
-        const pwError = validatePassword(password);
-        if (pwError) {
-            showMessage(pwError, 'error');
-            return;
-        }
-
-        if (!trunkName) {
-            showMessage('Selecione um tronco.', 'error');
-            return;
-        }
-
-        if (!customerId) {
-            showMessage('Selecione um cliente.', 'error');
-            return;
-        }
-
-        if (!planId) {
-            showMessage('Selecione um plano.', 'error');
-            return;
-        }
-
-        try {
-            let res;
-            if (isEdit) {
-                res = await fetch(`/api/circuit/${editingCircuitId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password, trunkName, customerId, planId }),
-                });
-            } else {
-                res = await fetch('/api/circuit/circuits', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password, trunkName, customerId, planId }),
-                });
-            }
-
-            if (res.ok || res.status === 201) {
-                closeModal();
-                carregarDados(currentPage);
-                window.showToast(isEdit ? 'Circuito atualizado com sucesso!' : 'Circuito criado com sucesso!', 'success');
-            } else {
-                const errorText = await res.text();
-                showMessage(errorText || 'Erro ao salvar circuito.', 'error');
-            }
-        } catch {
-            showMessage('Erro ao comunicar com o servidor.', 'error');
-        }
-    });
-
-    // === Excluir ===
-    btnDelete.addEventListener("click", async () => {
-        if (!editingCircuitId) return;
-
-        if (!confirm('Tem certeza que deseja excluir este circuito?')) return;
-
-        try {
-            const res = await fetch(`/api/circuit/${editingCircuitId}`, {
-                method: 'DELETE',
-            });
-
-            if (res.ok || res.status === 204) {
-                closeModal();
-                carregarDados(currentPage);
-                window.showToast('Circuito excluído com sucesso!', 'success');
-            } else {
-                showMessage('Erro ao excluir circuito.', 'error');
-            }
-        } catch {
-            showMessage('Erro ao comunicar com o servidor.', 'error');
-        }
-    });
-
-    // === Tabela ===
     function carregarDados(pagina) {
         loading.style.display = "block";
         table.style.visibility = "visible";
 
-        const termoPesquisa = encodeURIComponent(searchInput.value.trim());
-        const url = `/api/circuit/circuits?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${termoPesquisa}`;
+        const search = encodeURIComponent(searchInput.value.trim());
+        const url = `/api/circuit/circuits?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${search}`;
 
         fetch(url)
-            .then(res => {
-                if (!res.ok) throw new Error("Erro na resposta da API");
-                return res.json();
-            })
+            .then(res => { if (!res.ok) throw new Error(); return res.json(); })
             .then(data => {
                 loading.style.display = "none";
                 table.style.display = "table";
-                paginationControls.style.display = "flex";
-
                 currentPage = pagina;
-                totalPages = data.totalPages;
-
+                totalPages  = data.totalPages;
                 tbody.innerHTML = "";
 
                 if (data.content.length === 0) {
@@ -440,9 +114,9 @@ import Layout from "../../layouts/Layout.astro";
                     data.content.forEach(item => {
                         const tr = document.createElement("tr");
                         tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
-
                         tr.innerHTML = `
-                            <td class="px-4 py-2">${item.id}</td>
+                            <td class="px-4 py-2 text-gray-500">${item.id}</td>
+                            <td class="px-4 py-2">${item.number}</td>
                             <td class="px-4 py-2">${item.password}</td>
                             <td class="px-4 py-2 text-gray-600">${item.trunkName || '—'}</td>
                             <td class="px-4 py-2 text-gray-600">${item.customerName || '—'}</td>
@@ -450,36 +124,19 @@ import Layout from "../../layouts/Layout.astro";
                             <td class="px-4 py-2 font-semibold ${item.online ? 'text-green-600' : 'text-red-600'}">
                                 ${item.online ? `OK (${item.rtt})` : 'Offline'}
                             </td>
-                            <td class="px-4 py-2">
-                                <a href="/circuits/${item.id}/dids"
-                                   class="inline-block px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition"
-                                   onclick="event.stopPropagation()">
-                                    DIDs
-                                </a>
-                            </td>
                         `;
-
-                        tr.addEventListener('click', () => openModal(item.id));
-
+                        tr.addEventListener("click", () => { window.location.href = `/circuits/${item.number}`; });
                         tbody.appendChild(tr);
                     });
                 }
 
                 pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
             })
-            .catch(err => {
-                loading.textContent = "Erro ao carregar dados.";
-                console.error(err);
-            });
+            .catch(() => { loading.textContent = "Erro ao carregar dados."; });
     }
 
-    btnPrev.addEventListener("click", () => {
-        if (currentPage > 0) carregarDados(currentPage - 1);
-    });
-
-    btnNext.addEventListener("click", () => {
-        if (currentPage < totalPages - 1) carregarDados(currentPage + 1);
-    });
+    btnPrev.addEventListener("click", () => { if (currentPage > 0) carregarDados(currentPage - 1); });
+    btnNext.addEventListener("click", () => { if (currentPage < totalPages - 1) carregarDados(currentPage + 1); });
 
     carregarDados(0);
 </script>

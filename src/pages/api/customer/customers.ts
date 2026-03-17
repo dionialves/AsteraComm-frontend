@@ -15,6 +15,7 @@ export const GET: APIRoute = async ({ cookies, url }) => {
     page: url.searchParams.get("page") ?? "0",
     size: url.searchParams.get("size") ?? "20",
     sort: url.searchParams.get("sort") ?? "name,asc",
+    search: url.searchParams.get("search") ?? "",
   });
 
   try {

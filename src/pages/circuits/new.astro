@@ -3,14 +3,184 @@ import Layout from "../../layouts/Layout.astro";
 ---
 
 <Layout>
-  <div class="flex flex-col items-center justify-center min-h-[60vh] text-gray-700">
-    <h1 class="text-4xl font-bold mb-4">Página em Desenvolvimento</h1>
-    <p class="text-lg text-center max-w-xl">
-      Esta funcionalidade ainda está sendo implementada. Em breve estará disponível.
-    </p>
-    <a href="/circuits" class="mt-6 inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-      Voltar para o início
-    </a>
+
+  <!-- Cabeçalho + Campos -->
+  <div class="bg-white rounded-lg shadow mb-6">
+    <div class="flex items-center justify-between px-6 py-5">
+      <div>
+        <h1 class="page-title">Novo Circuito</h1>
+        <p class="page-subtitle">Cadastrar circuito</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnBack" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">Voltar</button>
+        <button id="btnSave" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm transition">Salvar</button>
+      </div>
+    </div>
+
+    <hr class="border-gray-200" />
+
+    <!-- Mensagem de feedback -->
+    <div id="formMessage" class="hidden mx-6 mt-4 px-4 py-2 rounded text-sm"></div>
+
+    <!-- Campos -->
+    <div class="px-6 py-5">
+    <div class="divide-y divide-gray-100">
+
+      <!-- ID (gerado automaticamente) -->
+      <div class="flex items-center py-3 gap-4">
+        <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">ID</span>
+        <input type="text" disabled
+          class="w-28 px-3 py-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-500 cursor-not-allowed" />
+      </div>
+
+      <!-- Código -->
+      <div class="flex items-center py-3 gap-4">
+        <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Código</span>
+        <input type="text" disabled
+          class="w-28 px-3 py-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-500 cursor-not-allowed" />
+      </div>
+
+      <!-- Senha -->
+      <div class="flex items-center py-3 gap-4">
+        <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Senha</span>
+        <input id="fieldPassword" type="text" maxlength="10"
+          class="w-36 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+          placeholder="10 caracteres" />
+      </div>
+
+      <!-- Tronco -->
+      <div class="flex items-center py-3 gap-4">
+        <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Tronco <span class="text-red-500">*</span></span>
+        <select id="fieldTrunk"
+          class="w-72 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
+          <option value="">Selecione um tronco...</option>
+        </select>
+      </div>
+
+      <!-- Cliente -->
+      <div class="flex items-center py-3 gap-4">
+        <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Cliente <span class="text-red-500">*</span></span>
+        <select id="fieldCustomer"
+          class="w-72 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
+          <option value="">Selecione um cliente...</option>
+        </select>
+      </div>
+
+      <!-- Plano -->
+      <div class="flex items-center py-3 gap-4">
+        <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Plano <span class="text-red-500">*</span></span>
+        <select id="fieldPlan"
+          class="w-72 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
+          <option value="">Selecione um plano...</option>
+        </select>
+      </div>
+
+    </div>
   </div>
+  </div>
+
 </Layout>
 
+<script type="module" defer>
+  const fieldPassword = document.getElementById("fieldPassword");
+  const fieldTrunk    = document.getElementById("fieldTrunk");
+  const fieldCustomer = document.getElementById("fieldCustomer");
+  const fieldPlan     = document.getElementById("fieldPlan");
+  const formMessage   = document.getElementById("formMessage");
+
+  function showMessage(text, type) {
+    formMessage.textContent = text;
+    formMessage.classList.remove("hidden", "bg-green-100", "text-green-700", "bg-red-100", "text-red-700");
+    formMessage.classList.add(type === "success" ? "bg-green-100" : "bg-red-100");
+    formMessage.classList.add(type === "success" ? "text-green-700" : "text-red-700");
+  }
+
+  function validatePassword(pw) {
+    if (pw.length !== 10)         return "A senha deve ter exatamente 10 caracteres.";
+    if (/[^a-zA-Z0-9]/.test(pw)) return "A senha não pode conter caracteres especiais.";
+    if (!/[a-z]/.test(pw))        return "A senha deve conter letras minúsculas.";
+    if (!/[A-Z]/.test(pw))        return "A senha deve conter letras maiúsculas.";
+    if (!/[0-9]/.test(pw))        return "A senha deve conter números.";
+    return null;
+  }
+
+  async function carregarTroncos() {
+    try {
+      const res = await fetch("/api/trunk/trunks");
+      const data = await res.json();
+      const trunks = data.content || data;
+      fieldTrunk.innerHTML = '<option value="">Selecione um tronco...</option>';
+      trunks.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t.name;
+        opt.textContent = `${t.name} (${t.host})`;
+        fieldTrunk.appendChild(opt);
+      });
+    } catch { fieldTrunk.innerHTML = '<option value="">Erro ao carregar troncos</option>'; }
+  }
+
+  async function carregarClientes() {
+    try {
+      const res = await fetch("/api/customer/customers?size=200&sort=name,asc");
+      const data = await res.json();
+      const customers = data.content || data;
+      fieldCustomer.innerHTML = '<option value="">Selecione um cliente...</option>';
+      customers.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.id;
+        opt.textContent = c.name;
+        fieldCustomer.appendChild(opt);
+      });
+    } catch { fieldCustomer.innerHTML = '<option value="">Erro ao carregar clientes</option>'; }
+  }
+
+  async function carregarPlanos() {
+    try {
+      const res = await fetch("/api/plan/plans?size=200&sort=name,asc");
+      const data = await res.json();
+      const plans = data.content || data;
+      fieldPlan.innerHTML = '<option value="">Selecione um plano...</option>';
+      plans.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.name;
+        fieldPlan.appendChild(opt);
+      });
+    } catch { fieldPlan.innerHTML = '<option value="">Erro ao carregar planos</option>'; }
+  }
+
+  document.getElementById("btnBack").addEventListener("click", () => { window.location.href = "/circuits"; });
+
+  document.getElementById("btnSave").addEventListener("click", async () => {
+    const password   = fieldPassword.value;
+    const trunkName  = fieldTrunk.value;
+    const customerId = fieldCustomer.value ? Number(fieldCustomer.value) : null;
+    const planId     = fieldPlan.value     ? Number(fieldPlan.value)     : null;
+
+    if (!password)  { showMessage("A senha é obrigatória.", "error"); return; }
+    const pwErr = validatePassword(password);
+    if (pwErr)      { showMessage(pwErr, "error"); return; }
+    if (!trunkName) { showMessage("Selecione um tronco.", "error"); return; }
+    if (!customerId){ showMessage("Selecione um cliente.", "error"); return; }
+    if (!planId)    { showMessage("Selecione um plano.", "error"); return; }
+
+    try {
+      const res = await fetch("/api/circuit/circuits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password, trunkName, customerId, planId }),
+      });
+
+      if (res.ok || res.status === 201) {
+        const created = await res.json();
+        window.showToast?.("Circuito criado com sucesso!", "success");
+        window.location.href = `/circuits/${created.number}`;
+      } else {
+        const err = await res.text();
+        showMessage(err || "Erro ao criar circuito.", "error");
+      }
+    } catch { showMessage("Erro ao comunicar com o servidor.", "error"); }
+  });
+
+  Promise.all([carregarTroncos(), carregarClientes(), carregarPlanos()]);
+</script>

@@ -4,20 +4,21 @@ import Layout from "@/layouts/Layout.astro";
 
 <Layout title="Custo por Circuito — AsteraComm">
 
-  <div class="mb-6">
-    <div class="flex items-center gap-2 text-sm text-gray-400 mb-2">
-      <a href="/reports" class="hover:text-indigo-600 transition">Relatórios</a>
-      <span>/</span>
-      <span class="text-gray-600">Custo por Circuito</span>
+  <div class="bg-white rounded-lg shadow mb-6">
+    <div class="px-6 py-5">
+      <div class="flex items-center gap-2 text-sm text-gray-400 mb-1">
+        <a href="/reports" class="hover:text-indigo-600 transition">Relatórios</a>
+        <span>/</span>
+        <span class="text-gray-600">Custo por Circuito</span>
+      </div>
+      <h1 class="page-title">Custo por Circuito</h1>
+      <p class="page-subtitle">Total de ligações, minutos e custo excedente por circuito no mês selecionado</p>
     </div>
-    <h1 class="text-2xl font-bold text-gray-800">Custo de Ligações por Circuito</h1>
-    <p class="text-sm text-gray-500 mt-1">
-      Exibe o total de ligações, minutos consumidos e custo excedente gerado por cada circuito no mês selecionado.
-    </p>
-  </div>
 
-  <!-- Filtros -->
-  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <hr class="border-gray-200" />
+
+    <!-- Filtros -->
+    <div class="px-6 py-4">
     <div class="flex flex-wrap gap-4 items-end">
 
       <div class="flex flex-col gap-1">
@@ -57,6 +58,7 @@ import Layout from "@/layouts/Layout.astro";
         Processar
       </button>
 
+    </div>
     </div>
   </div>
 

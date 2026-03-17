@@ -1,20 +1,448 @@
 ---
-
 import Layout from "../../layouts/Layout.astro";
-
 export const prerender = false;
 const { id } = Astro.params;
 ---
 
 <Layout>
-  <div class="flex flex-col items-center justify-center min-h-[60vh] text-gray-700">
-    <h1 class="text-4xl font-bold mb-4">Página em Desenvolvimento</h1>
-    <p class="text-lg text-center max-w-xl">
-      Esta funcionalidade ainda está sendo implementada. Em breve estará disponível.
-    </p>
-    <a href="/circuits" class="mt-6 inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-      Voltar para o início
-    </a>
+
+  <!-- Cabeçalho + Campos -->
+  <div class="bg-white rounded-lg shadow mb-6">
+    <div class="flex items-center justify-between px-6 py-5">
+      <div>
+        <h1 id="page-title" class="page-title">Circuito {id}</h1>
+        <p class="page-subtitle">Editar circuito</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnBack"   class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">Voltar</button>
+        <button id="btnSave"   class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm transition">Salvar</button>
+        <button id="btnDelete" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm transition">Deletar</button>
+      </div>
+    </div>
+
+    <hr class="border-gray-200" />
+
+    <!-- Mensagem de feedback -->
+    <div id="formMessage" class="hidden mx-6 mt-4 px-4 py-2 rounded text-sm"></div>
+
+    <!-- Campos -->
+    <div class="px-6 py-5">
+    <div class="divide-y divide-gray-100">
+
+      <!-- ID do banco -->
+      <div class="flex items-center py-3 gap-4">
+        <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">ID</span>
+        <input id="fieldId" type="text" disabled
+          class="w-28 px-3 py-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-500 cursor-not-allowed" />
+      </div>
+
+      <!-- Código -->
+      <div class="flex items-center py-3 gap-4">
+        <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Código</span>
+        <input id="fieldNumber" type="text" disabled
+          class="w-28 px-3 py-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-500 cursor-not-allowed" />
+      </div>
+
+      <!-- Senha -->
+      <div class="flex items-center py-3 gap-4">
+        <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Senha</span>
+        <input id="fieldPassword" type="text" maxlength="10"
+          class="w-36 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+          placeholder="10 caracteres" />
+      </div>
+
+      <!-- Tronco -->
+      <div class="flex items-center py-3 gap-4">
+        <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Tronco <span class="text-red-500">*</span></span>
+        <select id="fieldTrunk"
+          class="w-72 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
+          <option value="">Selecione um tronco...</option>
+        </select>
+      </div>
+
+      <!-- Cliente -->
+      <div class="flex items-center py-3 gap-4">
+        <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Cliente <span class="text-red-500">*</span></span>
+        <select id="fieldCustomer"
+          class="w-72 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
+          <option value="">Selecione um cliente...</option>
+        </select>
+      </div>
+
+      <!-- Plano -->
+      <div class="flex items-center py-3 gap-4">
+        <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Plano <span class="text-red-500">*</span></span>
+        <select id="fieldPlan"
+          class="w-72 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
+          <option value="">Selecione um plano...</option>
+        </select>
+      </div>
+
+    </div>
   </div>
+  </div>
+
+  <!-- Tabela de DIDs -->
+  <div class="bg-white rounded-lg shadow px-6 py-5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-semibold text-gray-700">DIDs vinculados</h2>
+      <div class="flex items-center gap-2">
+        <button id="btnUnlink"
+          class="px-3 py-1.5 text-xs rounded border border-red-200 text-red-300 cursor-not-allowed transition"
+          disabled>
+          Desvincular
+        </button>
+        <button id="btnAddDid"
+          class="px-3 py-1.5 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition">
+          Adicionar
+        </button>
+      </div>
+    </div>
+
+    <table class="min-w-full border border-gray-200 rounded-lg text-sm">
+      <thead class="bg-gray-100 text-gray-900">
+        <tr class="font-semibold">
+          <th class="w-8 px-3 py-2"></th>
+          <th class="px-4 py-2 text-left">Número</th>
+          <th class="px-4 py-2 text-left">Status</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-dids" class="divide-y divide-gray-200">
+        <tr><td colspan="3" class="px-4 py-4 text-gray-400 text-center">Carregando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Overlay -->
+  <div id="modalOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+
+  <!-- Modal Vincular DID -->
+  <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-md">
+      <div class="bg-gray-50 flex items-center justify-between px-6 py-4 border-b border-gray-200">
+        <h2 class="text-base font-semibold text-gray-800">Vincular DID</h2>
+        <div class="flex items-center gap-2">
+          <button id="btnModalSave" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700 transition">Vincular</button>
+          <button id="btnModalCancel" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">Cancelar</button>
+        </div>
+      </div>
+      <div class="px-6 py-4">
+        <div id="modalMessage" class="hidden mb-4 px-4 py-2 rounded text-sm"></div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">DID disponível <span class="text-red-500">*</span></label>
+        <select id="selectDID"
+          class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
+          <option value="">Selecione um DID...</option>
+        </select>
+        <p id="semDIDsMsg" class="hidden text-xs text-yellow-600 mt-1">
+          Nenhum DID livre disponível. Cadastre em <a href="/dids" class="underline">DIDs</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
 </Layout>
 
+<script type="module" defer>
+  const circuitId = window.location.pathname.split("/").at(-1);
+
+  const fieldId       = document.getElementById("fieldId");
+  const fieldNumber   = document.getElementById("fieldNumber");
+  const fieldPassword = document.getElementById("fieldPassword");
+  const fieldTrunk    = document.getElementById("fieldTrunk");
+  const fieldCustomer = document.getElementById("fieldCustomer");
+  const fieldPlan     = document.getElementById("fieldPlan");
+  const formMessage   = document.getElementById("formMessage");
+  const btnUnlink     = document.getElementById("btnUnlink");
+  const tbody         = document.getElementById("tbody-dids");
+  const modal         = document.getElementById("modal");
+  const modalOverlay  = document.getElementById("modalOverlay");
+  const selectDID     = document.getElementById("selectDID");
+  const modalMessage  = document.getElementById("modalMessage");
+  const semDIDsMsg    = document.getElementById("semDIDsMsg");
+
+  let selectedDids = new Set();
+
+  // ─── Feedback ───────────────────────────────────────────────────────────────
+  function showMessage(text, type) {
+    formMessage.textContent = text;
+    formMessage.classList.remove("hidden", "bg-green-100", "text-green-700", "bg-red-100", "text-red-700");
+    formMessage.classList.add(type === "success" ? "bg-green-100" : "bg-red-100");
+    formMessage.classList.add(type === "success" ? "text-green-700" : "text-red-700");
+    if (type === "success") setTimeout(() => formMessage.classList.add("hidden"), 3000);
+  }
+
+  function showModalMessage(text, type) {
+    modalMessage.textContent = text;
+    modalMessage.classList.remove("hidden", "bg-green-100", "text-green-700", "bg-red-100", "text-red-700");
+    modalMessage.classList.add(type === "success" ? "bg-green-100" : "bg-red-100");
+    modalMessage.classList.add(type === "success" ? "text-green-700" : "text-red-700");
+  }
+
+  function validatePassword(pw) {
+    if (pw.length !== 10)         return "A senha deve ter exatamente 10 caracteres.";
+    if (/[^a-zA-Z0-9]/.test(pw)) return "A senha não pode conter caracteres especiais.";
+    if (!/[a-z]/.test(pw))        return "A senha deve conter letras minúsculas.";
+    if (!/[A-Z]/.test(pw))        return "A senha deve conter letras maiúsculas.";
+    if (!/[0-9]/.test(pw))        return "A senha deve conter números.";
+    return null;
+  }
+
+  function formatNumber(digits) {
+    if (!digits || digits.length !== 10) return digits;
+    return `(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-${digits.substring(6, 10)}`;
+  }
+
+  // ─── Carregar selects ────────────────────────────────────────────────────────
+  async function carregarTroncos(selecionado) {
+    try {
+      const res = await fetch("/api/trunk/trunks");
+      const data = await res.json();
+      const trunks = data.content || data;
+      fieldTrunk.innerHTML = '<option value="">Selecione um tronco...</option>';
+      trunks.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t.name;
+        opt.textContent = `${t.name} (${t.host})`;
+        if (t.name === selecionado) opt.selected = true;
+        fieldTrunk.appendChild(opt);
+      });
+    } catch { fieldTrunk.innerHTML = '<option value="">Erro ao carregar troncos</option>'; }
+  }
+
+  async function carregarClientes(selecionado) {
+    try {
+      const res = await fetch("/api/customer/customers?size=200&sort=name,asc");
+      const data = await res.json();
+      const customers = data.content || data;
+      fieldCustomer.innerHTML = '<option value="">Selecione um cliente...</option>';
+      customers.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.id;
+        opt.textContent = c.name;
+        if (c.id === selecionado) opt.selected = true;
+        fieldCustomer.appendChild(opt);
+      });
+    } catch { fieldCustomer.innerHTML = '<option value="">Erro ao carregar clientes</option>'; }
+  }
+
+  async function carregarPlanos(selecionado) {
+    try {
+      const res = await fetch("/api/plan/plans?size=200&sort=name,asc");
+      const data = await res.json();
+      const plans = data.content || data;
+      fieldPlan.innerHTML = '<option value="">Selecione um plano...</option>';
+      plans.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.name;
+        if (p.id === selecionado) opt.selected = true;
+        fieldPlan.appendChild(opt);
+      });
+    } catch { fieldPlan.innerHTML = '<option value="">Erro ao carregar planos</option>'; }
+  }
+
+  // ─── Carregar circuito ───────────────────────────────────────────────────────
+  async function carregarCircuito() {
+    try {
+      const res = await fetch(`/api/circuit/${circuitId}`);
+      if (!res.ok) { showMessage("Circuito não encontrado.", "error"); return; }
+      const c = await res.json();
+
+      fieldId.value     = c.id ?? "";
+      fieldNumber.value = c.number;
+      fieldPassword.value = c.password || "";
+
+      await Promise.all([
+        carregarTroncos(c.trunkName),
+        carregarClientes(c.customer?.id ?? null),
+        carregarPlanos(c.plan?.id ?? null),
+      ]);
+    } catch { showMessage("Erro ao carregar circuito.", "error"); }
+  }
+
+  // ─── Carregar DIDs ───────────────────────────────────────────────────────────
+  async function carregarDIDs() {
+    try {
+      const res = await fetch("/api/did/dids?page=0&size=200");
+      const data = await res.json();
+      const vinculados = (data.content || []).filter(d => d.circuitNumber === circuitId);
+
+      tbody.innerHTML = "";
+      selectedDids.clear();
+      atualizarBotaoDesvincular();
+
+      if (vinculados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-gray-400">Nenhum DID vinculado.</td></tr>`;
+        return;
+      }
+
+      vinculados.forEach(did => {
+        const tr = document.createElement("tr");
+        tr.className = "odd:bg-gray-50 text-gray-700";
+        tr.dataset.id = did.id;
+        tr.innerHTML = `
+          <td class="px-3 py-2">
+            <input type="checkbox" class="did-checkbox rounded" data-id="${did.id}" />
+          </td>
+          <td class="px-4 py-2 font-mono">${formatNumber(did.number)}</td>
+          <td class="px-4 py-2 text-gray-500">Em uso</td>
+        `;
+        tr.querySelector(".did-checkbox").addEventListener("change", onCheckboxChange);
+        tbody.appendChild(tr);
+      });
+    } catch {
+      tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-red-500">Erro ao carregar DIDs.</td></tr>`;
+    }
+  }
+
+  function onCheckboxChange(e) {
+    const id = Number(e.target.dataset.id);
+    if (e.target.checked) selectedDids.add(id);
+    else selectedDids.delete(id);
+    atualizarBotaoDesvincular();
+  }
+
+  function atualizarBotaoDesvincular() {
+    const hasSelection = selectedDids.size > 0;
+    btnUnlink.disabled = !hasSelection;
+    if (hasSelection) {
+      btnUnlink.className = "px-3 py-1.5 text-xs rounded border border-red-600 text-red-600 hover:bg-red-50 transition cursor-pointer";
+    } else {
+      btnUnlink.className = "px-3 py-1.5 text-xs rounded border border-red-200 text-red-300 cursor-not-allowed transition";
+    }
+  }
+
+  // ─── Salvar ──────────────────────────────────────────────────────────────────
+  document.getElementById("btnSave").addEventListener("click", async () => {
+    const password   = fieldPassword.value;
+    const trunkName  = fieldTrunk.value;
+    const customerId = fieldCustomer.value ? Number(fieldCustomer.value) : null;
+    const planId     = fieldPlan.value     ? Number(fieldPlan.value)     : null;
+
+    if (!password)  { showMessage("A senha é obrigatória.", "error"); return; }
+    const pwErr = validatePassword(password);
+    if (pwErr)      { showMessage(pwErr, "error"); return; }
+    if (!trunkName) { showMessage("Selecione um tronco.", "error"); return; }
+    if (!customerId){ showMessage("Selecione um cliente.", "error"); return; }
+    if (!planId)    { showMessage("Selecione um plano.", "error"); return; }
+
+    try {
+      const res = await fetch(`/api/circuit/${circuitId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password, trunkName, customerId, planId }),
+      });
+      if (res.ok) {
+        showMessage("Circuito atualizado com sucesso!", "success");
+        window.showToast?.("Circuito atualizado com sucesso!", "success");
+      } else {
+        const err = await res.text();
+        showMessage(err || "Erro ao salvar.", "error");
+      }
+    } catch { showMessage("Erro ao comunicar com o servidor.", "error"); }
+  });
+
+  // ─── Deletar ─────────────────────────────────────────────────────────────────
+  document.getElementById("btnDelete").addEventListener("click", async () => {
+    if (!confirm("Tem certeza que deseja excluir este circuito?")) return;
+    try {
+      const res = await fetch(`/api/circuit/${circuitId}`, { method: "DELETE" });
+      if (res.ok || res.status === 204) {
+        window.showToast?.("Circuito excluído com sucesso!", "success");
+        window.location.href = "/circuits";
+      } else {
+        showMessage("Erro ao excluir circuito.", "error");
+      }
+    } catch { showMessage("Erro ao comunicar com o servidor.", "error"); }
+  });
+
+  // ─── Voltar ──────────────────────────────────────────────────────────────────
+  document.getElementById("btnBack").addEventListener("click", () => { window.location.href = "/circuits"; });
+
+  // ─── Desvincular DIDs ────────────────────────────────────────────────────────
+  btnUnlink.addEventListener("click", async () => {
+    if (selectedDids.size === 0) return;
+    if (!confirm(`Desvincular ${selectedDids.size} DID(s)?`)) return;
+
+    const results = await Promise.all([...selectedDids].map(didId =>
+      fetch("/api/did/unlink", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ didId }),
+      })
+    ));
+
+    const errors = results.filter(r => !r.ok).length;
+    if (errors === 0) {
+      window.showToast?.("DID(s) desvinculado(s) com sucesso!", "success");
+    } else {
+      showMessage(`${errors} DID(s) não puderam ser desvinculados.`, "error");
+    }
+    carregarDIDs();
+  });
+
+  // ─── Modal Vincular DID ──────────────────────────────────────────────────────
+  document.getElementById("btnAddDid").addEventListener("click", openModal);
+  document.getElementById("btnModalCancel").addEventListener("click", closeModal);
+  modalOverlay.addEventListener("click", closeModal);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+  async function openModal() {
+    modalMessage.classList.add("hidden");
+    semDIDsMsg.classList.add("hidden");
+    selectDID.innerHTML = '<option value="">Selecione um DID...</option>';
+
+    try {
+      const res = await fetch("/api/did/dids?page=0&size=200");
+      const data = await res.json();
+      const livres = (data.content || []).filter(d => !d.circuitNumber);
+
+      if (livres.length === 0) {
+        semDIDsMsg.classList.remove("hidden");
+      } else {
+        livres.forEach(d => {
+          const opt = document.createElement("option");
+          opt.value = d.id;
+          opt.textContent = formatNumber(d.number);
+          selectDID.appendChild(opt);
+        });
+      }
+    } catch {
+      semDIDsMsg.textContent = "Erro ao carregar DIDs disponíveis.";
+      semDIDsMsg.classList.remove("hidden");
+    }
+
+    modal.classList.remove("hidden");
+    modalOverlay.classList.remove("hidden");
+  }
+
+  function closeModal() {
+    modal.classList.add("hidden");
+    modalOverlay.classList.add("hidden");
+  }
+
+  document.getElementById("btnModalSave").addEventListener("click", async () => {
+    const didId = selectDID.value;
+    if (!didId) { showModalMessage("Selecione um DID.", "error"); return; }
+
+    try {
+      const res = await fetch("/api/did/link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ didId: Number(didId), circuitNumber: circuitId }),
+      });
+      if (res.ok) {
+        closeModal();
+        carregarDIDs();
+        window.showToast?.("DID vinculado com sucesso!", "success");
+      } else {
+        const err = await res.text();
+        showModalMessage(err || "Erro ao vincular DID.", "error");
+      }
+    } catch { showModalMessage("Erro ao comunicar com o servidor.", "error"); }
+  });
+
+  // ─── Init ────────────────────────────────────────────────────────────────────
+  carregarCircuito();
+  carregarDIDs();
+</script>

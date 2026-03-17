@@ -2,5 +2,143 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Cabeçalho padrão de página ───────────────────────────────────────────── */
+.page-title {
+  font-size: 22px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Usado apenas em páginas sem card unificado (relatórios, auditoria, etc.) */
+.page-header {
+  margin-bottom: 24px;
+}
+
+/*
+  Uso padrão em páginas sem ação:
+    <div class="page-header">
+      <h1 class="page-title">Título</h1>
+      <p class="page-subtitle">Subtítulo descritivo</p>
+    </div>
+
+  Uso em páginas com botão de ação:
+    <div class="flex justify-between items-start page-header">
+      <div>
+        <h1 class="page-title">Título</h1>
+        <p class="page-subtitle">Subtítulo descritivo</p>
+      </div>
+      <button ...>Ação</button>
+    </div>
+*/
+
+/* ── Toolbar padrão de listagem ──────────────────────────────────────────── */
+/*
+  Estrutura:
+    <div class="flex items-center justify-between page-header">
+      <div>
+        <h1 class="page-title">Título</h1>
+        <p class="page-subtitle">Subtítulo</p>
+      </div>
+      <button id="btnAdd" class="bg-green-500 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-green-600">+ Adicionar</button>
+    </div>
+
+    <div class="listing-toolbar">
+      <div class="listing-search">
+        <input id="input-search" class="listing-search-input" placeholder="Pesquisar..." />
+        <button id="btn-search" class="listing-search-btn">Pesquisar</button>
+      </div>
+      <div class="listing-pagination">
+        <button id="btn-prev" class="listing-page-btn">‹ Anterior</button>
+        <span id="page-info" class="listing-page-info">Página 1 de 1</span>
+        <button id="btn-next" class="listing-page-btn">Próxima ›</button>
+      </div>
+    </div>
+*/
+
+.listing-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.listing-search {
+  display: flex;
+  align-items: stretch;
+}
+
+.listing-search-input {
+  padding: 7px 12px;
+  border: 1px solid #d1d5db;
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  font-size: 13px;
+  width: 280px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.listing-search-input:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.listing-search-btn {
+  padding: 0 10px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.listing-search-btn:hover {
+  background: #2563eb;
+}
+
+.listing-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.listing-page-btn {
+  padding: 6px 12px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.listing-page-btn:hover:not(:disabled) {
+  background: #d1d5db;
+}
+
+.listing-page-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.listing-page-info {
+  font-size: 13px;
+  color: #374151;
+  white-space: nowrap;
+  min-width: 100px;
+  text-align: center;
+}
+
+
 
 

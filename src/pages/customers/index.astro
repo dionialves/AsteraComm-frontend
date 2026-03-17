@@ -3,30 +3,36 @@ import Layout from "../../layouts/Layout.astro";
 ---
 
 <Layout>
-    <div class="flex justify-between items-center mb-2">
-        <h1 class="text-2xl font-semibold mb-4">Clientes</h1>
-        <button id="btnAdd" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700">Adicionar</button>
-    </div>
-
-    <div class="overflow-x-auto p-4 bg-white rounded-lg shadow">
-
-        <div class="flex items-center justify-between mb-2" id="pagination-container">
-            <div class="flex items-center space-x-2">
-                <input
-                    id="search-input"
-                    type="text"
-                    placeholder="Pesquisar..."
-                    class="hidden"
-                />
+    <div class="bg-white rounded-lg shadow mb-6">
+        <div class="flex items-center justify-between px-6 py-5">
+            <div>
+                <h1 class="page-title">Clientes</h1>
+                <p class="page-subtitle">Cadastro de clientes vinculados a circuitos</p>
             </div>
-            <div class="flex justify-between items-center space-x-2 w-96">
-                <button id="btn-prev" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Anterior</button>
-                <span id="page-info" class="text-sm text-gray-700">Página 1 de 1</span>
-                <button id="btn-next" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm">Próxima</button>
+            <button id="btnAdd" class="bg-green-500 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-green-600">+ Adicionar</button>
+        </div>
+
+        <hr class="border-gray-200" />
+
+        <div class="listing-toolbar px-6 py-3">
+            <div class="listing-search">
+                <input id="input-search" type="text" placeholder="Pesquisar por nome..." class="listing-search-input" />
+                <button id="btn-search" class="listing-search-btn" title="Pesquisar">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="listing-pagination">
+                <button id="btn-prev" class="listing-page-btn">‹ Anterior</button>
+                <span id="page-info" class="listing-page-info">Página 1 de 1</span>
+                <button id="btn-next" class="listing-page-btn">Próxima ›</button>
             </div>
         </div>
 
-        <table id="table-customers" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm">
+        <div class="overflow-x-auto px-4 pb-4">
+
+        <table id="table-customers" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
             <thead class="bg-gray-100 text-gray-900">
                 <tr class="font-semibold">
                     <th class="w-2/5 px-4 py-2 text-left font-semibold">Nome</th>
@@ -41,6 +47,7 @@ import Layout from "../../layouts/Layout.astro";
                 </tr>
             </tbody>
         </table>
+        </div>
     </div>
 
     <!-- Modal Overlay -->
@@ -105,7 +112,6 @@ import Layout from "../../layouts/Layout.astro";
     const btnPrev = document.getElementById("btn-prev");
     const btnNext = document.getElementById("btn-next");
     const pageInfo = document.getElementById("page-info");
-    const paginationControls = document.getElementById("pagination-container");
 
     const modal = document.getElementById("modal");
     const modalOverlay = document.getElementById("modalOverlay");
@@ -120,6 +126,16 @@ import Layout from "../../layouts/Layout.astro";
     let currentPage = 0;
     let totalPages = 0;
     let editingCustomerId = null;
+
+    // === Pesquisa ===
+    const searchInput = document.getElementById("input-search");
+    searchInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") { currentPage = 0; carregarDados(0); }
+    });
+    document.getElementById("btn-search").addEventListener("click", () => {
+        currentPage = 0;
+        carregarDados(0);
+    });
 
     function showMessage(text, type) {
         formMessage.textContent = text;
@@ -273,7 +289,8 @@ import Layout from "../../layouts/Layout.astro";
         loading.style.display = "block";
         table.style.visibility = "visible";
 
-        const url = `/api/customer/customers?page=${pagina}&size=20&sort=name,asc`;
+        const search = encodeURIComponent(searchInput.value.trim());
+        const url = `/api/customer/customers?page=${pagina}&size=20&sort=name,asc&search=${search}`;
 
         fetch(url)
             .then(res => {
@@ -283,7 +300,6 @@ import Layout from "../../layouts/Layout.astro";
             .then(data => {
                 loading.style.display = "none";
                 table.style.display = "table";
-                paginationControls.style.display = "flex";
 
                 currentPage = pagina;
                 totalPages = data.totalPages;
