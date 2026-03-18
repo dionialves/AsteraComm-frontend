@@ -419,11 +419,10 @@ const { id } = Astro.params;
     selectDID.innerHTML = '<option value="">Selecione um DID...</option>';
 
     try {
-      const res = await fetch("/api/did/dids?page=0&size=200");
-      const data = await res.json();
-      const livres = (data.content || []).filter(d => !d.circuitNumber);
+      const res = await fetch("/api/did/free");
+      const livres = await res.json();
 
-      if (livres.length === 0) {
+      if (!Array.isArray(livres) || livres.length === 0) {
         semDIDsMsg.classList.remove("hidden");
       } else {
         livres.forEach(d => {
