@@ -109,7 +109,7 @@ const { id } = Astro.params;
       if (!res.ok) return;
       const c = await res.json();
 
-      document.getElementById("page-title").textContent = `Cliente ${c.name}`;
+      document.getElementById("page-title").textContent = `${c.name}`;
       document.getElementById("fieldId").value = c.id ?? "";
       document.getElementById("fieldName").value = c.name ?? "";
       document.getElementById(c.enabled ? "enabledTrue" : "enabledFalse").checked = true;
