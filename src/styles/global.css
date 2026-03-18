@@ -139,6 +139,14 @@
   text-align: center;
 }
 
+/* ── Tabelas com layout fixo ──────────────────────────────────────────────── */
+/* Garante que conteúdo longo não estoure a célula e não altere a largura da coluna */
+.table-fixed td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 
 
 

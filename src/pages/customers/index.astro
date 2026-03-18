@@ -32,14 +32,14 @@ import Layout from "../../layouts/Layout.astro";
 
         <div class="overflow-x-auto px-4 pb-4">
 
-        <table id="table-customers" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
+        <table id="table-customers" class="table-fixed w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
             <thead class="bg-gray-100 text-gray-900">
                 <tr class="font-semibold">
-                    <th class="px-4 py-2 text-left font-semibold">ID</th>
-                    <th class="px-4 py-2 text-left font-semibold">Nome</th>
-                    <th class="px-4 py-2 text-left font-semibold">Status</th>
-                    <th class="px-4 py-2 text-left font-semibold">Criado em</th>
-                    <th class="px-4 py-2 text-left font-semibold">Atualizado em</th>
+                    <th data-field="id" class="w-12 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">ID</th>
+                    <th data-field="name" class="w-80 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Nome</th>
+                    <th data-field="enabled" class="w-20 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Status</th>
+                    <th data-field="createdAt" class="w-40 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Criado em</th>
+                    <th data-field="updatedAt" class="px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Atualizado em</th>
                 </tr>
             </thead>
             <tbody id="tbody-customers" class="divide-y divide-gray-200">
@@ -126,7 +126,23 @@ import Layout from "../../layouts/Layout.astro";
 
     let currentPage = 0;
     let totalPages = 0;
+    let currentSortField = "id";
+    let currentSortDirection = "desc";
     let editingCustomerId = null;
+
+    // === Ordenação ===
+    document.querySelectorAll("thead th[data-field]").forEach(th => {
+        th.addEventListener("click", () => {
+            const field = th.getAttribute("data-field");
+            if (currentSortField === field) {
+                currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+            } else {
+                currentSortField = field;
+                currentSortDirection = "asc";
+            }
+            carregarDados(0);
+        });
+    });
 
     // === Pesquisa ===
     const searchInput = document.getElementById("input-search");
@@ -291,7 +307,7 @@ import Layout from "../../layouts/Layout.astro";
         table.style.visibility = "visible";
 
         const search = encodeURIComponent(searchInput.value.trim());
-        const url = `/api/customer/customers?page=${pagina}&size=20&sort=id,desc&search=${search}`;
+        const url = `/api/customer/customers?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${search}`;
 
         fetch(url)
             .then(res => {

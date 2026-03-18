@@ -32,17 +32,18 @@ import Layout from "../../layouts/Layout.astro";
 
         <div class="overflow-x-auto px-4 pb-4">
 
-        <table id="table-plans" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
+        <table id="table-plans" class="table-fixed w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
             <thead class="bg-gray-100 text-gray-900">
                 <tr class="font-semibold">
-                    <th class="w-2/12 px-4 py-2 text-left">Nome</th>
-                    <th class="w-1/12 px-4 py-2 text-right">Mensalidade</th>
-                    <th class="w-1/12 px-4 py-2 text-right">Fixo Local</th>
-                    <th class="w-1/12 px-4 py-2 text-right">Fixo Interurb.</th>
-                    <th class="w-1/12 px-4 py-2 text-right">Móvel Local</th>
-                    <th class="w-1/12 px-4 py-2 text-right">Móvel LD</th>
-                    <th class="w-2/12 px-4 py-2 text-left">Pacote</th>
-                    <th class="w-1/12 px-4 py-2 text-left">Ações</th>
+                    <th data-field="id" class="w-12 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">ID</th>
+                    <th data-field="name" class="w-48 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Nome</th>
+                    <th data-field="monthlyPrice" class="w-28 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Mensalidade</th>
+                    <th data-field="fixedLocal" class="w-24 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Fixo Local</th>
+                    <th data-field="fixedLongDistance" class="w-28 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Fixo Interurb.</th>
+                    <th data-field="mobileLocal" class="w-24 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Móvel Local</th>
+                    <th data-field="mobileLongDistance" class="w-20 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Móvel LD</th>
+                    <th data-field="packageType" class="w-40 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Pacote</th>
+                    <th class="px-4 py-2 text-left font-semibold whitespace-nowrap">Ações</th>
                 </tr>
             </thead>
             <tbody id="tbody-plans" class="divide-y divide-gray-200">
@@ -206,7 +207,23 @@ import Layout from "../../layouts/Layout.astro";
 
     let currentPage = 0;
     let totalPages = 0;
+    let currentSortField = "id";
+    let currentSortDirection = "desc";
     let editingId = null;
+
+    // === Ordenação ===
+    document.querySelectorAll("thead th[data-field]").forEach(th => {
+        th.addEventListener("click", () => {
+            const field = th.getAttribute("data-field");
+            if (currentSortField === field) {
+                currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+            } else {
+                currentSortField = field;
+                currentSortDirection = "asc";
+            }
+            carregarDados(0);
+        });
+    });
 
     // === Pesquisa ===
     const searchInput = document.getElementById("input-search");
@@ -436,7 +453,7 @@ import Layout from "../../layouts/Layout.astro";
         loading.style.display = "block";
 
         const search = encodeURIComponent(searchInput.value.trim());
-        fetch(`/api/plan/plans?page=${pagina}&size=20&search=${search}`)
+        fetch(`/api/plan/plans?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${search}`)
             .then(res => {
                 if (!res.ok) throw new Error("Erro na resposta da API");
                 return res.json();
@@ -450,19 +467,20 @@ import Layout from "../../layouts/Layout.astro";
                 tbody.innerHTML = "";
 
                 if (data.content.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-gray-500">Nenhum plano cadastrado.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-gray-500">Nenhum plano cadastrado.</td></tr>`;
                 } else {
                     data.content.forEach(item => {
                         const tr = document.createElement("tr");
                         tr.className = "odd:bg-gray-50 text-gray-700";
 
                         tr.innerHTML = `
+                            <td class="px-4 py-2 text-gray-500">${item.id}</td>
                             <td class="px-4 py-2 font-medium">${item.name}</td>
-                            <td class="px-4 py-2 text-right">${formatPrice(item.monthlyPrice)}</td>
-                            <td class="px-4 py-2 text-right font-mono text-xs">${formatRate(item.fixedLocal)}</td>
-                            <td class="px-4 py-2 text-right font-mono text-xs">${formatRate(item.fixedLongDistance)}</td>
-                            <td class="px-4 py-2 text-right font-mono text-xs">${formatRate(item.mobileLocal)}</td>
-                            <td class="px-4 py-2 text-right font-mono text-xs">${formatRate(item.mobileLongDistance)}</td>
+                            <td class="px-4 py-2">${formatPrice(item.monthlyPrice)}</td>
+                            <td class="px-4 py-2 font-mono text-xs">${formatRate(item.fixedLocal)}</td>
+                            <td class="px-4 py-2 font-mono text-xs">${formatRate(item.fixedLongDistance)}</td>
+                            <td class="px-4 py-2 font-mono text-xs">${formatRate(item.mobileLocal)}</td>
+                            <td class="px-4 py-2 font-mono text-xs">${formatRate(item.mobileLongDistance)}</td>
                             <td class="px-4 py-2 text-xs text-gray-600">${formatPackage(item)}</td>
                             <td class="px-4 py-2 flex gap-2">
                                 <button class="btn-edit px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition">Editar</button>

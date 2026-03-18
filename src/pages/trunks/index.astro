@@ -32,13 +32,13 @@ import Layout from "../../layouts/Layout.astro";
 
         <div class="overflow-x-auto px-4 pb-4">
 
-        <table id="table-trunks" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
+        <table id="table-trunks" class="table-fixed w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
             <thead class="bg-gray-100 text-gray-900">
                 <tr class="font-semibold">
-                    <th data-field="name" class="w-1/4 px-4 py-2 text-left font-semibold cursor-pointer">Nome</th>
-                    <th data-field="host" class="w-1/4 px-4 py-2 text-left font-semibold cursor-pointer">Host</th>
-                    <th data-field="username" class="w-1/4 px-4 py-2 text-left font-semibold cursor-pointer">Usuário</th>
-                    <th data-field="registered" class="w-1/4 px-4 py-2 text-left font-semibold cursor-pointer">Registro</th>
+                    <th data-field="name" class="w-1/4 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Nome</th>
+                    <th data-field="host" class="w-1/4 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Host</th>
+                    <th data-field="username" class="w-1/4 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Usuário</th>
+                    <th data-field="registered" class="px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Registro</th>
                 </tr>
             </thead>
             <tbody id="tbody-trunks" class="divide-y divide-gray-200">

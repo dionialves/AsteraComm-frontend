@@ -35,18 +35,18 @@ import Layout from "../../layouts/Layout.astro";
         </div>
 
         <div class="overflow-x-auto px-4 pb-4">
-            <table id="table-circuits" class="table-fixed min-w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
+            <table id="table-circuits" class="table-fixed w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
                 <thead class="bg-gray-100 text-gray-900">
                     <tr class="font-semibold">
-                        <th data-field="id" class="w-16 px-4 py-2 text-left font-semibold cursor-pointer">ID</th>
-                        <th data-field="active" class="w-24 px-4 py-2 text-left font-semibold">Status</th>
-                        <th data-field="number" class="w-1/6 px-4 py-2 text-left font-semibold cursor-pointer">Código</th>
-                        <th data-field="customerName" class="w-1/6 px-4 py-2 text-left font-semibold">Cliente</th>
-                        <th data-field="planName" class="w-1/6 px-4 py-2 text-left font-semibold">Plano</th>
-                        <th data-field="trunkName" class="w-1/6 px-4 py-2 text-left font-semibold">Tronco</th>
-                        <th data-field="online" class="w-24 px-4 py-2 text-left font-semibold cursor-pointer">Online</th>
-                        <th data-field="ip" class="w-1/6 px-4 py-2 text-left font-semibold">IP</th>
-                        <th data-field="rtt" class="w-24 px-4 py-2 text-left font-semibold">RTT</th>
+                        <th data-field="id" class="w-12 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">ID</th>
+                        <th data-field="active" class="w-20 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Status</th>
+                        <th data-field="number" class="w-36 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Código</th>
+                        <th data-field="customerName" class="w-80 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Cliente</th>
+                        <th data-field="planName" class="w-80 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Plano</th>
+                        <th data-field="trunkName" class="w-48 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Tronco</th>
+                        <th data-field="online" class="w-20 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Online</th>
+                        <th data-field="ip" class="w-32 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">IP</th>
+                        <th data-field="rtt" class="px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">RTT</th>
                     </tr>
                 </thead>
                 <tbody id="tbody-circuits" class="divide-y divide-gray-200">

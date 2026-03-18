@@ -66,18 +66,19 @@ import Layout from "../../layouts/Layout.astro";
             </div>
         </div>
 
-        <table id="table-cdrs" class="min-w-full border border-gray-200 rounded-lg shadow-sm text-sm">
+        <table id="table-cdrs" class="table-fixed w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
             <thead class="bg-gray-100 text-gray-900">
                 <tr class="font-semibold">
-                    <th data-field="callDate" class="px-4 py-2 text-left font-semibold cursor-pointer">Data/Hora</th>
-                    <th data-field="callerNumber" class="px-4 py-2 text-left font-semibold cursor-pointer">Origem</th>
-                    <th data-field="dst" class="px-4 py-2 text-left font-semibold cursor-pointer">Destino</th>
-                    <th class="px-4 py-2 text-left font-semibold">Circuito</th>
-                    <th class="px-4 py-2 text-left font-semibold">Tipo</th>
-                    <th data-field="durationSeconds" class="px-4 py-2 text-left font-semibold cursor-pointer">Duração</th>
-                    <th class="px-4 py-2 text-left font-semibold">Status</th>
-                    <th class="px-4 py-2 text-left font-semibold">Custeio</th>
-                    <th class="px-4 py-2 text-right font-semibold">Valor</th>
+                    <th data-field="id" class="w-12 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">ID</th>
+                    <th data-field="callDate" class="w-40 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Data/Hora</th>
+                    <th data-field="callerNumber" class="w-28 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Origem</th>
+                    <th data-field="dst" class="w-28 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Destino</th>
+                    <th class="w-24 px-4 py-2 text-left font-semibold whitespace-nowrap">Circuito</th>
+                    <th data-field="callType" class="w-28 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Tipo</th>
+                    <th data-field="billSeconds" class="w-20 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Duração</th>
+                    <th data-field="disposition" class="w-28 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Status</th>
+                    <th data-field="callStatus" class="w-28 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Custeio</th>
+                    <th data-field="cost" class="px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Valor</th>
                 </tr>
             </thead>
             <tbody id="tbody-cdrs" class="divide-y divide-gray-200">
@@ -171,7 +172,7 @@ import Layout from "../../layouts/Layout.astro";
 
     let currentPage = 0;
     let totalPages = 0;
-    let currentSortField = "callDate";
+    let currentSortField = "id";
     let currentSortDirection = "desc";
 
     // === Formatadores ===
@@ -324,7 +325,7 @@ import Layout from "../../layouts/Layout.astro";
                 tbody.innerHTML = "";
 
                 if (data.content.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-gray-500">Nenhuma ligação encontrada.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-gray-500">Nenhuma ligação encontrada.</td></tr>`;
                 } else {
                     data.content.forEach(item => {
                         const disp = dispositionLabel(item.disposition);
@@ -333,6 +334,7 @@ import Layout from "../../layouts/Layout.astro";
                         tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
                         const cs = callStatusLabel(item.callStatus);
                         tr.innerHTML = `
+                            <td class="px-4 py-2 text-gray-500">${item.id}</td>
                             <td class="px-4 py-2">${formatDateTime(item.callDate)}</td>
                             <td class="px-4 py-2">${item.callerNumber || "—"}</td>
                             <td class="px-4 py-2">${item.dst || "—"}</td>
@@ -341,7 +343,7 @@ import Layout from "../../layouts/Layout.astro";
                             <td class="px-4 py-2">${formatDuration(item.billSeconds)}</td>
                             <td class="px-4 py-2 font-semibold ${disp.cls}">${disp.label}</td>
                             <td class="px-4 py-2 font-semibold ${cs.cls}">${cs.label}</td>
-                            <td class="px-4 py-2 text-right font-mono">${formatCost(item.cost)}</td>
+                            <td class="px-4 py-2 font-mono">${formatCost(item.cost)}</td>
                         `;
                         tr.addEventListener("click", () => openModal(item.uniqueId));
                         tbody.appendChild(tr);
