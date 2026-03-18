@@ -281,9 +281,8 @@ const { id } = Astro.params;
   // ─── Carregar DIDs ───────────────────────────────────────────────────────────
   async function carregarDIDs() {
     try {
-      const res = await fetch("/api/did/dids?page=0&size=200");
-      const data = await res.json();
-      const vinculados = (data.content || []).filter(d => d.circuitNumber === circuitId);
+      const res = await fetch(`/api/did/by-circuit/${circuitId}`);
+      const vinculados = await res.json();
 
       tbody.innerHTML = "";
       selectedDids.clear();

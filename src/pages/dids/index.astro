@@ -236,7 +236,7 @@ import Layout from "../../layouts/Layout.astro";
                         const tr = document.createElement("tr");
                         tr.className = "odd:bg-gray-50 text-gray-700";
 
-                        const emUso = !!item.circuitNumber;
+                        const emUso = !!item.circuitId;
                         const statusLabel = emUso
                             ? `<span class="text-yellow-600 font-semibold">EM USO</span>`
                             : `<span class="text-green-600 font-semibold">LIVRE</span>`;

@@ -97,14 +97,11 @@ const { id } = Astro.params;
     // === Carregar DIDs do circuito ===
     async function carregarDados() {
         try {
-            const res = await fetch(`/api/did/dids?page=0&size=200`);
-            const data = await res.json();
-            const todos = data.content || [];
+            const res = await fetch(`/api/did/by-circuit/${circuitId}`);
+            const vinculados = await res.json();
 
             loading.remove();
             tbody.innerHTML = "";
-
-            const vinculados = todos.filter(d => d.circuitNumber === circuitId);
 
             if (vinculados.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-gray-500">Nenhum DID vinculado a este circuito.</td></tr>`;
@@ -138,9 +135,8 @@ const { id } = Astro.params;
         semDIDsMsg.classList.add('hidden');
 
         try {
-            const res = await fetch(`/api/did/dids?page=0&size=200`);
-            const data = await res.json();
-            const livres = (data.content || []).filter(d => !d.circuitNumber);
+            const res = await fetch(`/api/did/free`);
+            const livres = await res.json();
 
             if (livres.length === 0) {
                 semDIDsMsg.classList.remove('hidden');
