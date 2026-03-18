@@ -1,0 +1,88 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout>
+
+  <div class="bg-white rounded-lg shadow mb-6">
+    <div class="flex items-center justify-between px-6 py-5">
+      <div>
+        <h1 class="page-title">Novo Cliente</h1>
+        <p class="page-subtitle">Cadastrar cliente</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnBack" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">Voltar</button>
+        <button id="btnSave" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm transition">Salvar</button>
+      </div>
+    </div>
+
+    <hr class="border-gray-200" />
+
+    <div id="formMessage" class="hidden mx-6 mt-4 px-4 py-2 rounded text-sm"></div>
+
+    <div class="px-6 py-5">
+      <div class="divide-y divide-gray-100">
+
+        <div class="flex items-center py-3 gap-4">
+          <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Nome <span class="text-red-500">*</span></span>
+          <input id="fieldName" type="text"
+            class="w-72 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
+            placeholder="Nome do cliente" />
+        </div>
+
+        <div class="flex items-center py-3 gap-4">
+          <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Ativo</span>
+          <div class="flex items-center gap-4 text-sm text-gray-700">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" id="enabledTrue" name="enabled" value="true" checked class="accent-green-600" />
+              Sim
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" id="enabledFalse" name="enabled" value="false" class="accent-red-500" />
+              Não
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</Layout>
+
+<script type="module" defer>
+  const formMessage = document.getElementById("formMessage");
+
+  function showMessage(text, type) {
+    formMessage.textContent = text;
+    formMessage.classList.remove("hidden", "bg-green-100", "text-green-700", "bg-red-100", "text-red-700");
+    formMessage.classList.add(type === "success" ? "bg-green-100" : "bg-red-100");
+    formMessage.classList.add(type === "success" ? "text-green-700" : "text-red-700");
+  }
+
+  document.getElementById("btnBack").addEventListener("click", () => { window.location.href = "/customers"; });
+
+  document.getElementById("btnSave").addEventListener("click", async () => {
+    const name = document.getElementById("fieldName").value.trim();
+    const enabled = document.querySelector('input[name="enabled"]:checked').value === "true";
+
+    if (!name) { showMessage("O nome é obrigatório.", "error"); return; }
+
+    try {
+      const res = await fetch("/api/customer/customers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, enabled }),
+      });
+
+      if (res.ok || res.status === 201) {
+        const created = await res.json();
+        window.showToast?.("Cliente criado com sucesso!", "success");
+        window.location.href = `/customers/${created.id}`;
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showMessage(err.message || "Erro ao criar cliente.", "error");
+      }
+    } catch { showMessage("Erro ao comunicar com o servidor.", "error"); }
+  });
+</script>

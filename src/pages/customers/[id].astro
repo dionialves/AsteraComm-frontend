@@ -1,0 +1,186 @@
+---
+import Layout from "../../layouts/Layout.astro";
+export const prerender = false;
+const { id } = Astro.params;
+---
+
+<Layout>
+
+  <!-- Cabeçalho + Campos -->
+  <div class="bg-white rounded-lg shadow mb-6">
+    <div class="flex items-center justify-between px-6 py-5">
+      <div>
+        <h1 id="page-title" class="page-title">{id}</h1>
+        <p class="page-subtitle">Detalhes do cliente</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnBack" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">Voltar</button>
+        <button id="btnSave" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm transition">Salvar</button>
+      </div>
+    </div>
+
+    <hr class="border-gray-200" />
+
+    <!-- Campos -->
+    <div class="px-6 py-5">
+      <div class="divide-y divide-gray-100">
+
+        <div class="flex items-center py-3 gap-4">
+          <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">ID</span>
+          <input id="fieldId" type="text" disabled
+            class="w-28 px-3 py-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-500 cursor-not-allowed" />
+        </div>
+
+        <div class="flex items-center py-3 gap-4">
+          <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Nome</span>
+          <input id="fieldName" type="text"
+            class="w-72 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300" />
+        </div>
+
+        <div class="flex items-center py-3 gap-4">
+          <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Ativo</span>
+          <div class="flex items-center gap-4 text-sm text-gray-700">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" id="enabledTrue" name="enabled" value="true" class="accent-green-600" />
+              Sim
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" id="enabledFalse" name="enabled" value="false" class="accent-red-500" />
+              Não
+            </label>
+          </div>
+        </div>
+
+        <div class="flex items-center py-3 gap-4">
+          <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Criado em</span>
+          <input id="fieldCreatedAt" type="text" disabled
+            class="w-52 px-3 py-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-500 cursor-not-allowed" />
+        </div>
+
+        <div class="flex items-center py-3 gap-4">
+          <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Atualizado em</span>
+          <input id="fieldUpdatedAt" type="text" disabled
+            class="w-52 px-3 py-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-500 cursor-not-allowed" />
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela de Circuitos -->
+  <div class="bg-white rounded-lg shadow px-6 py-5">
+    <h2 class="text-sm font-semibold text-gray-700 mb-4">Circuitos vinculados</h2>
+
+    <table class="w-full border border-gray-200 rounded-lg text-sm">
+      <thead class="bg-gray-100 text-gray-900">
+        <tr class="font-semibold">
+          <th class="px-4 py-2 text-left whitespace-nowrap">ID</th>
+          <th class="px-4 py-2 text-left whitespace-nowrap">Status</th>
+          <th class="px-4 py-2 text-left whitespace-nowrap">Código</th>
+          <th class="px-4 py-2 text-left whitespace-nowrap">Plano</th>
+          <th class="px-4 py-2 text-left whitespace-nowrap">Tronco</th>
+          <th class="px-4 py-2 text-left whitespace-nowrap">Online</th>
+          <th class="px-4 py-2 text-left whitespace-nowrap">IP</th>
+          <th class="px-4 py-2 text-left whitespace-nowrap">RTT</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-circuits" class="divide-y divide-gray-200">
+        <tr><td colspan="8" class="px-4 py-4 text-gray-400 text-center">Carregando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</Layout>
+
+<script type="module" defer>
+  const customerId = window.location.pathname.split("/").at(-1);
+
+  function formatarData(dataStr) {
+    if (!dataStr) return '—';
+    return new Date(dataStr).toLocaleDateString('pt-BR', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  async function carregarCliente() {
+    try {
+      const res = await fetch(`/api/customer/${customerId}`);
+      if (!res.ok) return;
+      const c = await res.json();
+
+      document.getElementById("page-title").textContent = `Cliente ${c.name}`;
+      document.getElementById("fieldId").value = c.id ?? "";
+      document.getElementById("fieldName").value = c.name ?? "";
+      document.getElementById(c.enabled ? "enabledTrue" : "enabledFalse").checked = true;
+      document.getElementById("fieldCreatedAt").value = formatarData(c.createdAt);
+      document.getElementById("fieldUpdatedAt").value = formatarData(c.updatedAt);
+    } catch {}
+  }
+
+  async function carregarCircuitos() {
+    const tbody = document.getElementById("tbody-circuits");
+    try {
+      const res = await fetch(`/api/customer/${customerId}/circuits`);
+      if (!res.ok) {
+        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-4 text-red-500 text-center">Erro ao carregar circuitos.</td></tr>`;
+        return;
+      }
+      const circuits = await res.json();
+
+      if (circuits.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-4 text-gray-400 text-center">Nenhum circuito vinculado.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = "";
+      circuits.forEach(c => {
+        const tr = document.createElement("tr");
+        tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
+        tr.innerHTML = `
+          <td class="px-4 py-2 text-gray-500 whitespace-nowrap">${c.id}</td>
+          <td class="px-4 py-2 font-semibold whitespace-nowrap ${c.active ? 'text-green-600' : 'text-red-600'}">${c.active ? 'Ativo' : 'Inativo'}</td>
+          <td class="px-4 py-2 font-mono whitespace-nowrap">${c.number}</td>
+          <td class="px-4 py-2 whitespace-nowrap">${c.planName ?? '—'}</td>
+          <td class="px-4 py-2 whitespace-nowrap">${c.trunkName ?? '—'}</td>
+          <td class="px-4 py-2 font-semibold whitespace-nowrap ${c.online ? 'text-green-600' : 'text-gray-400'}">${c.online ? 'Sim' : 'Não'}</td>
+          <td class="px-4 py-2 font-mono whitespace-nowrap">${c.ip ?? '—'}</td>
+          <td class="px-4 py-2 whitespace-nowrap">${c.rtt ?? '—'}</td>
+        `;
+        tr.addEventListener("click", () => { window.location.href = `/circuits/${c.number}`; });
+        tbody.appendChild(tr);
+      });
+    } catch {
+      tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-4 text-red-500 text-center">Erro ao carregar circuitos.</td></tr>`;
+    }
+  }
+
+  document.getElementById("btnBack").addEventListener("click", () => { window.location.href = "/customers"; });
+
+  document.getElementById("btnSave").addEventListener("click", async () => {
+    const name = document.getElementById("fieldName").value.trim();
+    const enabled = document.querySelector('input[name="enabled"]:checked').value === "true";
+
+    if (!name) { window.showToast?.("O nome é obrigatório.", "error"); return; }
+
+    try {
+      const res = await fetch(`/api/customer/${customerId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, enabled }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        document.getElementById("page-title").textContent = `Cliente ${updated.name}`;
+        document.getElementById("fieldUpdatedAt").value = formatarData(updated.updatedAt);
+        window.showToast?.("Cliente atualizado com sucesso!", "success");
+      } else {
+        const err = await res.json().catch(() => ({}));
+        window.showToast?.(err.message || "Erro ao salvar.", "error");
+      }
+    } catch { window.showToast?.("Erro ao comunicar com o servidor.", "error"); }
+  });
+
+  carregarCliente();
+  carregarCircuitos();
+</script>
