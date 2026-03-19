@@ -69,28 +69,19 @@ const { id } = Astro.params;
       <!-- Tronco -->
       <div class="flex items-center py-3 gap-4">
         <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Tronco <span class="text-red-500">*</span></span>
-        <select id="fieldTrunk"
-          class="w-72 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
-          <option value="">Selecione um tronco...</option>
-        </select>
+        <div id="fieldTrunk" class="w-72"></div>
       </div>
 
       <!-- Cliente -->
       <div class="flex items-center py-3 gap-4">
         <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Cliente <span class="text-red-500">*</span></span>
-        <select id="fieldCustomer"
-          class="w-72 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
-          <option value="">Selecione um cliente...</option>
-        </select>
+        <div id="fieldCustomer" class="w-72"></div>
       </div>
 
       <!-- Plano -->
       <div class="flex items-center py-3 gap-4">
         <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Plano <span class="text-red-500">*</span></span>
-        <select id="fieldPlan"
-          class="w-72 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
-          <option value="">Selecione um plano...</option>
-        </select>
+        <div id="fieldPlan" class="w-72"></div>
       </div>
 
     </div>
@@ -118,8 +109,8 @@ const { id } = Astro.params;
       <thead class="bg-gray-100 text-gray-900">
         <tr class="font-semibold">
           <th class="w-8 px-3 py-2"></th>
+          <th class="w-16 px-4 py-2 text-left">ID</th>
           <th class="px-4 py-2 text-left">Número</th>
-          <th class="px-4 py-2 text-left">Status</th>
         </tr>
       </thead>
       <tbody id="tbody-dids" class="divide-y divide-gray-200">
@@ -144,10 +135,7 @@ const { id } = Astro.params;
       <div class="px-6 py-4">
         <div id="modalMessage" class="hidden mb-4 px-4 py-2 rounded text-sm"></div>
         <label class="block text-sm font-medium text-gray-700 mb-1">DID disponível <span class="text-red-500">*</span></label>
-        <select id="selectDID"
-          class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
-          <option value="">Selecione um DID...</option>
-        </select>
+        <div id="selectDID" class="w-full"></div>
         <p id="semDIDsMsg" class="hidden text-xs text-yellow-600 mt-1">
           Nenhum DID livre disponível. Cadastre em <a href="/dids" class="underline">DIDs</a>.
         </p>
@@ -158,22 +146,25 @@ const { id } = Astro.params;
 </Layout>
 
 <script type="module" defer>
+  import { SearchSelect } from "/src/lib/search-select.ts";
+
   const circuitId = window.location.pathname.split("/").at(-1);
 
   const fieldId       = document.getElementById("fieldId");
   const fieldNumber   = document.getElementById("fieldNumber");
   const fieldPassword = document.getElementById("fieldPassword");
-  const fieldTrunk    = document.getElementById("fieldTrunk");
-  const fieldCustomer = document.getElementById("fieldCustomer");
-  const fieldPlan     = document.getElementById("fieldPlan");
   const formMessage   = document.getElementById("formMessage");
   const btnUnlink     = document.getElementById("btnUnlink");
   const tbody         = document.getElementById("tbody-dids");
   const modal         = document.getElementById("modal");
   const modalOverlay  = document.getElementById("modalOverlay");
-  const selectDID     = document.getElementById("selectDID");
   const modalMessage  = document.getElementById("modalMessage");
   const semDIDsMsg    = document.getElementById("semDIDsMsg");
+
+  const ssTrunk    = new SearchSelect(document.getElementById("fieldTrunk"),    [], { placeholder: "Selecione um tronco..." });
+  const ssCustomer = new SearchSelect(document.getElementById("fieldCustomer"), [], { placeholder: "Selecione um cliente..." });
+  const ssPlan     = new SearchSelect(document.getElementById("fieldPlan"),     [], { placeholder: "Selecione um plano..." });
+  const ssDID      = new SearchSelect(document.getElementById("selectDID"),     [], { placeholder: "Selecione um DID..." });
 
   let selectedDids = new Set();
 
@@ -213,15 +204,9 @@ const { id } = Astro.params;
       const res = await fetch("/api/trunk/trunks");
       const data = await res.json();
       const trunks = data.content || data;
-      fieldTrunk.innerHTML = '<option value="">Selecione um tronco...</option>';
-      trunks.forEach(t => {
-        const opt = document.createElement("option");
-        opt.value = t.name;
-        opt.textContent = `${t.name} (${t.host})`;
-        if (t.name === selecionado) opt.selected = true;
-        fieldTrunk.appendChild(opt);
-      });
-    } catch { fieldTrunk.innerHTML = '<option value="">Erro ao carregar troncos</option>'; }
+      ssTrunk.setOptions(trunks.map(t => ({ value: t.name, label: `${t.name} (${t.host})` })));
+      if (selecionado) ssTrunk.setValue(selecionado);
+    } catch { ssTrunk.setOptions([]); }
   }
 
   async function carregarClientes(selecionado) {
@@ -229,15 +214,9 @@ const { id } = Astro.params;
       const res = await fetch("/api/customer/customers?size=200&sort=name,asc");
       const data = await res.json();
       const customers = data.content || data;
-      fieldCustomer.innerHTML = '<option value="">Selecione um cliente...</option>';
-      customers.forEach(c => {
-        const opt = document.createElement("option");
-        opt.value = c.id;
-        opt.textContent = c.name;
-        if (c.id === selecionado) opt.selected = true;
-        fieldCustomer.appendChild(opt);
-      });
-    } catch { fieldCustomer.innerHTML = '<option value="">Erro ao carregar clientes</option>'; }
+      ssCustomer.setOptions(customers.map(c => ({ value: String(c.id), label: c.name })));
+      if (selecionado) ssCustomer.setValue(String(selecionado));
+    } catch { ssCustomer.setOptions([]); }
   }
 
   async function carregarPlanos(selecionado) {
@@ -245,15 +224,9 @@ const { id } = Astro.params;
       const res = await fetch("/api/plan/plans?size=200&sort=name,asc");
       const data = await res.json();
       const plans = data.content || data;
-      fieldPlan.innerHTML = '<option value="">Selecione um plano...</option>';
-      plans.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.textContent = p.name;
-        if (p.id === selecionado) opt.selected = true;
-        fieldPlan.appendChild(opt);
-      });
-    } catch { fieldPlan.innerHTML = '<option value="">Erro ao carregar planos</option>'; }
+      ssPlan.setOptions(plans.map(p => ({ value: String(p.id), label: p.name })));
+      if (selecionado) ssPlan.setValue(String(selecionado));
+    } catch { ssPlan.setOptions([]); }
   }
 
   // ─── Carregar circuito ───────────────────────────────────────────────────────
@@ -301,8 +274,8 @@ const { id } = Astro.params;
           <td class="px-3 py-2">
             <input type="checkbox" class="did-checkbox rounded" data-id="${did.id}" />
           </td>
+          <td class="px-4 py-2 text-gray-500">${did.id}</td>
           <td class="px-4 py-2 font-mono">${formatNumber(did.number)}</td>
-          <td class="px-4 py-2 text-gray-500">Em uso</td>
         `;
         tr.querySelector(".did-checkbox").addEventListener("change", onCheckboxChange);
         tbody.appendChild(tr);
@@ -332,9 +305,9 @@ const { id } = Astro.params;
   // ─── Salvar ──────────────────────────────────────────────────────────────────
   document.getElementById("btnSave").addEventListener("click", async () => {
     const password   = fieldPassword.value;
-    const trunkName  = fieldTrunk.value;
-    const customerId = fieldCustomer.value ? Number(fieldCustomer.value) : null;
-    const planId     = fieldPlan.value     ? Number(fieldPlan.value)     : null;
+    const trunkName  = ssTrunk.getValue();
+    const customerId = ssCustomer.getValue() ? Number(ssCustomer.getValue()) : null;
+    const planId     = ssPlan.getValue()     ? Number(ssPlan.getValue())     : null;
     const active     = document.querySelector('input[name="active"]:checked').value === "true";
 
     if (!password)  { showMessage("A senha é obrigatória.", "error"); return; }
@@ -415,7 +388,7 @@ const { id } = Astro.params;
   async function openModal() {
     modalMessage.classList.add("hidden");
     semDIDsMsg.classList.add("hidden");
-    selectDID.innerHTML = '<option value="">Selecione um DID...</option>';
+    ssDID.setOptions([]);
 
     try {
       const res = await fetch("/api/did/free");
@@ -424,12 +397,7 @@ const { id } = Astro.params;
       if (!Array.isArray(livres) || livres.length === 0) {
         semDIDsMsg.classList.remove("hidden");
       } else {
-        livres.forEach(d => {
-          const opt = document.createElement("option");
-          opt.value = d.id;
-          opt.textContent = formatNumber(d.number);
-          selectDID.appendChild(opt);
-        });
+        ssDID.setOptions(livres.map(d => ({ value: String(d.id), label: formatNumber(d.number) })));
       }
     } catch {
       semDIDsMsg.textContent = "Erro ao carregar DIDs disponíveis.";
@@ -446,7 +414,7 @@ const { id } = Astro.params;
   }
 
   document.getElementById("btnModalSave").addEventListener("click", async () => {
-    const didId = selectDID.value;
+    const didId = ssDID.getValue();
     if (!didId) { showModalMessage("Selecione um DID.", "error"); return; }
 
     try {
