@@ -66,28 +66,19 @@ import Layout from "../../layouts/Layout.astro";
       <!-- Tronco -->
       <div class="flex items-center py-3 gap-4">
         <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Tronco <span class="text-red-500">*</span></span>
-        <select id="fieldTrunk"
-          class="w-72 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
-          <option value="">Selecione um tronco...</option>
-        </select>
+        <div id="fieldTrunk" class="w-72"></div>
       </div>
 
       <!-- Cliente -->
       <div class="flex items-center py-3 gap-4">
         <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Cliente <span class="text-red-500">*</span></span>
-        <select id="fieldCustomer"
-          class="w-72 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
-          <option value="">Selecione um cliente...</option>
-        </select>
+        <div id="fieldCustomer" class="w-72"></div>
       </div>
 
       <!-- Plano -->
       <div class="flex items-center py-3 gap-4">
         <span class="w-36 flex-shrink-0 text-sm font-medium text-gray-600 text-right">Plano <span class="text-red-500">*</span></span>
-        <select id="fieldPlan"
-          class="w-72 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
-          <option value="">Selecione um plano...</option>
-        </select>
+        <div id="fieldPlan" class="w-72"></div>
       </div>
 
     </div>
@@ -97,11 +88,14 @@ import Layout from "../../layouts/Layout.astro";
 </Layout>
 
 <script type="module" defer>
+  import { SearchSelect } from "/src/lib/search-select.ts";
+
   const fieldPassword = document.getElementById("fieldPassword");
-  const fieldTrunk    = document.getElementById("fieldTrunk");
-  const fieldCustomer = document.getElementById("fieldCustomer");
-  const fieldPlan     = document.getElementById("fieldPlan");
   const formMessage   = document.getElementById("formMessage");
+
+  const ssTrunk    = new SearchSelect(document.getElementById("fieldTrunk"),    [], { placeholder: "Selecione um tronco..." });
+  const ssCustomer = new SearchSelect(document.getElementById("fieldCustomer"), [], { placeholder: "Selecione um cliente..." });
+  const ssPlan     = new SearchSelect(document.getElementById("fieldPlan"),     [], { placeholder: "Selecione um plano..." });
 
   function showMessage(text, type) {
     formMessage.textContent = text;
@@ -124,14 +118,8 @@ import Layout from "../../layouts/Layout.astro";
       const res = await fetch("/api/trunk/trunks");
       const data = await res.json();
       const trunks = data.content || data;
-      fieldTrunk.innerHTML = '<option value="">Selecione um tronco...</option>';
-      trunks.forEach(t => {
-        const opt = document.createElement("option");
-        opt.value = t.name;
-        opt.textContent = `${t.name} (${t.host})`;
-        fieldTrunk.appendChild(opt);
-      });
-    } catch { fieldTrunk.innerHTML = '<option value="">Erro ao carregar troncos</option>'; }
+      ssTrunk.setOptions(trunks.map(t => ({ value: t.name, label: `${t.name} (${t.host})` })));
+    } catch { ssTrunk.setOptions([]); }
   }
 
   async function carregarClientes() {
@@ -139,14 +127,8 @@ import Layout from "../../layouts/Layout.astro";
       const res = await fetch("/api/customer/customers?size=200&sort=name,asc");
       const data = await res.json();
       const customers = data.content || data;
-      fieldCustomer.innerHTML = '<option value="">Selecione um cliente...</option>';
-      customers.forEach(c => {
-        const opt = document.createElement("option");
-        opt.value = c.id;
-        opt.textContent = c.name;
-        fieldCustomer.appendChild(opt);
-      });
-    } catch { fieldCustomer.innerHTML = '<option value="">Erro ao carregar clientes</option>'; }
+      ssCustomer.setOptions(customers.map(c => ({ value: String(c.id), label: c.name })));
+    } catch { ssCustomer.setOptions([]); }
   }
 
   async function carregarPlanos() {
@@ -154,23 +136,17 @@ import Layout from "../../layouts/Layout.astro";
       const res = await fetch("/api/plan/plans?size=200&sort=name,asc");
       const data = await res.json();
       const plans = data.content || data;
-      fieldPlan.innerHTML = '<option value="">Selecione um plano...</option>';
-      plans.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.textContent = p.name;
-        fieldPlan.appendChild(opt);
-      });
-    } catch { fieldPlan.innerHTML = '<option value="">Erro ao carregar planos</option>'; }
+      ssPlan.setOptions(plans.map(p => ({ value: String(p.id), label: p.name })));
+    } catch { ssPlan.setOptions([]); }
   }
 
   document.getElementById("btnBack").addEventListener("click", () => { window.location.href = "/circuits"; });
 
   document.getElementById("btnSave").addEventListener("click", async () => {
     const password   = fieldPassword.value;
-    const trunkName  = fieldTrunk.value;
-    const customerId = fieldCustomer.value ? Number(fieldCustomer.value) : null;
-    const planId     = fieldPlan.value     ? Number(fieldPlan.value)     : null;
+    const trunkName  = ssTrunk.getValue();
+    const customerId = ssCustomer.getValue() ? Number(ssCustomer.getValue()) : null;
+    const planId     = ssPlan.getValue()     ? Number(ssPlan.getValue())     : null;
     const active     = document.querySelector('input[name="active"]:checked').value === "true";
 
     if (!password)  { showMessage("A senha é obrigatória.", "error"); return; }
