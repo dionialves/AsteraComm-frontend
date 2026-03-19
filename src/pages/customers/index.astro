@@ -2,160 +2,882 @@
 import Layout from "../../layouts/Layout.astro";
 ---
 
+<style is:global>
+  .modal-overlay-cdid {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.15);
+    z-index: 30;
+    opacity: 0; pointer-events: none;
+    transition: opacity 250ms ease;
+  }
+  .modal-overlay-cdid.active { opacity: 1; pointer-events: auto; }
+  .modal-cdid {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0; pointer-events: none;
+    width: 480px; height: 480px;
+    background: #fff; border-radius: 12px;
+    box-shadow: 0 12px 60px rgba(0,0,0,0.28);
+    z-index: 35;
+    display: flex; flex-direction: column;
+    transition: transform 250ms cubic-bezier(0.4,0,0.2,1), opacity 250ms cubic-bezier(0.4,0,0.2,1);
+  }
+  .modal-cdid.open { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
+  .did-select-item { display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;cursor:pointer;font-size:13px;color:#374151;transition:background 0.12s; }
+  .did-select-item:hover { background:#f3f4f6; }
+  .did-select-item.selected { background:#eff6ff;color:#1d4ed8;font-weight:500; }
+  .did-select-num { flex:1; }
+  .did-select-id { font-size:11px;color:#9ca3af; }
+  .did-select-item.selected .did-select-id { color:#93c5fd; }
+</style>
+
 <Layout>
-    <div class="bg-white rounded-lg shadow mb-6">
-        <div class="flex items-center justify-between px-6 py-5">
-            <div>
-                <h1 class="page-title">Clientes</h1>
-                <p class="page-subtitle">Cadastro de clientes vinculados a circuitos</p>
-            </div>
-            <button id="btnAdd" class="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-green-700" onclick="window.location.href='/customers/new'">+ Adicionar</button>
-        </div>
-
-        <hr class="border-gray-200" />
-
-        <div class="listing-toolbar px-6 py-3">
-            <div class="listing-search">
-                <input id="input-search" type="text" placeholder="Pesquisar por nome..." class="listing-search-input" />
-                <button id="btn-search" class="listing-search-btn" title="Pesquisar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="listing-pagination">
-                <button id="btn-prev" class="listing-page-btn">‹ Anterior</button>
-                <span id="page-info" class="listing-page-info">Página 1 de 1</span>
-                <button id="btn-next" class="listing-page-btn">Próxima ›</button>
-            </div>
-        </div>
-
-        <div class="overflow-x-auto px-4 pb-4">
-
-        <table id="table-customers" class="table-fixed w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
-            <thead class="bg-gray-100 text-gray-900">
-                <tr class="font-semibold">
-                    <th data-field="id" class="w-16 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">ID</th>
-                    <th data-field="name" class="w-80 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Nome</th>
-                    <th data-field="enabled" class="w-20 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Status</th>
-                    <th data-field="createdAt" class="w-40 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Criado em</th>
-                    <th data-field="updatedAt" class="px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Atualizado em</th>
-                </tr>
-            </thead>
-            <tbody id="tbody-customers" class="divide-y divide-gray-200">
-                <tr id="loading" class="py-4 px-4 text-gray-500">
-                    <td>Carregando...</td>
-                </tr>
-            </tbody>
-        </table>
-        </div>
+  <!-- ── Listing ─────────────────────────────────────────────────────────── -->
+  <div class="bg-white rounded-lg shadow mb-6">
+    <div class="flex items-center justify-between px-6 py-5">
+      <div>
+        <h1 class="page-title">Clientes</h1>
+        <p class="page-subtitle">Cadastro de clientes vinculados a circuitos</p>
+      </div>
+      <button id="btnAdd" class="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-green-700">+ Adicionar</button>
     </div>
+    <hr class="border-gray-200" />
+    <div class="listing-toolbar px-6 py-3">
+      <div class="listing-search">
+        <input id="input-search" type="text" placeholder="Pesquisar por nome..." class="listing-search-input" />
+        <button id="btn-search" class="listing-search-btn" title="Pesquisar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
+      </div>
+      <div class="listing-pagination">
+        <button id="btn-prev" class="listing-page-btn">‹ Anterior</button>
+        <span id="page-info" class="listing-page-info">Página 1 de 1</span>
+        <button id="btn-next" class="listing-page-btn">Próxima ›</button>
+      </div>
+    </div>
+    <div class="overflow-x-auto px-4 pb-4">
+      <table id="table-customers" class="table-fixed w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
+        <thead class="bg-gray-100 text-gray-900">
+          <tr class="font-semibold">
+            <th data-field="id"        class="w-16 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">ID</th>
+            <th data-field="name"      class="w-80 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Nome</th>
+            <th data-field="enabled"   class="w-20 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Status</th>
+            <th data-field="createdAt" class="w-40 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Criado em</th>
+            <th data-field="updatedAt" class="px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Atualizado em</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-customers" class="divide-y divide-gray-200">
+          <tr id="loading"><td>Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
+  <!-- ── Overlay 1 ───────────────────────────────────────────────────────── -->
+  <div id="modal-overlay-1" class="modal-overlay"></div>
 
-<script type="module" defer>
-    const tbody = document.getElementById("tbody-customers");
-    const loading = document.getElementById("loading");
-    const table = document.getElementById("table-customers");
-    const btnPrev = document.getElementById("btn-prev");
-    const btnNext = document.getElementById("btn-next");
-    const pageInfo = document.getElementById("page-info");
+  <!-- ── Modal principal ────────────────────────────────────────────────── -->
+  <div id="modal-main" class="modal-main">
+    <div class="modal-header">
+      <div class="modal-header-top">
+        <div class="modal-header-titles">
+          <span id="modal-subtitle" class="modal-subtitle">Cliente</span>
+          <span id="modal-title"    class="modal-title">—</span>
+        </div>
+        <button id="modal-btn-close" class="modal-btn-close" title="Fechar">✕</button>
+      </div>
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-tab="detalhes">Detalhes</button>
+        <button class="modal-tab"        data-tab="circuitos">Circuitos</button>
+        <button class="modal-tab"        data-tab="historico">Histórico</button>
+      </div>
+    </div>
+    <div id="modal-error" class="modal-error"></div>
+    <div class="modal-body">
+      <!-- Tab: Detalhes -->
+      <div id="tab-detalhes" class="tab-panel active">
+        <p class="section-title">Identificação</p>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">ID</label>
+            <input id="field-id" type="text" class="form-input" disabled />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nome</label>
+            <input id="field-name" type="text" class="form-input" />
+          </div>
+        </div>
+        <div class="toggle-group">
+          <label class="toggle-switch">
+            <input id="field-enabled" type="checkbox" />
+            <span class="toggle-slider"></span>
+          </label>
+          <span id="toggle-enabled-label" class="toggle-label">Ativo</span>
+        </div>
+      </div>
+      <!-- Tab: Circuitos -->
+      <div id="tab-circuitos" class="tab-panel">
+        <div id="circuits-list"></div>
+      </div>
+      <!-- Tab: Histórico -->
+      <div id="tab-historico" class="tab-panel">
+        <div id="history-list" class="history-list"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="btn-delete-customer" class="btn-modal-delete" type="button">Deletar</button>
+      <div class="modal-footer-right">
+        <button id="btn-cancel-customer" class="btn-modal-cancel" type="button">Cancelar</button>
+        <button id="btn-save-customer"   class="btn-modal-save"   type="button">Salvar</button>
+      </div>
+    </div>
+  </div>
 
-    let currentPage = 0;
-    let totalPages = 0;
-    let currentSortField = "id";
-    let currentSortDirection = "desc";
+  <!-- ── Overlay 2 ───────────────────────────────────────────────────────── -->
+  <div id="modal-overlay-2" class="modal-overlay-2"></div>
 
-    // === Ordenação ===
-    document.querySelectorAll("thead th[data-field]").forEach(th => {
-        th.addEventListener("click", () => {
-            const field = th.getAttribute("data-field");
-            if (currentSortField === field) {
-                currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
-            } else {
-                currentSortField = field;
-                currentSortDirection = "asc";
-            }
-            carregarDados(0);
-        });
-    });
+  <!-- ── Sub-modal: detalhes do circuito ────────────────────────────────── -->
+  <div id="modal-sub" class="modal-sub">
+    <div class="sub-modal-header">
+      <button id="csub-btn-back" class="btn-sub-back" title="Voltar">←</button>
+      <div class="sub-modal-titles">
+        <span id="csub-subtitle" class="modal-subtitle">Circuito</span>
+        <span id="csub-title"    class="modal-title" style="font-size:16px">—</span>
+      </div>
+      <button id="csub-btn-close" class="modal-btn-close" title="Fechar tudo">✕</button>
+    </div>
+    <div class="modal-tabs" style="flex-shrink:0;padding:0 20px;border-bottom:1px solid #e5e7eb">
+      <button class="modal-tab active" data-csub-tab="detalhes">Detalhes</button>
+      <button class="modal-tab"        data-csub-tab="dids">DIDs</button>
+      <button class="modal-tab"        data-csub-tab="historico">Histórico</button>
+    </div>
+    <div id="csub-error" class="modal-error"></div>
+    <div class="modal-body">
+      <!-- Tab: Detalhes -->
+      <div id="csub-tab-detalhes" class="tab-panel active">
+        <p class="section-title">Identificação</p>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">ID</label>
+            <input id="csub-field-id" type="text" class="form-input" disabled />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Código</label>
+            <input id="csub-field-number" type="text" class="form-input" disabled />
+          </div>
+        </div>
+        <div class="toggle-group">
+          <label class="toggle-switch">
+            <input id="csub-field-active" type="checkbox" />
+            <span class="toggle-slider"></span>
+          </label>
+          <span id="csub-toggle-active-label" class="toggle-label">Ativo</span>
+        </div>
+        <hr class="section-divider" />
+        <p class="section-title">Autenticação</p>
+        <div class="form-group" style="margin-bottom:12px">
+          <label class="form-label">Senha</label>
+          <div class="input-password-wrap">
+            <input id="csub-field-password" type="password" class="form-input" autocomplete="new-password" />
+            <button id="csub-btn-toggle-pw" class="btn-eye" type="button" title="Ver senha">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <hr class="section-divider" />
+        <p class="section-title">Configuração</p>
+        <div class="form-grid-2" style="margin-bottom:12px">
+          <div class="form-group">
+            <label class="form-label">Tronco</label>
+            <div id="csub-cs-trunk"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Plano</label>
+            <div id="csub-cs-plan"></div>
+          </div>
+        </div>
+        <div class="form-group" style="max-width:50%">
+          <label class="form-label">Cliente</label>
+          <div id="csub-cs-customer"></div>
+        </div>
+      </div>
+      <!-- Tab: DIDs -->
+      <div id="csub-tab-dids" class="tab-panel">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <button id="csub-btn-add-did" class="btn-modal-cancel" type="button">+ Adicionar</button>
+        </div>
+        <div class="did-grid-header">
+          <span>ID</span><span>Número</span><span>Vinculado em</span><span></span>
+        </div>
+        <div id="csub-did-list"></div>
+      </div>
+      <!-- Tab: Histórico -->
+      <div id="csub-tab-historico" class="tab-panel">
+        <p class="history-empty">Nenhum registro.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="csub-btn-delete" class="btn-modal-delete" type="button">Deletar</button>
+      <div class="modal-footer-right">
+        <button id="csub-btn-back2" class="btn-modal-cancel" type="button">Voltar</button>
+        <button id="csub-btn-save"  class="btn-modal-save"   type="button">Salvar</button>
+      </div>
+    </div>
+  </div>
 
-    // === Pesquisa ===
-    const searchInput = document.getElementById("input-search");
-    searchInput.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") { currentPage = 0; carregarDados(0); }
-    });
-    document.getElementById("btn-search").addEventListener("click", () => {
-        currentPage = 0;
-        carregarDados(0);
-    });
+  <!-- ── Overlay DID (busca dentro do sub-modal de circuito) ─────────────── -->
+  <div id="modal-overlay-cdid" class="modal-overlay-cdid"></div>
+  <div id="modal-cdid" class="modal-cdid">
+    <div class="modal-header">
+      <div class="modal-header-top">
+        <div class="modal-header-titles">
+          <span class="modal-subtitle">Circuito</span>
+          <span class="modal-title" style="font-size:16px">Adicionar DID</span>
+        </div>
+        <button id="cdid-btn-close" class="modal-btn-close" title="Fechar">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;overflow:hidden">
+      <input id="cdid-search-input" type="text" class="form-input" placeholder="Pesquisar número..." />
+      <div id="cdid-available-list" style="flex:1;overflow-y:auto"></div>
+    </div>
+    <div class="modal-footer">
+      <div></div>
+      <div class="modal-footer-right">
+        <button id="cdid-btn-cancel"  class="btn-modal-cancel" type="button">Cancelar</button>
+        <button id="cdid-btn-confirm" class="btn-modal-save"   type="button" disabled style="opacity:0.5;cursor:default">Adicionar</button>
+      </div>
+    </div>
+  </div>
 
-    function formatarData(dataStr) {
-        if (!dataStr) return '—';
-        return new Date(dataStr).toLocaleDateString('pt-BR', {
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-        });
+<script type="module">
+  class ModalSystem {
+    constructor(elements) {
+      this.el = elements;
+      this._subOpen = false;
+      this._mainOpen = false;
+      elements.overlay1.addEventListener("click", () => this.closeAll());
+      elements.overlay2.addEventListener("click", () => this.closeSub());
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        if (this._subOpen) this.closeSub();
+        else if (this._mainOpen) this.closeAll();
+      });
     }
-
-    function carregarDados(pagina) {
-        loading.style.display = "block";
-        table.style.visibility = "visible";
-
-        const search = encodeURIComponent(searchInput.value.trim());
-        const url = `/api/customer/customers?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${search}`;
-
-        fetch(url)
-            .then(res => {
-                if (!res.ok) throw new Error("Erro na resposta da API");
-                return res.json();
-            })
-            .then(data => {
-                loading.style.display = "none";
-                table.style.display = "table";
-
-                currentPage = pagina;
-                totalPages = data.totalPages;
-
-                tbody.innerHTML = "";
-
-                if (data.content.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhum cliente encontrado.</td></tr>`;
-                } else {
-                    data.content.forEach(item => {
-                        const tr = document.createElement("tr");
-                        tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
-
-                        tr.innerHTML = `
-                            <td class="px-4 py-2 text-gray-500">${item.id}</td>
-                            <td class="px-4 py-2 font-medium">${item.name}</td>
-                            <td class="px-4 py-2 font-semibold ${item.enabled ? 'text-green-600' : 'text-red-600'}">
-                                ${item.enabled ? 'Ativo' : 'Inativo'}
-                            </td>
-                            <td class="px-4 py-2 text-gray-500">${formatarData(item.createdAt)}</td>
-                            <td class="px-4 py-2 text-gray-500">${formatarData(item.updatedAt)}</td>
-                        `;
-
-                        tr.addEventListener('click', () => { window.location.href = `/customers/${item.id}`; });
-                        tbody.appendChild(tr);
-                    });
-                }
-
-                pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
-            })
-            .catch(err => {
-                loading.textContent = "Erro ao carregar dados.";
-                console.error(err);
-            });
+    openMain(urlParam) {
+      this.el.overlay1.classList.add("active");
+      this.el.modalMain.classList.add("open");
+      this._mainOpen = true;
+      if (urlParam) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("modal", urlParam);
+        history.pushState({ modal: urlParam }, "", url.toString());
+      }
     }
+    openSub() {
+      this.el.modalMain.classList.remove("open");
+      this.el.modalMain.classList.add("behind");
+      this.el.overlay2.classList.add("active");
+      this.el.modalSub.classList.add("open");
+      this._subOpen = true;
+    }
+    closeSub() {
+      this.el.modalSub.classList.remove("open");
+      this.el.overlay2.classList.remove("active");
+      this.el.modalMain.classList.remove("behind");
+      this.el.modalMain.classList.add("open");
+      this._subOpen = false;
+    }
+    closeAll() {
+      if (this._subOpen) {
+        this.el.modalSub.classList.remove("open");
+        this.el.overlay2.classList.remove("active");
+        this.el.modalMain.classList.remove("behind");
+        this._subOpen = false;
+      }
+      this.el.modalMain.classList.remove("open");
+      this.el.overlay1.classList.remove("active");
+      this._mainOpen = false;
+      const url = new URL(window.location.href);
+      url.searchParams.delete("modal");
+      history.replaceState(null, "", url.toString());
+    }
+  }
 
-    btnPrev.addEventListener("click", () => {
-        if (currentPage > 0) carregarDados(currentPage - 1);
+  // ── SearchSelect (inline) ─────────────────────────────────────────────────
+  class SearchSelect {
+    constructor(container, options, config = {}) {
+      this._container = container; this._options = options; this._value = ""; this._label = "";
+      this._locked = false; this._placeholder = config.placeholder ?? "Selecione...";
+      this._onChange = config.onChange ?? null; this._linkClickHandler = null;
+      this._boundClose = this._onOutsideClick.bind(this);
+      this._render(); this._renderList("");
+    }
+    getValue() { return this._value; }
+    setValue(value) {
+      const found = this._options.find(o => o.value === value);
+      if (!found) return;
+      this._value = found.value; this._label = found.label;
+      this._setLocked(true); this._updateTriggerLabel(); this._updateActions();
+    }
+    clear() {
+      this._value = ""; this._label = "";
+      this._setLocked(false); this._updateTriggerLabel(); this._updateActions();
+    }
+    setOptions(options) {
+      this._options = options; this.clear();
+      if (this._searchInput) this._searchInput.value = "";
+      this._renderList("");
+    }
+    setLinkClickHandler(fn) { this._linkClickHandler = fn; }
+    _render() {
+      this._container.innerHTML = "";
+      this._container.classList.add("flex", "items-center", "gap-1");
+      this._inner = document.createElement("div");
+      this._inner.className = "relative flex-1 min-w-0";
+      this._trigger = document.createElement("button");
+      this._trigger.type = "button";
+      this._trigger.className = "w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded text-sm bg-white text-left focus:outline-none cursor-pointer";
+      this._trigger.addEventListener("click", () => this._toggle());
+      const labelSpan = document.createElement("span");
+      labelSpan.dataset.label = "1"; labelSpan.textContent = this._placeholder; labelSpan.className = "text-gray-400 truncate";
+      this._arrow = document.createElement("span");
+      this._arrow.innerHTML = `<svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>`;
+      this._trigger.appendChild(labelSpan); this._trigger.appendChild(this._arrow);
+      this._dropdown = document.createElement("div");
+      this._dropdown.className = "hidden absolute left-0 right-0 top-full mt-1 z-50 bg-white border border-gray-300 rounded shadow-lg";
+      this._searchInput = document.createElement("input");
+      this._searchInput.type = "text"; this._searchInput.placeholder = "Pesquisar...";
+      this._searchInput.className = "w-full px-3 py-2 text-sm border-b border-gray-200 focus:outline-none";
+      this._searchInput.addEventListener("input", () => this._renderList(this._searchInput.value));
+      this._list = document.createElement("ul"); this._list.className = "max-h-52 overflow-y-auto";
+      this._emptyMsg = document.createElement("li");
+      this._emptyMsg.className = "hidden px-3 py-2 text-sm text-gray-400 text-center";
+      this._emptyMsg.textContent = "Nenhuma opção encontrada.";
+      this._dropdown.appendChild(this._searchInput); this._dropdown.appendChild(this._list); this._dropdown.appendChild(this._emptyMsg);
+      this._inner.appendChild(this._trigger); this._inner.appendChild(this._dropdown);
+      this._btnClear = document.createElement("button");
+      this._btnClear.type = "button"; this._btnClear.className = "flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition";
+      this._btnClear.style.display = "none"; this._btnClear.title = "Limpar";
+      this._btnClear.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`;
+      this._btnClear.addEventListener("click", () => this.clear());
+      this._btnLink = document.createElement("button");
+      this._btnLink.type = "button"; this._btnLink.className = "flex-shrink-0 p-1 text-gray-400 hover:text-blue-600 transition";
+      this._btnLink.style.display = "none"; this._btnLink.title = "Ver detalhes";
+      this._btnLink.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>`;
+      this._btnLink.addEventListener("click", () => { if (this._linkClickHandler) this._linkClickHandler(); });
+      this._container.appendChild(this._inner); this._container.appendChild(this._btnClear); this._container.appendChild(this._btnLink);
+    }
+    _renderList(query) {
+      const q = query.toLowerCase();
+      const filtered = this._options.filter(o => o.label.toLowerCase().includes(q)).slice(0, 10);
+      this._list.innerHTML = ""; this._emptyMsg.classList.add("hidden");
+      if (!filtered.length) { this._emptyMsg.classList.remove("hidden"); return; }
+      filtered.forEach(opt => {
+        const li = document.createElement("li");
+        li.textContent = opt.label; li.className = "px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 cursor-pointer";
+        li.addEventListener("click", () => this._select(opt)); this._list.appendChild(li);
+      });
+    }
+    _toggle() { if (this._locked) return; this._dropdown.classList.contains("hidden") ? this._open() : this._close(); }
+    _open() {
+      this._dropdown.classList.remove("hidden"); this._searchInput.value = ""; this._renderList(""); this._searchInput.focus();
+      document.addEventListener("mousedown", this._boundClose);
+    }
+    _close() { this._dropdown.classList.add("hidden"); document.removeEventListener("mousedown", this._boundClose); }
+    _select(opt) {
+      this._value = opt.value; this._label = opt.label;
+      this._setLocked(true); this._updateTriggerLabel(); this._updateActions(); this._close();
+      if (this._onChange) this._onChange(opt.value, opt.label);
+    }
+    _setLocked(locked) {
+      this._locked = locked;
+      if (locked) {
+        this._container.classList.remove("gap-1"); this._container.classList.add("cs-chip");
+        this._inner.style.cssText = "display:flex;align-items:center;height:100%;flex:1;min-width:0;position:relative";
+        this._trigger.className = "cs-chip-text pointer-events-none border-0 bg-transparent h-full text-left";
+        this._arrow.style.display = "none"; this._btnLink.className = "cs-chip-link"; this._btnClear.className = "cs-chip-clear";
+      } else {
+        this._container.classList.add("gap-1"); this._container.classList.remove("cs-chip");
+        this._inner.style.cssText = "position:relative;flex:1;min-width:0";
+        this._trigger.className = "w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded text-sm bg-white text-left focus:outline-none cursor-pointer";
+        this._arrow.style.display = ""; this._btnLink.className = "flex-shrink-0 p-1 text-gray-400 hover:text-blue-600 transition";
+        this._btnClear.className = "flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition";
+      }
+    }
+    _updateTriggerLabel() {
+      const span = this._trigger.querySelector("[data-label]");
+      if (this._label) { span.textContent = this._label; span.className = "text-gray-700 truncate"; }
+      else { span.textContent = this._placeholder; span.className = "text-gray-400 truncate"; }
+    }
+    _updateActions() {
+      const has = this._value !== "";
+      this._btnClear.style.display = has ? "" : "none"; this._btnLink.style.display = has ? "" : "none";
+    }
+    _onOutsideClick(e) { if (!this._container.contains(e.target)) this._close(); }
+  }
+
+  // ── Elements ──────────────────────────────────────────────────────────────
+  const tbody       = document.getElementById("tbody-customers");
+  const loading     = document.getElementById("loading");
+  const table       = document.getElementById("table-customers");
+  const btnPrev     = document.getElementById("btn-prev");
+  const btnNext     = document.getElementById("btn-next");
+  const pageInfo    = document.getElementById("page-info");
+  const searchInput = document.getElementById("input-search");
+
+  let currentPage          = 0;
+  let totalPages           = 0;
+  let currentSortField     = "id";
+  let currentSortDirection = "desc";
+  let currentCustomerId    = null;
+  let deleteClickCount     = 0;
+  let deleteTimer          = null;
+
+  // ── Modal system ──────────────────────────────────────────────────────────
+  const ms = new ModalSystem({
+    overlay1:  document.getElementById("modal-overlay-1"),
+    modalMain: document.getElementById("modal-main"),
+    overlay2:  document.getElementById("modal-overlay-2"),
+    modalSub:  document.getElementById("modal-sub"),
+  });
+
+  // ── Circuit sub-modal chips ───────────────────────────────────────────────
+  const csSubTrunk    = new SearchSelect(document.getElementById("csub-cs-trunk"),    [], { placeholder: "Selecionar tronco..." });
+  const csSubPlan     = new SearchSelect(document.getElementById("csub-cs-plan"),     [], { placeholder: "Selecionar plano..." });
+  const csSubCustomer = new SearchSelect(document.getElementById("csub-cs-customer"), [], { placeholder: "Selecionar cliente..." });
+
+  let currentCircuitSubNumber = null;
+  let csSubDeleteCount        = 0;
+  let csSubDeleteTimer        = null;
+  let trunksDataSub           = [];
+
+  // ── Listing ───────────────────────────────────────────────────────────────
+  document.getElementById("btnAdd").addEventListener("click", () => {
+    window.location.href = "/customers/new";
+  });
+
+  document.querySelectorAll("thead th[data-field]").forEach(th => {
+    th.addEventListener("click", () => {
+      const field = th.getAttribute("data-field");
+      if (currentSortField === field) {
+        currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+      } else {
+        currentSortField     = field;
+        currentSortDirection = "asc";
+      }
+      carregarDados(0);
     });
+  });
 
-    btnNext.addEventListener("click", () => {
-        if (currentPage < totalPages - 1) carregarDados(currentPage + 1);
+  searchInput.addEventListener("keydown", e => { if (e.key === "Enter") carregarDados(0); });
+  document.getElementById("btn-search").addEventListener("click", () => carregarDados(0));
+
+  function formatDate(d) {
+    if (!d) return "—";
+    return new Date(d).toLocaleDateString("pt-BR", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
+  }
+
+  function carregarDados(pagina) {
+    loading.style.display = "block";
+    table.style.visibility = "visible";
+    const search = encodeURIComponent(searchInput.value.trim());
+    const url = `/api/customer/customers?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${search}`;
+
+    fetch(url)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => {
+        loading.style.display = "none";
+        table.style.display   = "table";
+        currentPage = pagina;
+        totalPages  = data.totalPages;
+        tbody.innerHTML = "";
+
+        if (data.content.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhum cliente encontrado.</td></tr>`;
+        } else {
+          data.content.forEach(item => {
+            const tr = document.createElement("tr");
+            tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
+            tr.dataset.id = item.id;
+            tr.innerHTML = `
+              <td class="px-4 py-2 text-gray-500">${item.id}</td>
+              <td class="px-4 py-2 font-medium">${item.name}</td>
+              <td class="px-4 py-2 font-semibold ${item.enabled ? 'text-green-600' : 'text-red-600'}">${item.enabled ? 'Ativo' : 'Inativo'}</td>
+              <td class="px-4 py-2 text-gray-500">${formatDate(item.createdAt)}</td>
+              <td class="px-4 py-2 text-gray-500">${formatDate(item.updatedAt)}</td>
+            `;
+            tr.addEventListener("click", () => openCustomerModal(item.id));
+            tbody.appendChild(tr);
+          });
+        }
+        pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
+      })
+      .catch(() => { loading.textContent = "Erro ao carregar dados."; });
+  }
+
+  btnPrev.addEventListener("click", () => { if (currentPage > 0) carregarDados(currentPage - 1); });
+  btnNext.addEventListener("click", () => { if (currentPage < totalPages - 1) carregarDados(currentPage + 1); });
+
+  // ── Open customer modal ───────────────────────────────────────────────────
+  async function openCustomerModal(id) {
+    currentCustomerId = id;
+    hideModalError();
+    resetDeleteBtn();
+
+    const r = await fetch(`/api/customer/${id}`);
+    if (!r.ok) return;
+    const c = await r.json();
+
+    document.getElementById("modal-title").textContent    = c.name;
+    document.getElementById("modal-subtitle").textContent = "Cliente";
+    document.getElementById("field-id").value             = c.id;
+    document.getElementById("field-name").value           = c.name;
+    document.getElementById("field-enabled").checked      = c.enabled;
+    document.getElementById("toggle-enabled-label").textContent = c.enabled ? "Ativo" : "Inativo";
+
+    activateTab("detalhes");
+    ms.openMain(String(c.id));
+  }
+
+  // ── Tabs ──────────────────────────────────────────────────────────────────
+  document.querySelectorAll(".modal-tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const tab = btn.getAttribute("data-tab");
+      activateTab(tab);
+      if (tab === "circuitos") loadCircuits();
+      if (tab === "historico") loadHistory();
     });
+  });
 
+  function activateTab(name) {
+    document.querySelectorAll(".modal-tab").forEach(b => b.classList.toggle("active", b.getAttribute("data-tab") === name));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("active", p.id === `tab-${name}`));
+  }
+
+  document.getElementById("field-enabled").addEventListener("change", function() {
+    document.getElementById("toggle-enabled-label").textContent = this.checked ? "Ativo" : "Inativo";
+  });
+
+  // ── Circuits tab ──────────────────────────────────────────────────────────
+  async function loadCircuits() {
+    const list = document.getElementById("circuits-list");
+    list.innerHTML = `<p style="color:#9ca3af;font-size:13px;padding:24px 0;text-align:center">Carregando...</p>`;
+    const r = await fetch(`/api/customer/${currentCustomerId}/circuits`);
+    if (!r.ok) { list.innerHTML = `<p style="color:#9ca3af;font-size:13px;padding:24px 0;text-align:center">Erro ao carregar circuitos.</p>`; return; }
+    const circuits = await r.json();
+    if (!circuits.length) { list.innerHTML = `<p style="color:#9ca3af;font-size:13px;padding:24px 0;text-align:center">Nenhum circuito vinculado.</p>`; return; }
+
+    list.innerHTML = `
+      <div style="display:grid;grid-template-columns:50px 1fr 80px 36px;gap:8px;font-size:13px;font-weight:600;color:#555;padding:4px 0 8px;border-bottom:1px solid #e5e7eb;margin-bottom:4px">
+        <span>ID</span><span>Código</span><span>Status</span><span></span>
+      </div>
+    `;
+    circuits.forEach(c => {
+      const row = document.createElement("div");
+      row.style.cssText = "display:grid;grid-template-columns:50px 1fr 80px 36px;gap:8px;font-size:13px;padding:6px 0;border-bottom:1px solid #f3f4f6;color:#374151;align-items:center";
+      row.innerHTML = `
+        <span>${c.id}</span>
+        <span>${c.number}</span>
+        <span style="font-weight:600;color:${c.active ? '#16a34a' : '#dc2626'}">${c.active ? 'Ativo' : 'Inativo'}</span>
+        <button class="btn-open-circuit" data-number="${c.number}" style="background:none;border:none;cursor:pointer;color:#6b7280;padding:2px 4px;border-radius:4px;display:flex;align-items:center;transition:color 0.15s" title="Ver detalhes">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </button>
+      `;
+      row.querySelector(".btn-open-circuit").addEventListener("mouseenter", e => e.currentTarget.style.color = "#2563eb");
+      row.querySelector(".btn-open-circuit").addEventListener("mouseleave", e => e.currentTarget.style.color = "#6b7280");
+      row.querySelector(".btn-open-circuit").addEventListener("click", () => openCircuitSubModal(c.number));
+      list.appendChild(row);
+    });
+  }
+
+  async function loadHistory() {
+    document.getElementById("history-list").innerHTML = `<p class="history-empty">Nenhum registro.</p>`;
+  }
+
+  // ── Save customer ─────────────────────────────────────────────────────────
+  document.getElementById("btn-save-customer").addEventListener("click", async () => {
+    hideModalError();
+    const body = {
+      name:    document.getElementById("field-name").value.trim(),
+      enabled: document.getElementById("field-enabled").checked,
+    };
+    const r = await fetch(`/api/customer/${currentCustomerId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (r.ok) {
+      ms.closeAll();
+      carregarDados(currentPage);
+    } else {
+      const err = await r.json().catch(() => ({}));
+      showModalError(err.message || "Erro ao salvar cliente.");
+    }
+  });
+
+  // ── Delete customer ───────────────────────────────────────────────────────
+  document.getElementById("btn-delete-customer").addEventListener("click", async () => {
+    const btn = document.getElementById("btn-delete-customer");
+    if (deleteClickCount === 0) {
+      deleteClickCount = 1;
+      btn.textContent  = "Confirmar exclusão";
+      btn.classList.add("confirm");
+      deleteTimer = setTimeout(resetDeleteBtn, 3000);
+    } else {
+      clearTimeout(deleteTimer);
+      const r = await fetch(`/api/customer/${currentCustomerId}`, { method: "DELETE" });
+      if (r.ok || r.status === 204) {
+        ms.closeAll();
+        carregarDados(currentPage);
+      } else {
+        const err = await r.json().catch(() => ({}));
+        showModalError(err.message || "Erro ao deletar cliente.");
+        resetDeleteBtn();
+      }
+    }
+  });
+
+  document.getElementById("btn-cancel-customer").addEventListener("click", () => ms.closeAll());
+  document.getElementById("modal-btn-close").addEventListener("click",     () => ms.closeAll());
+
+  function resetDeleteBtn() {
+    deleteClickCount = 0;
+    const btn = document.getElementById("btn-delete-customer");
+    btn.textContent = "Deletar";
+    btn.classList.remove("confirm");
+  }
+
+  function showModalError(msg) {
+    const el = document.getElementById("modal-error");
+    el.textContent = msg; el.style.display = "block";
+  }
+  function hideModalError() {
+    document.getElementById("modal-error").style.display = "none";
+  }
+
+  // ── Circuit sub-modal ─────────────────────────────────────────────────────
+  async function loadSubChipOptions() {
+    const [trunks, plans, customers] = await Promise.all([
+      fetch("/api/trunk/trunks?page=0&size=200").then(r => r.ok ? r.json() : { content: [] }),
+      fetch("/api/plan/plans?page=0&size=200").then(r => r.ok ? r.json() : { content: [] }),
+      fetch("/api/customer/customers?page=0&size=200").then(r => r.ok ? r.json() : { content: [] }),
+    ]);
+    trunksDataSub = trunks.content || [];
+    csSubTrunk.setOptions(trunksDataSub.map(t => ({ value: t.name, label: t.name })));
+    csSubPlan.setOptions((plans.content || []).map(p => ({ value: String(p.id), label: p.name })));
+    csSubCustomer.setOptions((customers.content || []).map(c => ({ value: String(c.id), label: c.name })));
+  }
+
+  async function openCircuitSubModal(number) {
+    currentCircuitSubNumber = number;
+    hideCSubError();
+    resetCSubDeleteBtn();
+    activateCSubTab("detalhes");
+
+    await loadSubChipOptions();
+
+    const r = await fetch(`/api/circuit/${number}`);
+    if (!r.ok) return;
+    const c = await r.json();
+
+    document.getElementById("csub-title").textContent    = c.number;
+    document.getElementById("csub-subtitle").textContent = "Circuito";
+    document.getElementById("csub-field-id").value       = c.id;
+    document.getElementById("csub-field-number").value   = c.number;
+    document.getElementById("csub-field-active").checked = c.active;
+    document.getElementById("csub-toggle-active-label").textContent = c.active ? "Ativo" : "Inativo";
+    document.getElementById("csub-field-password").value = c.password || "";
+
+    if (c.trunkName)    csSubTrunk.setValue(c.trunkName);         else csSubTrunk.clear();
+    if (c.plan?.id)     csSubPlan.setValue(String(c.plan.id));    else csSubPlan.clear();
+    if (c.customer?.id) csSubCustomer.setValue(String(c.customer.id)); else csSubCustomer.clear();
+
+    ms.openSub();
+  }
+
+  // ── csub tabs ─────────────────────────────────────────────────────────────
+  document.querySelectorAll("[data-csub-tab]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const tab = btn.getAttribute("data-csub-tab");
+      activateCSubTab(tab);
+      if (tab === "dids") loadCSubDids();
+    });
+  });
+
+  function activateCSubTab(name) {
+    document.querySelectorAll("[data-csub-tab]").forEach(b => b.classList.toggle("active", b.getAttribute("data-csub-tab") === name));
+    document.querySelectorAll("[id^='csub-tab-']").forEach(p => p.classList.toggle("active", p.id === `csub-tab-${name}`));
+  }
+
+  document.getElementById("csub-field-active").addEventListener("change", function() {
+    document.getElementById("csub-toggle-active-label").textContent = this.checked ? "Ativo" : "Inativo";
+  });
+
+  document.getElementById("csub-btn-toggle-pw").addEventListener("click", () => {
+    const input = document.getElementById("csub-field-password");
+    input.type = input.type === "password" ? "text" : "password";
+  });
+
+  // ── csub DIDs ─────────────────────────────────────────────────────────────
+  async function loadCSubDids() {
+    const list = document.getElementById("csub-did-list");
+    list.innerHTML = `<p class="did-empty">Carregando...</p>`;
+    const r = await fetch(`/api/did/by-circuit/${currentCircuitSubNumber}`);
+    if (!r.ok) { list.innerHTML = `<p class="did-empty">Erro ao carregar DIDs.</p>`; return; }
+    const dids = await r.json();
+    if (!dids.length) { list.innerHTML = `<p class="did-empty">Nenhum DID vinculado.</p>`; return; }
+    list.innerHTML = "";
+    dids.forEach(d => {
+      const row = document.createElement("div");
+      row.className = "did-grid-row";
+      row.innerHTML = `
+        <span>${d.id}</span>
+        <span>${d.number}</span>
+        <span>${d.linkedAt ? new Date(d.linkedAt).toLocaleDateString("pt-BR") : "—"}</span>
+        <button class="btn-did-unlink" data-did-id="${d.id}" data-did-number="${d.number}" title="Desvincular">✕</button>
+      `;
+      row.querySelector(".btn-did-unlink").addEventListener("click", async () => {
+        if (!confirm(`Deseja desvincular o DID ${d.number} deste circuito?`)) return;
+        const r2 = await fetch("/api/did/unlink", { method: "POST", headers: { "Content-Type":"application/json" }, body: JSON.stringify({ didId: d.id }) });
+        if (r2.ok) loadCSubDids();
+      });
+      list.appendChild(row);
+    });
+  }
+
+  document.getElementById("csub-btn-add-did").addEventListener("click", () => openCDidModal());
+
+  // ── csub save / delete ────────────────────────────────────────────────────
+  document.getElementById("csub-btn-save").addEventListener("click", async () => {
+    hideCSubError();
+    const body = {
+      active:     document.getElementById("csub-field-active").checked,
+      password:   document.getElementById("csub-field-password").value || undefined,
+      trunkName:  csSubTrunk.getValue()    || null,
+      planId:     csSubPlan.getValue()     ? Number(csSubPlan.getValue())     : null,
+      customerId: csSubCustomer.getValue() ? Number(csSubCustomer.getValue()) : null,
+    };
+    const r = await fetch(`/api/circuit/${currentCircuitSubNumber}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    });
+    if (r.ok) {
+      ms.closeSub();
+      loadCircuits();
+    } else {
+      const err = await r.json().catch(() => ({}));
+      showCSubError(err.message || "Erro ao salvar circuito.");
+    }
+  });
+
+  document.getElementById("csub-btn-delete").addEventListener("click", async () => {
+    const btn = document.getElementById("csub-btn-delete");
+    if (csSubDeleteCount === 0) {
+      csSubDeleteCount = 1; btn.textContent = "Confirmar exclusão"; btn.classList.add("confirm");
+      csSubDeleteTimer = setTimeout(resetCSubDeleteBtn, 3000);
+    } else {
+      clearTimeout(csSubDeleteTimer);
+      const r = await fetch(`/api/circuit/${currentCircuitSubNumber}`, { method: "DELETE" });
+      if (r.ok || r.status === 204) { ms.closeSub(); loadCircuits(); }
+      else { const err = await r.json().catch(() => ({})); showCSubError(err.message || "Erro ao deletar."); resetCSubDeleteBtn(); }
+    }
+  });
+
+  document.getElementById("csub-btn-back").addEventListener("click",  () => ms.closeSub());
+  document.getElementById("csub-btn-back2").addEventListener("click", () => ms.closeSub());
+  document.getElementById("csub-btn-close").addEventListener("click", () => ms.closeAll());
+
+  function resetCSubDeleteBtn() {
+    csSubDeleteCount = 0;
+    const btn = document.getElementById("csub-btn-delete");
+    btn.textContent = "Deletar"; btn.classList.remove("confirm");
+  }
+  function showCSubError(msg) {
+    const el = document.getElementById("csub-error"); el.textContent = msg; el.style.display = "block";
+  }
+  function hideCSubError() {
+    document.getElementById("csub-error").style.display = "none";
+  }
+
+  // ── DID search modal (dentro do sub-modal de circuito) ────────────────────
+  let cdidSearchData = [];
+  let selectedCDidId = null;
+
+  async function openCDidModal() {
+    selectedCDidId = null;
+    document.getElementById("cdid-search-input").value = "";
+    document.getElementById("cdid-available-list").innerHTML =
+      `<p style="color:#9ca3af;font-size:13px;padding:16px 0;text-align:center">Carregando...</p>`;
+    setCDidConfirmState(false);
+    const r = await fetch("/api/did/free");
+    if (!r.ok) {
+      document.getElementById("cdid-available-list").innerHTML =
+        `<p style="color:#ef4444;font-size:13px;padding:16px 0;text-align:center">Erro ao carregar DIDs.</p>`;
+    } else {
+      const data = await r.json();
+      cdidSearchData = Array.isArray(data) ? data : (data.content || []);
+      renderCDidList("");
+    }
+    document.getElementById("modal-overlay-cdid").classList.add("active");
+    document.getElementById("modal-cdid").classList.add("open");
+  }
+
+  function closeCDidModal() {
+    document.getElementById("modal-cdid").classList.remove("open");
+    document.getElementById("modal-overlay-cdid").classList.remove("active");
+  }
+
+  function renderCDidList(query) {
+    const q = query.toLowerCase();
+    const filtered = cdidSearchData.filter(d => String(d.number || d.id).toLowerCase().includes(q)).slice(0, 50);
+    const list = document.getElementById("cdid-available-list");
+    if (!filtered.length) { list.innerHTML = `<p style="color:#9ca3af;font-size:13px;padding:16px 0;text-align:center">Nenhum DID encontrado.</p>`; return; }
+    list.innerHTML = "";
+    filtered.forEach(d => {
+      const item = document.createElement("div");
+      item.className = "did-select-item" + (selectedCDidId === d.id ? " selected" : "");
+      item.innerHTML = `<span class="did-select-num">${d.number}</span><span class="did-select-id">ID ${d.id}</span>`;
+      item.addEventListener("click", () => {
+        selectedCDidId = d.id;
+        list.querySelectorAll(".did-select-item").forEach(el => el.classList.remove("selected"));
+        item.classList.add("selected");
+        setCDidConfirmState(true);
+      });
+      list.appendChild(item);
+    });
+  }
+
+  function setCDidConfirmState(enabled) {
+    const btn = document.getElementById("cdid-btn-confirm");
+    btn.disabled = !enabled; btn.style.opacity = enabled ? "" : "0.5"; btn.style.cursor = enabled ? "" : "default";
+  }
+
+  document.getElementById("cdid-search-input").addEventListener("input", e => renderCDidList(e.target.value));
+  document.getElementById("cdid-btn-close").addEventListener("click",  closeCDidModal);
+  document.getElementById("cdid-btn-cancel").addEventListener("click", closeCDidModal);
+  document.getElementById("modal-overlay-cdid").addEventListener("click", closeCDidModal);
+
+  document.getElementById("cdid-btn-confirm").addEventListener("click", async () => {
+    if (!selectedCDidId) return;
+    const r = await fetch("/api/did/link", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ didId: selectedCDidId, circuitNumber: currentCircuitSubNumber }),
+    });
+    if (r.ok) { closeCDidModal(); loadCSubDids(); }
+    else { const err = await r.json().catch(() => ({})); alert(err.message || "Erro ao vincular DID."); }
+  });
+
+  // ── Deep link on load ─────────────────────────────────────────────────────
+  const urlParam = new URLSearchParams(window.location.search).get("modal");
+  if (urlParam) {
     carregarDados(0);
+    setTimeout(() => openCustomerModal(Number(urlParam)), 800);
+  } else {
+    carregarDados(0);
+  }
 </script>
 </Layout>

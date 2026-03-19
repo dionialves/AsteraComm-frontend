@@ -6,6 +6,7 @@ export interface Option {
 export interface SearchSelectConfig {
   placeholder?: string;
   onNavigate?: (value: string) => string;
+  onChange?: (value: string, label: string) => void;
 }
 
 const MAX_VISIBLE = 10;
@@ -15,6 +16,7 @@ export class SearchSelect {
   private options: Option[];
   private placeholder: string;
   private onNavigate?: (value: string) => string;
+  private onChange?: (value: string, label: string) => void;
   private selectedValue: string = "";
   private selectedLabel: string = "";
   private locked: boolean = false;
@@ -35,6 +37,7 @@ export class SearchSelect {
     this.options = options;
     this.placeholder = config.placeholder ?? "Selecione...";
     this.onNavigate = config.onNavigate;
+    this.onChange = config.onChange;
     this.boundClose = this.onOutsideClick.bind(this);
     this.render();
   }
@@ -232,6 +235,7 @@ export class SearchSelect {
     this.updateTriggerLabel();
     this.updateActions();
     this.close();
+    this.onChange?.(opt.value, opt.label);
   }
 
   private clear(): void {
