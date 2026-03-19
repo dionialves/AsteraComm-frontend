@@ -147,7 +147,7 @@ const { id } = Astro.params;
           <td class="px-4 py-2 font-mono whitespace-nowrap">${c.ip ?? '—'}</td>
           <td class="px-4 py-2 whitespace-nowrap">${c.rtt ?? '—'}</td>
         `;
-        tr.addEventListener("click", () => { window.location.href = `/circuits/${c.number}`; });
+        tr.addEventListener("click", () => { window.location.href = `/circuits/${c.number}?from=customers/${customerId}`; });
         tbody.appendChild(tr);
       });
     } catch {

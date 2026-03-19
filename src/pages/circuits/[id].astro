@@ -355,7 +355,10 @@ const { id } = Astro.params;
   });
 
   // ─── Voltar ──────────────────────────────────────────────────────────────────
-  document.getElementById("btnBack").addEventListener("click", () => { window.location.href = "/circuits"; });
+  document.getElementById("btnBack").addEventListener("click", () => {
+    const from = new URLSearchParams(window.location.search).get("from");
+    window.location.href = from ? `/${from}` : "/circuits";
+  });
 
   // ─── Desvincular DIDs ────────────────────────────────────────────────────────
   btnUnlink.addEventListener("click", async () => {
