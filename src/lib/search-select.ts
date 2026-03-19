@@ -52,6 +52,16 @@ export class SearchSelect {
     this.updateTriggerLabel();
   }
 
+  setDisabled(disabled: boolean): void {
+    if (disabled) {
+      this.trigger.classList.add("pointer-events-none", "bg-gray-50", "text-gray-500", "cursor-not-allowed");
+      this.trigger.classList.remove("bg-white");
+    } else {
+      this.trigger.classList.remove("pointer-events-none", "bg-gray-50", "text-gray-500", "cursor-not-allowed");
+      this.trigger.classList.add("bg-white");
+    }
+  }
+
   setOptions(options: Option[]): void {
     this.options = options;
     this.selectedValue = "";

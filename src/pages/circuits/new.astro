@@ -93,6 +93,9 @@ import Layout from "../../layouts/Layout.astro";
   const fieldPassword = document.getElementById("fieldPassword");
   const formMessage   = document.getElementById("formMessage");
 
+  const params     = new URLSearchParams(window.location.search);
+  const fromCustomerId = params.get("customerId");
+
   const ssTrunk    = new SearchSelect(document.getElementById("fieldTrunk"),    [], { placeholder: "Selecione um tronco..." });
   const ssCustomer = new SearchSelect(document.getElementById("fieldCustomer"), [], { placeholder: "Selecione um cliente..." });
   const ssPlan     = new SearchSelect(document.getElementById("fieldPlan"),     [], { placeholder: "Selecione um plano..." });
@@ -129,6 +132,10 @@ import Layout from "../../layouts/Layout.astro";
       const customers = data.content || data;
       ssCustomer.setOptions(customers.map(c => ({ value: String(c.id), label: c.name })));
     } catch { ssCustomer.setOptions([]); }
+    if (fromCustomerId) {
+      ssCustomer.setValue(fromCustomerId);
+      ssCustomer.setDisabled(true);
+    }
   }
 
   async function carregarPlanos() {
@@ -166,7 +173,7 @@ import Layout from "../../layouts/Layout.astro";
       if (res.ok || res.status === 201) {
         const created = await res.json();
         window.showToast?.("Circuito criado com sucesso!", "success");
-        window.location.href = `/circuits/${created.number}`;
+        window.location.href = fromCustomerId ? `/customers/${fromCustomerId}` : `/circuits/${created.number}`;
       } else {
         const err = await res.text();
         showMessage(err || "Erro ao criar circuito.", "error");
