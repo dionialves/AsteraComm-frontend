@@ -272,3 +272,179 @@ describe("SearchSelect — setOptions()", () => {
     expect(items[0].textContent?.trim()).toBe("Xylophone");
   });
 });
+
+describe("SearchSelect — travamento ao selecionar", () => {
+  it("após selecionar, o trigger não abre o dropdown ao ser clicado", () => {
+    ss = new SearchSelect(container, OPTIONS, { placeholder: "Selecione..." });
+
+    const trigger = container.querySelector("[data-testid='ss-trigger']") as HTMLElement;
+    trigger.click();
+    const firstItem = container.querySelector("[data-testid='ss-option']") as HTMLElement;
+    firstItem.click(); // seleciona
+
+    trigger.click(); // tenta abrir novamente
+
+    const dropdown = container.querySelector("[data-testid='ss-dropdown']") as HTMLElement;
+    expect(dropdown.classList.contains("hidden")).toBe(true);
+  });
+
+  it("após limpar com X, o trigger volta a abrir o dropdown", () => {
+    ss = new SearchSelect(container, OPTIONS, { placeholder: "Selecione..." });
+
+    const trigger = container.querySelector("[data-testid='ss-trigger']") as HTMLElement;
+    trigger.click();
+    const firstItem = container.querySelector("[data-testid='ss-option']") as HTMLElement;
+    firstItem.click();
+
+    const btnClear = container.querySelector("[data-testid='ss-clear']") as HTMLElement;
+    btnClear.click();
+
+    trigger.click();
+    const dropdown = container.querySelector("[data-testid='ss-dropdown']") as HTMLElement;
+    expect(dropdown.classList.contains("hidden")).toBe(false);
+  });
+});
+
+describe("SearchSelect — ícone X (limpar)", () => {
+  it("ícone X está oculto quando nada está selecionado", () => {
+    ss = new SearchSelect(container, OPTIONS, { placeholder: "Selecione..." });
+
+    const btnClear = container.querySelector("[data-testid='ss-clear']") as HTMLElement;
+    expect(btnClear.classList.contains("hidden")).toBe(true);
+  });
+
+  it("ícone X aparece após selecionar uma opção", () => {
+    ss = new SearchSelect(container, OPTIONS, { placeholder: "Selecione..." });
+
+    const trigger = container.querySelector("[data-testid='ss-trigger']") as HTMLElement;
+    trigger.click();
+    const firstItem = container.querySelector("[data-testid='ss-option']") as HTMLElement;
+    firstItem.click();
+
+    const btnClear = container.querySelector("[data-testid='ss-clear']") as HTMLElement;
+    expect(btnClear.classList.contains("hidden")).toBe(false);
+  });
+
+  it("clicar em X limpa a seleção e abre o dropdown", () => {
+    ss = new SearchSelect(container, OPTIONS, { placeholder: "Selecione..." });
+
+    const trigger = container.querySelector("[data-testid='ss-trigger']") as HTMLElement;
+    trigger.click();
+    const firstItem = container.querySelector("[data-testid='ss-option']") as HTMLElement;
+    firstItem.click();
+
+    const btnClear = container.querySelector("[data-testid='ss-clear']") as HTMLElement;
+    btnClear.click();
+
+    expect(ss.getValue()).toBe("");
+    const dropdown = container.querySelector("[data-testid='ss-dropdown']") as HTMLElement;
+    expect(dropdown.classList.contains("hidden")).toBe(false);
+  });
+
+  it("ícone X fica oculto após setValue('')", () => {
+    ss = new SearchSelect(container, OPTIONS, { placeholder: "Selecione..." });
+    ss.setValue("1");
+    ss.setValue("");
+
+    const btnClear = container.querySelector("[data-testid='ss-clear']") as HTMLElement;
+    expect(btnClear.classList.contains("hidden")).toBe(true);
+  });
+
+  it("ícone X fica oculto após setOptions() resetar a seleção", () => {
+    ss = new SearchSelect(container, OPTIONS, { placeholder: "Selecione..." });
+    ss.setValue("1");
+    ss.setOptions([{ value: "X", label: "Novo" }]);
+
+    const btnClear = container.querySelector("[data-testid='ss-clear']") as HTMLElement;
+    expect(btnClear.classList.contains("hidden")).toBe(true);
+  });
+});
+
+describe("SearchSelect — ícone de navegação (onNavigate)", () => {
+  it("não renderiza ícone de navegação quando onNavigate não está definido", () => {
+    ss = new SearchSelect(container, OPTIONS, { placeholder: "Selecione..." });
+
+    const nav = container.querySelector("[data-testid='ss-nav']");
+    expect(nav).toBeNull();
+  });
+
+  it("ícone de navegação oculto quando nada está selecionado", () => {
+    ss = new SearchSelect(container, OPTIONS, {
+      placeholder: "Selecione...",
+      onNavigate: (v) => `customers/${v}`,
+    });
+
+    const nav = container.querySelector("[data-testid='ss-nav']") as HTMLElement;
+    expect(nav).not.toBeNull();
+    expect(nav.classList.contains("hidden")).toBe(true);
+  });
+
+  it("ícone de navegação aparece após selecionar uma opção", () => {
+    ss = new SearchSelect(container, OPTIONS, {
+      placeholder: "Selecione...",
+      onNavigate: (v) => `customers/${v}`,
+    });
+
+    const trigger = container.querySelector("[data-testid='ss-trigger']") as HTMLElement;
+    trigger.click();
+    const firstItem = container.querySelector("[data-testid='ss-option']") as HTMLElement;
+    firstItem.click();
+
+    const nav = container.querySelector("[data-testid='ss-nav']") as HTMLElement;
+    expect(nav.classList.contains("hidden")).toBe(false);
+  });
+
+  it("href do ícone contém a URL retornada por onNavigate", () => {
+    ss = new SearchSelect(container, OPTIONS, {
+      placeholder: "Selecione...",
+      onNavigate: (v) => `customers/${v}`,
+    });
+
+    const trigger = container.querySelector("[data-testid='ss-trigger']") as HTMLElement;
+    trigger.click();
+    const firstItem = container.querySelector("[data-testid='ss-option']") as HTMLElement;
+    firstItem.click(); // value "1"
+
+    const nav = container.querySelector("[data-testid='ss-nav']") as HTMLAnchorElement;
+    expect(nav.getAttribute("href")).toContain("customers/1");
+  });
+
+  it("ícone de navegação fica oculto após setValue('')", () => {
+    ss = new SearchSelect(container, OPTIONS, {
+      placeholder: "Selecione...",
+      onNavigate: (v) => `customers/${v}`,
+    });
+
+    ss.setValue("1");
+    ss.setValue("");
+
+    const nav = container.querySelector("[data-testid='ss-nav']") as HTMLElement;
+    expect(nav.classList.contains("hidden")).toBe(true);
+  });
+
+  it("ícone de navegação aparece após setValue() com value válido", () => {
+    ss = new SearchSelect(container, OPTIONS, {
+      placeholder: "Selecione...",
+      onNavigate: (v) => `customers/${v}`,
+    });
+
+    ss.setValue("3");
+
+    const nav = container.querySelector("[data-testid='ss-nav']") as HTMLAnchorElement;
+    expect(nav.classList.contains("hidden")).toBe(false);
+    expect(nav.getAttribute("href")).toContain("customers/3");
+  });
+
+  it("ícone de navegação fica oculto após setOptions() resetar a seleção", () => {
+    ss = new SearchSelect(container, OPTIONS, {
+      placeholder: "Selecione...",
+      onNavigate: (v) => `customers/${v}`,
+    });
+
+    ss.setValue("1");
+    ss.setOptions([{ value: "X", label: "Novo" }]);
+
+    const nav = container.querySelector("[data-testid='ss-nav']") as HTMLElement;
+    expect(nav.classList.contains("hidden")).toBe(true);
+  });
+});

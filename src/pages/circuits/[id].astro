@@ -162,7 +162,10 @@ const { id } = Astro.params;
   const semDIDsMsg    = document.getElementById("semDIDsMsg");
 
   const ssTrunk    = new SearchSelect(document.getElementById("fieldTrunk"),    [], { placeholder: "Selecione um tronco..." });
-  const ssCustomer = new SearchSelect(document.getElementById("fieldCustomer"), [], { placeholder: "Selecione um cliente..." });
+  const ssCustomer = new SearchSelect(document.getElementById("fieldCustomer"), [], {
+    placeholder: "Selecione um cliente...",
+    onNavigate: (id) => `customers/${id}`,
+  });
   const ssPlan     = new SearchSelect(document.getElementById("fieldPlan"),     [], { placeholder: "Selecione um plano..." });
   const ssDID      = new SearchSelect(document.getElementById("selectDID"),     [], { placeholder: "Selecione um DID..." });
 

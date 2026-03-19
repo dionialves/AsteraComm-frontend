@@ -158,7 +158,10 @@ const { id } = Astro.params;
     }
   }
 
-  document.getElementById("btnBack").addEventListener("click", () => { window.location.href = "/customers"; });
+  document.getElementById("btnBack").addEventListener("click", () => {
+    const from = new URLSearchParams(window.location.search).get("from");
+    window.location.href = from ? `/${from}` : "/customers";
+  });
   document.getElementById("btnAddCircuit").addEventListener("click", () => { window.location.href = `/circuits/new?customerId=${customerId}`; });
 
   document.getElementById("btnSave").addEventListener("click", async () => {
