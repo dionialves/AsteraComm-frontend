@@ -1,0 +1,233 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<style is:global>
+  .report-row {
+    display: grid;
+    grid-template-columns: minmax(0,1.5fr) minmax(0,1fr) 100px 100px 130px;
+    gap: 6px;
+    padding: 11px 16px;
+    align-items: center;
+    background: #ffffff;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .report-row:last-child { border-bottom: none; }
+</style>
+
+<Layout title="Custo por Circuito — AsteraComm">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <div class="mb-5">
+    <div class="flex items-center gap-2 mb-1">
+      <a href="/reports" class="flex items-center justify-center w-[30px] h-[30px] rounded border border-[#d0d0d0] text-[#555] hover:bg-[#f5f5f5] transition-colors">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </a>
+      <h1 class="text-[22px] font-medium text-[#1a1a1a]">Custo por Circuito</h1>
+    </div>
+    <p class="text-[13px] text-[#888] ml-[39px]">Total de ligações, minutos e custo gerado por cada circuito no mês selecionado</p>
+  </div>
+
+  <!-- ── Card de filtros ─────────────────────────────────────────────────── -->
+  <div class="bg-white border border-[#e0e0e0] rounded-xl p-4 mb-4">
+    <div class="flex items-end gap-3 flex-wrap">
+
+      <!-- Mês -->
+      <div class="flex flex-col gap-1">
+        <label class="text-[12px] text-[#555] font-medium">Mês</label>
+        <select id="select-month" class="cs-select" style="width:140px">
+          <option value="1">Janeiro</option>
+          <option value="2">Fevereiro</option>
+          <option value="3">Março</option>
+          <option value="4">Abril</option>
+          <option value="5">Maio</option>
+          <option value="6">Junho</option>
+          <option value="7">Julho</option>
+          <option value="8">Agosto</option>
+          <option value="9">Setembro</option>
+          <option value="10">Outubro</option>
+          <option value="11">Novembro</option>
+          <option value="12">Dezembro</option>
+        </select>
+      </div>
+
+      <!-- Ano -->
+      <div class="flex flex-col gap-1">
+        <label class="text-[12px] text-[#555] font-medium">Ano</label>
+        <select id="select-year" class="cs-select" style="width:100px"></select>
+      </div>
+
+      <!-- Apenas com custo -->
+      <div class="flex items-center gap-2 pb-[7px]">
+        <input type="checkbox" id="check-only-cost" class="w-4 h-4 cursor-pointer accent-[#1D9E75]" />
+        <label for="check-only-cost" class="text-[13px] text-[#1a1a1a] cursor-pointer select-none">Apenas com custo</label>
+      </div>
+
+      <!-- Processar -->
+      <button id="btn-process" class="btn-modal-save px-5 py-[9px] text-[13px]">Processar</button>
+    </div>
+  </div>
+
+  <!-- ── Resultado (oculto até processar) ───────────────────────────────── -->
+  <div id="result-container" class="hidden">
+
+    <!-- Totalizadores -->
+    <div id="totals" class="grid grid-cols-4 gap-3 mb-4">
+      <div class="bg-[#f5f5f5] rounded-lg px-4 py-[14px]">
+        <p class="text-[12px] text-[#888] mb-1">Total de circuitos</p>
+        <p id="total-circuits" class="text-[22px] font-medium text-[#1a1a1a]">—</p>
+      </div>
+      <div class="bg-[#f5f5f5] rounded-lg px-4 py-[14px]">
+        <p class="text-[12px] text-[#888] mb-1">Total de ligações</p>
+        <p id="total-calls" class="text-[22px] font-medium text-[#1a1a1a]">—</p>
+      </div>
+      <div class="bg-[#f5f5f5] rounded-lg px-4 py-[14px]">
+        <p class="text-[12px] text-[#888] mb-1">Total de minutos</p>
+        <p id="total-minutes" class="text-[22px] font-medium text-[#1a1a1a]">—</p>
+      </div>
+      <div class="bg-[#f5f5f5] rounded-lg px-4 py-[14px]">
+        <p class="text-[12px] text-[#888] mb-1">Custo total</p>
+        <p id="total-cost" class="text-[22px] font-medium text-[#085041]">—</p>
+      </div>
+    </div>
+
+    <!-- Botão PDF -->
+    <div class="flex justify-end mb-3">
+      <button id="btn-pdf" class="flex items-center gap-2 px-3 py-[7px] border border-[#d0d0d0] bg-white rounded-md text-[13px] text-[#555] hover:bg-[#f5f5f5] transition-colors">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Baixar PDF
+      </button>
+    </div>
+
+    <!-- Tabela -->
+    <div class="rounded-xl border border-[#e0e0e0] overflow-hidden">
+      <!-- Header -->
+      <div class="report-row bg-[#f5f5f5] border-b border-[#e0e0e0]">
+        <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Cliente</span>
+        <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Circuito</span>
+        <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide text-right">Ligações</span>
+        <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide text-right">Minutos</span>
+        <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide text-right">Custo R$</span>
+      </div>
+      <!-- Linhas -->
+      <div id="tbody-report">
+        <div class="px-4 py-6 text-[13px] text-[#888] text-center">Nenhum dado para exibir.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Mensagem de erro ────────────────────────────────────────────────── -->
+  <div id="error-msg" class="hidden mt-4 px-4 py-3 bg-[#fee2e2] text-[#dc2626] rounded-lg text-[13px]"></div>
+
+</Layout>
+
+<script type="module">
+  const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+                 "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+  const selectMonth   = document.getElementById("select-month");
+  const selectYear    = document.getElementById("select-year");
+  const checkOnlyCost = document.getElementById("check-only-cost");
+  const btnProcess    = document.getElementById("btn-process");
+  const btnPdf        = document.getElementById("btn-pdf");
+  const resultContainer = document.getElementById("result-container");
+  const errorMsg      = document.getElementById("error-msg");
+  const tbody         = document.getElementById("tbody-report");
+
+  // Preencher anos
+  const now = new Date();
+  for (let y = now.getFullYear(); y >= now.getFullYear() - 4; y--) {
+    const opt = document.createElement("option");
+    opt.value = String(y);
+    opt.textContent = String(y);
+    selectYear.appendChild(opt);
+  }
+  selectMonth.value = String(now.getMonth() + 1);
+
+  function formatCurrency(value) {
+    return parseFloat(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.classList.remove("hidden");
+  }
+
+  function hideError() {
+    errorMsg.classList.add("hidden");
+  }
+
+  // ── Processar ─────────────────────────────────────────────────────────────
+  btnProcess.addEventListener("click", async () => {
+    const month        = selectMonth.value;
+    const year         = selectYear.value;
+    const onlyWithCost = checkOnlyCost.checked;
+
+    hideError();
+    btnProcess.disabled = true;
+    btnProcess.textContent = "Processando...";
+    resultContainer.classList.add("hidden");
+
+    try {
+      const params = new URLSearchParams({ month, year, onlyWithCost: String(onlyWithCost) });
+      const res = await fetch(`/api/reports/cost-per-circuit?${params}`);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showError(err.message ?? "Erro ao gerar relatório.");
+        return;
+      }
+
+      const { summary, data } = await res.json();
+
+      // Totalizadores
+      document.getElementById("total-circuits").textContent = summary.totalCircuits.toLocaleString("pt-BR");
+      document.getElementById("total-calls").textContent    = summary.totalCalls.toLocaleString("pt-BR");
+      document.getElementById("total-minutes").textContent  = summary.totalMinutes.toLocaleString("pt-BR");
+      document.getElementById("total-cost").textContent     = formatCurrency(summary.totalCost);
+
+      // Tabela
+      tbody.innerHTML = "";
+      if (data.length === 0) {
+        tbody.innerHTML = `<div class="px-4 py-6 text-[13px] text-[#888] text-center">Nenhum circuito com ligações no período informado.</div>`;
+      } else {
+        data.forEach(row => {
+          const cost = parseFloat(row.totalCost);
+          const div = document.createElement("div");
+          div.className = "report-row";
+          div.innerHTML = `
+            <span class="text-[13px] text-[#1a1a1a] truncate">${row.customerName}</span>
+            <span class="text-[13px] font-mono text-[#888] truncate">${row.circuitName}</span>
+            <span class="text-[13px] text-right ${row.callCount > 0 ? 'text-[#1a1a1a]' : 'text-[#888]'}">${row.callCount.toLocaleString("pt-BR")}</span>
+            <span class="text-[13px] text-right ${row.totalMinutes > 0 ? 'text-[#1a1a1a]' : 'text-[#888]'}">${row.totalMinutes.toLocaleString("pt-BR")}</span>
+            <span class="text-[13px] text-right font-mono ${cost > 0 ? 'font-medium text-[#085041]' : 'text-[#888]'}">${formatCurrency(cost)}</span>
+          `;
+          tbody.appendChild(div);
+        });
+      }
+
+      resultContainer.classList.remove("hidden");
+    } catch {
+      showError("Erro ao comunicar com o servidor.");
+    } finally {
+      btnProcess.disabled = false;
+      btnProcess.textContent = "Processar";
+    }
+  });
+
+  // ── Baixar PDF ────────────────────────────────────────────────────────────
+  btnPdf.addEventListener("click", () => {
+    const month        = selectMonth.value;
+    const year         = selectYear.value;
+    const onlyWithCost = checkOnlyCost.checked;
+    const params = new URLSearchParams({ month, year, onlyWithCost: String(onlyWithCost) });
+    window.location.href = `/api/reports/cost-per-circuit-pdf?${params}`;
+  });
+</script>

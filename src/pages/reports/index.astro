@@ -1,40 +1,28 @@
 ---
-import Layout from "@/layouts/Layout.astro";
+import Layout from "../../layouts/Layout.astro";
+import ReportCard from "../../components/ReportCard.astro";
 ---
 
 <Layout title="Relatórios — AsteraComm">
-
-  <div class="bg-white rounded-lg shadow mb-6">
-    <div class="px-6 py-5">
-      <h1 class="page-title">Relatórios</h1>
-      <p class="page-subtitle">Geração de relatórios operacionais e financeiros</p>
-    </div>
-
-    <hr class="border-gray-200" />
-
-    <div class="px-6 pb-6 pt-4">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-
-    <a href="/reports/call-cost"
-       class="bg-white rounded-lg shadow p-6 hover:shadow-md hover:border-indigo-300 border border-transparent transition group">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-          <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        </div>
-        <h2 class="text-base font-semibold text-gray-800 group-hover:text-indigo-600 transition">
-          Custo por Circuito
-        </h2>
-      </div>
-      <p class="text-sm text-gray-500">
-        Total de ligações, minutos consumidos e custo gerado por cada circuito em um mês/ano selecionado.
-      </p>
-    </a>
-
-    </div>
-    </div>
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <div class="mb-5">
+    <h1 class="text-[22px] font-medium text-[#1a1a1a]">Relatórios</h1>
+    <p class="text-[13px] text-[#888] mt-0.5">Geração de relatórios operacionais e financeiros</p>
   </div>
 
+  <!-- ── Grid de cards ───────────────────────────────────────────────────── -->
+  <div class="grid grid-cols-3 gap-3">
+    <ReportCard
+      href="/reports/cost-per-circuit"
+      iconBg="#E1F5EE"
+      title="Custo por circuito"
+      description="Total de ligações, minutos consumidos e custo gerado por cada circuito em um mês/ano selecionado."
+    >
+      <!-- Ícone cifrão -->
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#085041" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="1" x2="12" y2="23"/>
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+    </ReportCard>
+  </div>
 </Layout>
