@@ -2,300 +2,390 @@
 import Layout from "../../layouts/Layout.astro";
 ---
 
+<style is:global>
+  .did-row {
+    display: grid;
+    grid-template-columns: 48px minmax(0,1fr) 80px minmax(0,1fr);
+    gap: 8px;
+    padding: 11px 16px;
+    align-items: center;
+    cursor: pointer;
+    background: #ffffff;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.1s;
+  }
+  .did-row:last-child { border-bottom: none; }
+  .did-row:hover { background: #fafafa; }
+  .did-row.row-selected { background: #E6F1FB !important; border-left: 2px solid #378ADD; }
+</style>
+
 <Layout>
-    <div class="bg-white rounded-lg shadow mb-6">
-        <div class="flex items-center justify-between px-6 py-5">
-            <div>
-                <h1 class="page-title">DIDs</h1>
-                <p class="page-subtitle">Numeração DID disponível e vínculos com circuitos</p>
-            </div>
-            <button id="btnAdd" class="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-green-700">+ Adicionar</button>
-        </div>
-
-        <hr class="border-gray-200" />
-
-        <div class="listing-toolbar px-6 py-3">
-            <div class="listing-search">
-                <input id="input-search" type="text" placeholder="Pesquisar por número..." class="listing-search-input" />
-                <button id="btn-search" class="listing-search-btn" title="Pesquisar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="listing-pagination">
-                <button id="btn-prev" class="listing-page-btn">‹ Anterior</button>
-                <span id="page-info" class="listing-page-info">Página 1 de 1</span>
-                <button id="btn-next" class="listing-page-btn">Próxima ›</button>
-            </div>
-        </div>
-
-        <div class="overflow-x-auto px-4 pb-4">
-
-        <table id="table-dids" class="table-fixed w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
-            <thead class="bg-gray-100 text-gray-900">
-                <tr class="font-semibold">
-                    <th data-field="id" class="w-12 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">ID</th>
-                    <th data-field="number" class="w-40 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Número</th>
-                    <th data-field="circuitId" class="w-24 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Status</th>
-                    <th data-field="circuitNumber" class="w-36 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Circuito</th>
-                    <th class="px-4 py-2 text-left font-semibold whitespace-nowrap">Ações</th>
-                </tr>
-            </thead>
-            <tbody id="tbody-dids" class="divide-y divide-gray-200">
-                <tr id="loading" class="py-4 px-4 text-gray-500">
-                    <td>Carregando...</td>
-                </tr>
-            </tbody>
-        </table>
-        </div>
+  <!-- ── Header ────────────────────────────────────────────────────────────── -->
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <h1 class="text-[22px] font-medium text-[#1a1a1a]">DIDs</h1>
+      <p class="text-[13px] text-[#888] mt-0.5">Numeração DID disponível e vínculos com circuitos</p>
     </div>
+    <button id="btnAdd" class="flex items-center gap-1.5 bg-[#1D9E75] text-white text-[13px] font-medium px-3 py-[9px] rounded-md hover:opacity-90 transition-opacity">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Novo DID
+    </button>
+  </div>
 
-    <!-- Modal Overlay -->
-    <div id="modalOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
-
-    <!-- Modal Adicionar DID -->
-    <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-md">
-
-            <div class="bg-gray-50 flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                <h2 class="text-lg font-semibold text-gray-800">Novo DID</h2>
-                <div class="flex items-center gap-2">
-                    <button id="btnSave" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700 transition">
-                        Salvar
-                    </button>
-                    <button id="btnCancel" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">
-                        Cancelar
-                    </button>
-                </div>
-            </div>
-
-            <div class="px-6 py-4">
-                <div id="formMessage" class="hidden mb-4 px-4 py-2 rounded text-sm"></div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Número do DID</label>
-                    <input
-                        id="inputNumber"
-                        type="text"
-                        maxlength="15"
-                        class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                        placeholder="(XX) XXXX-XXXX"
-                    />
-                    <p class="text-xs text-gray-400 mt-1">Formato: (XX) XXXX-XXXX</p>
-                </div>
-            </div>
-        </div>
+  <!-- ── Toolbar ───────────────────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between mb-3 gap-3 flex-wrap">
+    <div class="flex items-center gap-3">
+      <div class="relative w-[280px]">
+        <svg class="absolute left-[10px] top-1/2 -translate-y-1/2 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input id="input-search" type="text" placeholder="Buscar por número..."
+          class="w-full pl-[34px] pr-3 py-[9px] text-[13px] border border-[#e0e0e0] rounded-md outline-none bg-white text-[#1a1a1a] placeholder-[#aaa] focus:border-[#1D9E75] transition-colors" />
+      </div>
+      <div class="flex border border-[#e0e0e0] rounded-md overflow-hidden text-[13px]">
+        <button data-filter="all"    class="filter-btn px-3 py-[7px] bg-white text-[#1a1a1a] font-medium border-r border-[#e0e0e0]">Todos</button>
+        <button data-filter="IN_USE" class="filter-btn px-3 py-[7px] text-[#888] border-r border-[#e0e0e0]">Em uso</button>
+        <button data-filter="FREE"   class="filter-btn px-3 py-[7px] text-[#888]">Livres</button>
+      </div>
     </div>
+    <div class="flex items-center gap-2">
+      <button id="btn-prev" class="w-7 h-7 flex items-center justify-center rounded border border-[#e0e0e0] text-[#888] hover:border-[#ccc] disabled:opacity-40 disabled:cursor-not-allowed transition">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span id="page-info" class="text-[12px] text-[#888] whitespace-nowrap">Página 1 de 1</span>
+      <button id="btn-next" class="w-7 h-7 flex items-center justify-center rounded border border-[#e0e0e0] text-[#888] hover:border-[#ccc] disabled:opacity-40 disabled:cursor-not-allowed transition">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
 
-<script type="module" defer>
-    const tbody = document.getElementById("tbody-dids");
-    const loading = document.getElementById("loading");
-    const table = document.getElementById("table-dids");
-    const btnPrev = document.getElementById("btn-prev");
-    const btnNext = document.getElementById("btn-next");
-    const pageInfo = document.getElementById("page-info");
+  <!-- ── Table ─────────────────────────────────────────────────────────────── -->
+  <div class="rounded-xl border border-[#e0e0e0] overflow-hidden">
+    <div class="did-row bg-[#f5f5f5] border-b border-[#e0e0e0]" style="cursor:default">
+      <span data-field="id"     class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">ID</span>
+      <span data-field="number" class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Número</span>
+      <span                      class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Status</span>
+      <span                      class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Circuito</span>
+    </div>
+    <div id="tbody-dids"></div>
+  </div>
 
-    const modal = document.getElementById("modal");
-    const modalOverlay = document.getElementById("modalOverlay");
-    const inputNumber = document.getElementById("inputNumber");
-    const formMessage = document.getElementById("formMessage");
+  <!-- ── Modal overlay ─────────────────────────────────────────────────────── -->
+  <div id="modal-overlay" class="modal-overlay"></div>
 
-    let currentPage = 0;
-    let totalPages = 0;
-    let currentSortField = "id";
-    let currentSortDirection = "desc";
+  <!-- ── Modal DID ─────────────────────────────────────────────────────────── -->
+  <div id="modal-main" class="modal-main">
+    <div class="modal-header">
+      <div class="modal-header-top">
+        <div class="modal-header-titles">
+          <span id="modal-subtitle" class="modal-subtitle">DID</span>
+          <span id="modal-title"    class="modal-title">—</span>
+        </div>
+        <button id="modal-btn-close" class="modal-btn-close" title="Fechar">✕</button>
+      </div>
+    </div>
+    <div id="modal-error" class="modal-error"></div>
+    <div class="modal-body">
+      <p class="section-title">Número</p>
+      <div class="form-group">
+        <label class="form-label">Número do DID</label>
+        <input id="field-number" type="text" maxlength="15" class="form-input" placeholder="(XX) XXXX-XXXX" />
+        <p style="font-size:11px;color:#aaa;margin-top:4px">Formato: (XX) XXXX-XXXX — apenas dígitos são armazenados</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="btn-delete-did" class="btn-modal-delete" type="button">Deletar</button>
+      <div class="modal-footer-right">
+        <button id="btn-cancel-did" class="btn-modal-cancel" type="button">Cancelar</button>
+        <button id="btn-save-did"   class="btn-modal-save"   type="button">Salvar</button>
+      </div>
+    </div>
+  </div>
 
-    // === Ordenação ===
-    document.querySelectorAll("thead th[data-field]").forEach(th => {
-        th.addEventListener("click", () => {
-            const field = th.getAttribute("data-field");
-            if (currentSortField === field) {
-                currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
-            } else {
-                currentSortField = field;
-                currentSortDirection = "asc";
-            }
-            carregarDados(0);
-        });
+<script type="module">
+  // ── State ─────────────────────────────────────────────────────────────────
+  const tbody       = document.getElementById("tbody-dids");
+  const btnPrev     = document.getElementById("btn-prev");
+  const btnNext     = document.getElementById("btn-next");
+  const pageInfo    = document.getElementById("page-info");
+  const searchInput = document.getElementById("input-search");
+
+  let currentPage          = 0;
+  let totalPages           = 0;
+  let currentSortField     = "id";
+  let currentSortDirection = "desc";
+  let currentFilter        = "all";
+  let currentDIDId         = null;
+  let deleteClickCount     = 0;
+  let deleteTimer          = null;
+  let debounceTimer        = null;
+
+  // ── Modal helpers ─────────────────────────────────────────────────────────
+  const overlay  = document.getElementById("modal-overlay");
+  const modalEl  = document.getElementById("modal-main");
+
+  function openModal() {
+    overlay.classList.add("active");
+    modalEl.classList.add("open");
+  }
+
+  function closeModal() {
+    deselectRows();
+    overlay.classList.remove("active");
+    modalEl.classList.remove("open");
+    const url = new URL(window.location.href);
+    url.searchParams.delete("modal");
+    history.replaceState(null, "", url.toString());
+  }
+
+  overlay.addEventListener("click", closeModal);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+  document.getElementById("modal-btn-close").addEventListener("click", closeModal);
+  document.getElementById("btn-cancel-did").addEventListener("click", closeModal);
+
+  function deselectRows() {
+    document.querySelectorAll(".did-row.row-selected").forEach(r => r.classList.remove("row-selected"));
+  }
+
+  function showModalError(msg) {
+    const el = document.getElementById("modal-error");
+    el.textContent = msg; el.style.display = "block";
+  }
+  function hideModalError() {
+    document.getElementById("modal-error").style.display = "none";
+  }
+
+  // ── Number mask ───────────────────────────────────────────────────────────
+  function applyMask(input) {
+    let d = input.value.replace(/\D/g, "").substring(0, 10);
+    let f = "";
+    if (d.length > 0) f = "(" + d.substring(0, 2);
+    if (d.length >= 2) f += ") ";
+    if (d.length > 2)  f += d.substring(2, 6);
+    if (d.length > 6)  f += "-" + d.substring(6, 10);
+    input.value = f;
+  }
+
+  function formatNumber(digits) {
+    if (!digits || digits.length !== 10) return digits;
+    return `(${digits.substring(0,2)}) ${digits.substring(2,6)}-${digits.substring(6,10)}`;
+  }
+
+  document.getElementById("field-number").addEventListener("input", function() { applyMask(this); });
+
+  // ── New DID ───────────────────────────────────────────────────────────────
+  document.getElementById("btnAdd").addEventListener("click", () => {
+    currentDIDId = null;
+    hideModalError();
+    resetDeleteBtn();
+    document.getElementById("modal-title").textContent             = "Novo DID";
+    document.getElementById("modal-subtitle").textContent          = "DID";
+    document.getElementById("field-number").value                  = "";
+    document.getElementById("field-number").disabled               = false;
+    document.getElementById("btn-delete-did").style.display        = "none";
+    openModal();
+  });
+
+  // ── Open DID modal (edit) ─────────────────────────────────────────────────
+  async function openDIDModal(id) {
+    currentDIDId = id;
+    hideModalError();
+    resetDeleteBtn();
+
+    const r = await fetch(`/api/did/${id}`);
+    if (!r.ok) return;
+    const d = await r.json();
+
+    document.getElementById("modal-title").textContent          = formatNumber(d.number);
+    document.getElementById("modal-subtitle").textContent       = "DID";
+    document.getElementById("field-number").value               = formatNumber(d.number);
+    document.getElementById("field-number").disabled            = true;
+    document.getElementById("btn-delete-did").style.display     = d.circuitId ? "none" : "";
+
+    deselectRows();
+    const row = tbody.querySelector(`.did-row[data-id="${id}"]`);
+    if (row) row.classList.add("row-selected");
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("modal", String(id));
+    history.pushState({ modal: id }, "", url.toString());
+
+    openModal();
+  }
+
+  // ── Sort ──────────────────────────────────────────────────────────────────
+  const SORT_ASC  = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`;
+  const SORT_DESC = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+
+  function updateSortIcons() {
+    document.querySelectorAll(".sort-col").forEach(el => {
+      el.querySelector("svg")?.remove();
+      if (el.dataset.field === currentSortField)
+        el.insertAdjacentHTML("beforeend", currentSortDirection === "asc" ? SORT_ASC : SORT_DESC);
     });
+  }
 
-    // === Pesquisa ===
-    const searchInput = document.getElementById("input-search");
-    searchInput.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") { currentPage = 0; carregarDados(0); }
+  document.querySelectorAll(".sort-col[data-field]").forEach(el => {
+    el.addEventListener("click", () => {
+      const field = el.dataset.field;
+      if (currentSortField === field) {
+        currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+      } else {
+        currentSortField = field; currentSortDirection = "asc";
+      }
+      updateSortIcons();
+      carregarDados(0);
     });
-    document.getElementById("btn-search").addEventListener("click", () => {
-        currentPage = 0;
-        carregarDados(0);
+  });
+
+  // ── Filters ───────────────────────────────────────────────────────────────
+  document.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentFilter = btn.dataset.filter;
+      document.querySelectorAll(".filter-btn").forEach(b => {
+        const active = b.dataset.filter === currentFilter;
+        b.classList.toggle("bg-white",       active);
+        b.classList.toggle("text-[#1a1a1a]", active);
+        b.classList.toggle("font-medium",    active);
+        b.classList.toggle("text-[#888]",    !active);
+      });
+      carregarDados(0);
     });
+  });
 
-    // === Máscara (XX) XXXX-XXXX ===
-    inputNumber.addEventListener("input", () => {
-        let digits = inputNumber.value.replace(/\D/g, '');
-        if (digits.length > 10) digits = digits.substring(0, 10);
+  // ── Search ────────────────────────────────────────────────────────────────
+  searchInput.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => carregarDados(0), 300);
+  });
 
-        let formatted = '';
-        if (digits.length > 0) formatted = '(' + digits.substring(0, 2);
-        if (digits.length >= 2) formatted += ') ';
-        if (digits.length > 2) formatted += digits.substring(2, 6);
-        if (digits.length > 6) formatted += '-' + digits.substring(6, 10);
+  // ── Load data ─────────────────────────────────────────────────────────────
+  function carregarDados(pagina) {
+    tbody.innerHTML = `<div class="did-row" style="cursor:default"><span style="grid-column:1/-1;color:#aaa;font-size:13px">Carregando...</span></div>`;
+    const search = encodeURIComponent(searchInput.value.trim());
+    const status = currentFilter !== "all" ? `&status=${currentFilter}` : "";
+    const url    = `/api/did/dids?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${search}${status}`;
 
-        inputNumber.value = formatted;
-    });
+    fetch(url)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => {
+        currentPage = pagina;
+        totalPages  = data.totalPages;
+        tbody.innerHTML = "";
 
-    function formatNumber(digits) {
-        if (!digits || digits.length !== 10) return digits;
-        return `(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-${digits.substring(6, 10)}`;
-    }
-
-    function showMessage(text, type) {
-        formMessage.textContent = text;
-        formMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
-        if (type === 'success') {
-            formMessage.classList.add('bg-green-100', 'text-green-700');
+        if (!data.content.length) {
+          tbody.innerHTML = `<div class="did-row" style="cursor:default"><span style="grid-column:1/-1;color:#aaa;font-size:13px;text-align:center">Nenhum DID encontrado.</span></div>`;
         } else {
-            formMessage.classList.add('bg-red-100', 'text-red-700');
-        }
-    }
-
-    function openModal() {
-        inputNumber.value = '';
-        formMessage.classList.add('hidden');
-        modal.classList.remove('hidden');
-        modalOverlay.classList.remove('hidden');
-    }
-
-    function closeModal() {
-        modal.classList.add('hidden');
-        modalOverlay.classList.add('hidden');
-    }
-
-    document.getElementById("btnAdd").addEventListener("click", openModal);
-    document.getElementById("btnCancel").addEventListener("click", closeModal);
-    modalOverlay.addEventListener("click", closeModal);
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
-    });
-
-    // === Salvar ===
-    document.getElementById("btnSave").addEventListener("click", async () => {
-        const digits = inputNumber.value.replace(/\D/g, '');
-
-        if (digits.length !== 10) {
-            showMessage('O número deve ter exatamente 10 dígitos: (XX) XXXX-XXXX.', 'error');
-            return;
+          data.content.forEach(item => renderRow(item));
         }
 
-        try {
-            const res = await fetch('/api/did/dids', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ number: digits }),
-            });
+        pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
+        btnPrev.disabled = currentPage === 0;
+        btnNext.disabled = currentPage >= totalPages - 1;
+      })
+      .catch(() => {
+        tbody.innerHTML = `<div class="did-row" style="cursor:default"><span style="grid-column:1/-1;color:#E24B4A;font-size:13px">Erro ao carregar dados.</span></div>`;
+      });
+  }
 
-            if (res.ok || res.status === 201) {
-                closeModal();
-                carregarDados(currentPage);
-                window.showToast('DID cadastrado com sucesso!', 'success');
-            } else {
-                const errorText = await res.text();
-                showMessage(errorText || 'Erro ao salvar DID.', 'error');
-            }
-        } catch {
-            showMessage('Erro ao comunicar com o servidor.', 'error');
-        }
-    });
+  function renderRow(item) {
+    const row = document.createElement("div");
+    row.className = "did-row";
+    row.dataset.id = item.id;
 
-    // === Excluir ===
-    async function deleteDID(id) {
-        if (!confirm('Tem certeza que deseja excluir este DID?')) return;
+    const inUse = item.status === "IN_USE";
+    const pillBg   = inUse ? "#E1F5EE" : "#E6F1FB";
+    const pillText = inUse ? "#085041"  : "#0C447C";
+    const pillLabel = inUse ? "Em uso" : "Livre";
+    const circuitCell = item.circuit
+      ? `<span class="font-mono text-[12px] text-[#1a1a1a]">${item.circuit.code}</span>`
+      : `<span style="color:#888">—</span>`;
 
-        try {
-            const res = await fetch(`/api/did/${id}`, { method: 'DELETE' });
+    row.innerHTML = `
+      <span class="text-[13px] font-mono text-[#1a1a1a]">${item.id}</span>
+      <span class="text-[13px] font-mono text-[#1a1a1a]">${formatNumber(item.number)}</span>
+      <span>
+        <span style="background:${pillBg};color:${pillText};border-radius:99px;font-size:11px;padding:2px 10px;font-weight:500">${pillLabel}</span>
+      </span>
+      ${circuitCell}
+    `;
+    row.addEventListener("click", () => openDIDModal(item.id));
+    tbody.appendChild(row);
+  }
 
-            if (res.ok || res.status === 204) {
-                carregarDados(currentPage);
-                window.showToast('DID excluído com sucesso!', 'success');
-            } else {
-                const errorText = await res.text();
-                window.showToast(errorText || 'Erro ao excluir DID.', 'error');
-            }
-        } catch {
-            window.showToast('Erro ao comunicar com o servidor.', 'error');
-        }
+  function removerLinhaDaListagem(id) {
+    tbody.querySelector(`.did-row[data-id="${id}"]`)?.remove();
+  }
+
+  btnPrev.addEventListener("click", () => { if (currentPage > 0) carregarDados(currentPage - 1); });
+  btnNext.addEventListener("click", () => { if (currentPage < totalPages - 1) carregarDados(currentPage + 1); });
+
+  // ── Save ──────────────────────────────────────────────────────────────────
+  document.getElementById("btn-save-did").addEventListener("click", async () => {
+    hideModalError();
+    const isNew = !currentDIDId;
+
+    if (isNew) {
+      const digits = document.getElementById("field-number").value.replace(/\D/g, "");
+      if (digits.length !== 10) {
+        showModalError("O número deve ter exatamente 10 dígitos: (XX) XXXX-XXXX.");
+        return;
+      }
+      const r = await fetch("/api/did/dids", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number: digits }),
+      });
+      if (r.ok || r.status === 201) {
+        closeModal();
+        carregarDados(currentPage);
+      } else {
+        const err = await r.json().catch(() => ({}));
+        showModalError(err.message || "Erro ao salvar DID.");
+      }
     }
+  });
 
-    // === Tabela ===
-    function carregarDados(pagina) {
-        loading.style.display = "block";
-
-        const search = encodeURIComponent(searchInput.value.trim());
-        fetch(`/api/did/dids?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${search}`)
-            .then(res => {
-                if (!res.ok) throw new Error("Erro na resposta da API");
-                return res.json();
-            })
-            .then(data => {
-                loading.style.display = "none";
-                table.style.display = "table";
-
-                currentPage = pagina;
-                totalPages = data.totalPages;
-
-                tbody.innerHTML = "";
-
-                if (data.content.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhum DID cadastrado.</td></tr>`;
-                } else {
-                    data.content.forEach(item => {
-                        const tr = document.createElement("tr");
-                        tr.className = "odd:bg-gray-50 text-gray-700";
-
-                        const emUso = !!item.circuitId;
-                        const statusLabel = emUso
-                            ? `<span class="text-yellow-600 font-semibold">EM USO</span>`
-                            : `<span class="text-green-600 font-semibold">LIVRE</span>`;
-
-                        tr.innerHTML = `
-                            <td class="px-4 py-2">${item.id}</td>
-                            <td class="px-4 py-2 font-mono">${formatNumber(item.number)}</td>
-                            <td class="px-4 py-2">${statusLabel}</td>
-                            <td class="px-4 py-2 text-gray-500">${item.circuitNumber || '—'}</td>
-                            <td class="px-4 py-2">
-                                <button
-                                    class="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                    data-id="${item.id}"
-                                    ${emUso ? 'disabled title="DID vinculado a um circuito"' : ''}>
-                                    Excluir
-                                </button>
-                            </td>
-                        `;
-
-                        if (!emUso) {
-                            tr.querySelector('button').addEventListener('click', () => deleteDID(item.id));
-                        }
-
-                        tbody.appendChild(tr);
-                    });
-                }
-
-                pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
-            })
-            .catch(err => {
-                loading.textContent = "Erro ao carregar dados.";
-                console.error(err);
-            });
+  // ── Delete ────────────────────────────────────────────────────────────────
+  document.getElementById("btn-delete-did").addEventListener("click", async () => {
+    const btn = document.getElementById("btn-delete-did");
+    if (deleteClickCount === 0) {
+      deleteClickCount = 1;
+      btn.textContent  = "Confirmar exclusão";
+      btn.classList.add("confirm");
+      deleteTimer = setTimeout(resetDeleteBtn, 3000);
+    } else {
+      clearTimeout(deleteTimer);
+      const r = await fetch(`/api/did/${currentDIDId}`, { method: "DELETE" });
+      if (r.ok || r.status === 204) {
+        removerLinhaDaListagem(currentDIDId);
+        closeModal();
+      } else {
+        const err = await r.json().catch(() => ({}));
+        showModalError(err.message || "Erro ao deletar DID.");
+        resetDeleteBtn();
+      }
     }
+  });
 
-    btnPrev.addEventListener("click", () => {
-        if (currentPage > 0) carregarDados(currentPage - 1);
-    });
+  function resetDeleteBtn() {
+    deleteClickCount = 0;
+    const btn = document.getElementById("btn-delete-did");
+    btn.textContent = "Deletar";
+    btn.classList.remove("confirm");
+  }
 
-    btnNext.addEventListener("click", () => {
-        if (currentPage < totalPages - 1) carregarDados(currentPage + 1);
-    });
+  // ── Init ──────────────────────────────────────────────────────────────────
+  updateSortIcons();
 
+  const urlParam = new URLSearchParams(window.location.search).get("modal");
+  if (urlParam) {
     carregarDados(0);
+    setTimeout(() => openDIDModal(Number(urlParam)), 800);
+  } else {
+    carregarDados(0);
+  }
 </script>
 </Layout>

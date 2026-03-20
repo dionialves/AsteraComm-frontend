@@ -17,6 +17,8 @@ export const GET: APIRoute = async ({ cookies, url }) => {
     sort: url.searchParams.get("sort") ?? "id,asc",
     search: url.searchParams.get("search") ?? "",
   });
+  const status = url.searchParams.get("status");
+  if (status) query.set("status", status);
 
   try {
     const response = await fetch(`${config.api.baseUrl}/dids?${query.toString()}`, {
