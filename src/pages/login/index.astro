@@ -3,62 +3,145 @@ import Layout from "../../layouts/LayoutLogin.astro";
 ---
 
 <Layout title="Login | AsteraComm">
-    <div class="bg-zinc-900 flex items-center justify-center min-h-screen">
-        <div class="bg-zinc-800/90 p-8 rounded-2xl shadow-lg w-full max-w-lg">
-            <div class="flex flex-col items-center mb-8">
-                <img src="/images/logo.png" alt="AsteraComm Logo" class="h-20" />
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f5f5f5; padding: 2rem;">
+        <div style="width: 480px; background: #ffffff; border: 0.5px solid #e0e0e0; border-radius: 12px; padding: 40px 32px 32px;">
 
-                <hr class="w-full border-t border-zinc-600 my-4" />
-
-                <h1 class="text-white text-2xl font-bold">Portal AsteraComm</h1>
-                <p class="text-zinc-400 text-sm">Gerenciamento Inteligente de Infraestrutura</p>
+            <!-- Logo -->
+            <div style="text-align: center; margin-bottom: 32px;">
+                <div style="font-size: 36px; font-weight: 500; letter-spacing: -0.5px;">
+                    <span style="color: #1D9E75;">Astera</span><span style="color: #1a1a1a;">Comm</span>
+                </div>
+                <p style="font-size: 13px; color: #888; margin: 8px 0 0;">Controle total da sua telefonia, em tempo real.</p>
             </div>
 
-            <form id="loginForm" class="space-y-6">
-                <div>
-                    <label for="username" class="block text-sm font-medium text-zinc-300">Usuário</label>
-                    <input type="text" id="username" name="username" required class="w-full px-3 py-2 rounded bg-zinc-700 text-white focus:outline-none focus:ring-1 focus:ring-white" />
-                </div>
+            <!-- Campo Usuário -->
+            <div style="margin-bottom: 20px;">
+                <label for="input-username" style="display: block; font-size: 12px; color: #888; margin-bottom: 4px;">Usuário</label>
+                <input
+                    type="text"
+                    id="input-username"
+                    placeholder="email@exemplo.com"
+                    style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 6px; border: 1px solid #d0d0d0; font-size: 14px; color: #1a1a1a; outline: none;"
+                />
+            </div>
 
-                <div>
-                    <label for="password" class="block text-sm font-medium text-zinc-300">Senha</label>
-                    <input type="password" id="password" name="password" required class="w-full px-3 py-2 rounded bg-zinc-700 text-white focus:outline-none focus:ring-1 focus:ring-white" />
+            <!-- Campo Senha -->
+            <div style="margin-bottom: 24px; position: relative;">
+                <label for="input-password" style="display: block; font-size: 12px; color: #888; margin-bottom: 4px;">Senha</label>
+                <div style="position: relative;">
+                    <input
+                        type="password"
+                        id="input-password"
+                        placeholder="Digite sua senha"
+                        style="width: 100%; box-sizing: border-box; padding: 10px 40px 10px 12px; border-radius: 6px; border: 1px solid #d0d0d0; font-size: 14px; color: #1a1a1a; outline: none;"
+                    />
+                    <button
+                        id="login-toggle"
+                        type="button"
+                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: #888; display: flex; align-items: center;"
+                        aria-label="Mostrar/ocultar senha"
+                    >
+                        <svg id="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        <svg id="icon-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                            <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                    </button>
                 </div>
+            </div>
 
-                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded">
-                    Entrar
-                </button>
-            </form>
+            <!-- Botão Entrar -->
+            <button
+                id="btn-entrar"
+                type="button"
+                style="width: 100%; padding: 11px; border-radius: 6px; background: #1D9E75; border: none; color: #ffffff; font-size: 14px; font-weight: 500; cursor: pointer; margin-bottom: 16px; transition: opacity 0.15s;"
+            >
+                Entrar
+            </button>
+
+            <!-- Mensagem de erro -->
+            <div id="error-msg" style="display: none; padding: 10px 12px; border-radius: 6px; background: #FCEBEB; margin-bottom: 16px;">
+                <p id="error-text" style="font-size: 12px; color: #791F1F; margin: 0;">Usuário ou senha incorretos.</p>
+            </div>
+
+            <!-- Rodapé -->
+            <p style="font-size: 11px; color: #888; text-align: center; margin: 0;">AsteraComm — Todos os direitos reservados</p>
+
         </div>
     </div>
 </Layout>
 
-<script type="module" defer>
-    const form = document.querySelector('#loginForm');
+<script>
+    const btnEntrar = document.getElementById('btn-entrar') as HTMLButtonElement;
+    const errorMsg = document.getElementById('error-msg') as HTMLDivElement;
+    const errorText = document.getElementById('error-text') as HTMLParagraphElement;
+    const usernameInput = document.getElementById('input-username') as HTMLInputElement;
+    const passwordInput = document.getElementById('input-password') as HTMLInputElement;
+    const loginToggle = document.getElementById('login-toggle') as HTMLButtonElement;
+    const iconEye = document.getElementById('icon-eye') as SVGElement;
+    const iconEyeOff = document.getElementById('icon-eye-off') as SVGElement;
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const data = new FormData(form);
+    async function doLogin() {
+        errorMsg.style.display = 'none';
+        btnEntrar.disabled = true;
+        btnEntrar.textContent = 'Entrando...';
 
         try {
-            const response = await fetch('/api/auth/login', {
+            const res = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username: data.get('username'),
-                    password: data.get('password'),
+                    username: usernameInput.value.trim(),
+                    password: passwordInput.value,
                 }),
             });
 
-            if (!response.ok) {
-                throw new Error('Login inválido');
+            if (res.ok) {
+                window.location.href = '/';
+            } else {
+                errorText.textContent = 'Usuário ou senha incorretos.';
+                errorMsg.style.display = 'block';
+                passwordInput.value = '';
+                passwordInput.focus();
             }
-
-            window.location.assign('/');
-
-        } catch (error) {
-            console.error(error);
-            alert('Usuário ou senha incorretos.');
+        } catch {
+            errorText.textContent = 'Erro de conexão. Tente novamente.';
+            errorMsg.style.display = 'block';
+        } finally {
+            btnEntrar.disabled = false;
+            btnEntrar.textContent = 'Entrar';
         }
+    }
+
+    btnEntrar.addEventListener('click', doLogin);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') doLogin();
+    });
+
+    // Toggle visibilidade da senha
+    let senhaVisivel = false;
+    loginToggle.addEventListener('click', () => {
+        senhaVisivel = !senhaVisivel;
+        passwordInput.type = senhaVisivel ? 'text' : 'password';
+        iconEye.style.display = senhaVisivel ? 'none' : 'block';
+        iconEyeOff.style.display = senhaVisivel ? 'block' : 'none';
+    });
+
+    // Hover e disabled no botão
+    btnEntrar.addEventListener('mouseenter', () => {
+        if (!btnEntrar.disabled) btnEntrar.style.opacity = '0.9';
+    });
+    btnEntrar.addEventListener('mouseleave', () => {
+        btnEntrar.style.opacity = '1';
+    });
+    btnEntrar.addEventListener('mousedown', () => {
+        if (!btnEntrar.disabled) btnEntrar.style.opacity = '0.8';
+    });
+    btnEntrar.addEventListener('mouseup', () => {
+        if (!btnEntrar.disabled) btnEntrar.style.opacity = '0.9';
     });
 </script>
