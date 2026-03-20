@@ -3,6 +3,23 @@ import Layout from "../../layouts/Layout.astro";
 ---
 
 <style is:global>
+  .customer-row {
+    display: grid;
+    grid-template-columns: 48px minmax(0,1fr) 68px 90px 140px 140px;
+    gap: 8px;
+    padding: 11px 16px;
+    align-items: center;
+    cursor: pointer;
+    background: #ffffff;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.1s;
+  }
+  .customer-row:last-child { border-bottom: none; }
+  .customer-row:hover { background: #fafafa; }
+  .customer-row.row-selected { background: #E6F1FB !important; border-left: 2px solid #378ADD; }
+  .customer-row.row-inactive { opacity: 0.55; }
+  .customer-row.row-inactive:hover { opacity: 0.75; }
+
   .modal-overlay-cdid {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.15);
@@ -32,47 +49,58 @@ import Layout from "../../layouts/Layout.astro";
 </style>
 
 <Layout>
-  <!-- ── Listing ─────────────────────────────────────────────────────────── -->
-  <div class="bg-white rounded-lg shadow mb-6">
-    <div class="flex items-center justify-between px-6 py-5">
-      <div>
-        <h1 class="page-title">Clientes</h1>
-        <p class="page-subtitle">Cadastro de clientes vinculados a circuitos</p>
-      </div>
-      <button id="btnAdd" class="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-green-700">+ Adicionar</button>
+  <!-- ── Header ────────────────────────────────────────────────────────────── -->
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <h1 class="text-[22px] font-medium text-[#1a1a1a]">Clientes</h1>
+      <p class="text-[13px] text-[#888] mt-0.5">Cadastro de clientes vinculados a circuitos</p>
     </div>
-    <hr class="border-gray-200" />
-    <div class="listing-toolbar px-6 py-3">
-      <div class="listing-search">
-        <input id="input-search" type="text" placeholder="Pesquisar por nome..." class="listing-search-input" />
-        <button id="btn-search" class="listing-search-btn" title="Pesquisar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-        </button>
+    <button id="btnAdd" class="flex items-center gap-1.5 bg-[#1D9E75] text-white text-[13px] font-medium px-3 py-[9px] rounded-md hover:opacity-90 transition-opacity">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Novo cliente
+    </button>
+  </div>
+
+  <!-- ── Toolbar ───────────────────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between mb-3 gap-3 flex-wrap">
+    <div class="flex items-center gap-3">
+      <div class="relative w-[280px]">
+        <svg class="absolute left-[10px] top-1/2 -translate-y-1/2 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input id="input-search" type="text" placeholder="Buscar por nome..."
+          class="w-full pl-[34px] pr-3 py-[9px] text-[13px] border border-[#e0e0e0] rounded-md outline-none bg-white text-[#1a1a1a] placeholder-[#aaa] focus:border-[#1D9E75] transition-colors" />
       </div>
-      <div class="listing-pagination">
-        <button id="btn-prev" class="listing-page-btn">‹ Anterior</button>
-        <span id="page-info" class="listing-page-info">Página 1 de 1</span>
-        <button id="btn-next" class="listing-page-btn">Próxima ›</button>
+      <div class="flex border border-[#e0e0e0] rounded-md overflow-hidden text-[13px]">
+        <button data-filter="all"      class="filter-btn px-3 py-[7px] bg-white text-[#1a1a1a] font-medium border-r border-[#e0e0e0]">Todos</button>
+        <button data-filter="ACTIVE"   class="filter-btn px-3 py-[7px] text-[#888] border-r border-[#e0e0e0]">Ativos</button>
+        <button data-filter="INACTIVE" class="filter-btn px-3 py-[7px] text-[#888]">Inativos</button>
       </div>
     </div>
-    <div class="overflow-x-auto px-4 pb-4">
-      <table id="table-customers" class="table-fixed w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
-        <thead class="bg-gray-100 text-gray-900">
-          <tr class="font-semibold">
-            <th data-field="id"        class="w-16 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">ID</th>
-            <th data-field="name"      class="w-80 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Nome</th>
-            <th data-field="enabled"   class="w-20 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Status</th>
-            <th data-field="createdAt" class="w-40 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Criado em</th>
-            <th data-field="updatedAt" class="px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Atualizado em</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-customers" class="divide-y divide-gray-200">
-          <tr id="loading"><td>Carregando...</td></tr>
-        </tbody>
-      </table>
+    <div class="flex items-center gap-2">
+      <button id="btn-prev" class="w-7 h-7 flex items-center justify-center rounded border border-[#e0e0e0] text-[#888] hover:border-[#ccc] disabled:opacity-40 disabled:cursor-not-allowed transition">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span id="page-info" class="text-[12px] text-[#888] whitespace-nowrap">Página 1 de 1</span>
+      <button id="btn-next" class="w-7 h-7 flex items-center justify-center rounded border border-[#e0e0e0] text-[#888] hover:border-[#ccc] disabled:opacity-40 disabled:cursor-not-allowed transition">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </div>
+  </div>
+
+  <!-- ── Table ─────────────────────────────────────────────────────────────── -->
+  <div class="rounded-xl border border-[#e0e0e0] overflow-hidden">
+    <div class="customer-row bg-[#f5f5f5] border-b border-[#e0e0e0]" style="cursor:default">
+      <span data-field="id"        class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">ID</span>
+      <span data-field="name"      class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Nome</span>
+      <span                         class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Status</span>
+      <span                         class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Circuitos</span>
+      <span data-field="createdAt" class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Criado em</span>
+      <span data-field="updatedAt" class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Atualizado em</span>
+    </div>
+    <div id="tbody-customers"></div>
   </div>
 
   <!-- ── Overlay 1 ───────────────────────────────────────────────────────── -->
@@ -421,10 +449,8 @@ import Layout from "../../layouts/Layout.astro";
     _onOutsideClick(e) { if (!this._container.contains(e.target)) this._close(); }
   }
 
-  // ── Elements ──────────────────────────────────────────────────────────────
+  // ── State ─────────────────────────────────────────────────────────────────
   const tbody       = document.getElementById("tbody-customers");
-  const loading     = document.getElementById("loading");
-  const table       = document.getElementById("table-customers");
   const btnPrev     = document.getElementById("btn-prev");
   const btnNext     = document.getElementById("btn-next");
   const pageInfo    = document.getElementById("page-info");
@@ -434,9 +460,11 @@ import Layout from "../../layouts/Layout.astro";
   let totalPages           = 0;
   let currentSortField     = "id";
   let currentSortDirection = "desc";
+  let currentFilter        = "all";
   let currentCustomerId    = null;
   let deleteClickCount     = 0;
   let deleteTimer          = null;
+  let debounceTimer        = null;
 
   // ── Modal system ──────────────────────────────────────────────────────────
   const ms = new ModalSystem({
@@ -456,68 +484,171 @@ import Layout from "../../layouts/Layout.astro";
   let csSubDeleteTimer        = null;
   let trunksDataSub           = [];
 
-  // ── Listing ───────────────────────────────────────────────────────────────
+  // ── Helper: deselect rows ─────────────────────────────────────────────────
+  function deselectRows() {
+    document.querySelectorAll(".customer-row.row-selected").forEach(r => r.classList.remove("row-selected"));
+  }
+
+  function closeModalAndDeselect() {
+    deselectRows();
+    ms.closeAll();
+  }
+
+  // ── New customer (create mode) ────────────────────────────────────────────
   document.getElementById("btnAdd").addEventListener("click", () => {
-    window.location.href = "/customers/new";
+    currentCustomerId = null;
+    hideModalError();
+    resetDeleteBtn();
+    document.getElementById("modal-title").textContent         = "Novo cliente";
+    document.getElementById("modal-subtitle").textContent      = "Cliente";
+    document.getElementById("field-id").value                  = "";
+    document.getElementById("field-name").value                = "";
+    document.getElementById("field-enabled").checked           = true;
+    document.getElementById("toggle-enabled-label").textContent = "Ativo";
+    document.getElementById("btn-delete-customer").style.display = "none";
+    activateTab("detalhes");
+    ms.openMain();
   });
 
-  document.querySelectorAll("thead th[data-field]").forEach(th => {
-    th.addEventListener("click", () => {
-      const field = th.getAttribute("data-field");
+  // ── Sort columns ──────────────────────────────────────────────────────────
+  const SORT_ASC_SVG  = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`;
+  const SORT_DESC_SVG = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+
+  function updateSortIcons() {
+    document.querySelectorAll(".sort-col").forEach(el => {
+      el.querySelector("svg")?.remove();
+      if (el.dataset.field === currentSortField) {
+        el.insertAdjacentHTML("beforeend", currentSortDirection === "asc" ? SORT_ASC_SVG : SORT_DESC_SVG);
+      }
+    });
+  }
+
+  document.querySelectorAll(".sort-col[data-field]").forEach(el => {
+    el.addEventListener("click", () => {
+      const field = el.dataset.field;
       if (currentSortField === field) {
         currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
       } else {
         currentSortField     = field;
         currentSortDirection = "asc";
       }
+      updateSortIcons();
       carregarDados(0);
     });
   });
 
-  searchInput.addEventListener("keydown", e => { if (e.key === "Enter") carregarDados(0); });
-  document.getElementById("btn-search").addEventListener("click", () => carregarDados(0));
+  // ── Filter buttons ────────────────────────────────────────────────────────
+  document.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentFilter = btn.dataset.filter;
+      document.querySelectorAll(".filter-btn").forEach(b => {
+        const active = b.dataset.filter === currentFilter;
+        b.classList.toggle("bg-white",    active);
+        b.classList.toggle("text-[#1a1a1a]", active);
+        b.classList.toggle("font-medium",  active);
+        b.classList.toggle("text-[#888]",  !active);
+      });
+      carregarDados(0);
+    });
+  });
 
+  // ── Search (debounce 300ms) ───────────────────────────────────────────────
+  searchInput.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => carregarDados(0), 300);
+  });
+
+  // ── Date format ───────────────────────────────────────────────────────────
   function formatDate(d) {
     if (!d) return "—";
-    return new Date(d).toLocaleDateString("pt-BR", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
+    return new Date(d).toLocaleString("pt-BR", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
   }
 
+  // ── Load listing ──────────────────────────────────────────────────────────
   function carregarDados(pagina) {
-    loading.style.display = "block";
-    table.style.visibility = "visible";
+    tbody.innerHTML = `<div class="customer-row" style="cursor:default"><span style="grid-column:1/-1;color:#aaa;font-size:13px">Carregando...</span></div>`;
     const search = encodeURIComponent(searchInput.value.trim());
-    const url = `/api/customer/customers?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${search}`;
+    const status = currentFilter !== "all" ? `&status=${currentFilter}` : "";
+    const url    = `/api/customer/customers?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${search}${status}`;
 
     fetch(url)
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(data => {
-        loading.style.display = "none";
-        table.style.display   = "table";
         currentPage = pagina;
         totalPages  = data.totalPages;
         tbody.innerHTML = "";
 
-        if (data.content.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhum cliente encontrado.</td></tr>`;
+        if (!data.content.length) {
+          tbody.innerHTML = `<div class="customer-row" style="cursor:default"><span style="grid-column:1/-1;color:#aaa;font-size:13px;text-align:center">Nenhum cliente encontrado.</span></div>`;
         } else {
-          data.content.forEach(item => {
-            const tr = document.createElement("tr");
-            tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
-            tr.dataset.id = item.id;
-            tr.innerHTML = `
-              <td class="px-4 py-2 text-gray-500">${item.id}</td>
-              <td class="px-4 py-2 font-medium">${item.name}</td>
-              <td class="px-4 py-2 font-semibold ${item.enabled ? 'text-green-600' : 'text-red-600'}">${item.enabled ? 'Ativo' : 'Inativo'}</td>
-              <td class="px-4 py-2 text-gray-500">${formatDate(item.createdAt)}</td>
-              <td class="px-4 py-2 text-gray-500">${formatDate(item.updatedAt)}</td>
-            `;
-            tr.addEventListener("click", () => openCustomerModal(item.id));
-            tbody.appendChild(tr);
-          });
+          data.content.forEach(item => renderRow(item));
         }
+
         pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
+        btnPrev.disabled = currentPage === 0;
+        btnNext.disabled = currentPage >= totalPages - 1;
       })
-      .catch(() => { loading.textContent = "Erro ao carregar dados."; });
+      .catch(() => {
+        tbody.innerHTML = `<div class="customer-row" style="cursor:default"><span style="grid-column:1/-1;color:#E24B4A;font-size:13px">Erro ao carregar dados.</span></div>`;
+      });
+  }
+
+  function renderRow(item) {
+    const row = document.createElement("div");
+    row.className = "customer-row" + (!item.enabled ? " row-inactive" : "");
+    row.dataset.id = item.id;
+
+    const dotColor  = item.enabled ? "#1D9E75" : "#E24B4A";
+    const textColor = item.enabled ? "#085041"  : "#791F1F";
+    const label     = item.enabled ? "Ativo"    : "Inativo";
+
+    row.innerHTML = `
+      <span class="text-[13px] font-mono text-[#1a1a1a]">${item.id}</span>
+      <span class="text-[13px] text-[#1a1a1a] truncate">${item.name}</span>
+      <span class="flex items-center gap-1.5">
+        <span style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0"></span>
+        <span style="font-size:13px;color:${textColor}">${label}</span>
+      </span>
+      <span class="text-[13px] text-[#1a1a1a]">
+        <span style="font-weight:500">${item.circuitCount}</span>
+        <span style="color:#888;font-size:12px"> circ.</span>
+      </span>
+      <span style="font-size:12px;color:#888">${formatDate(item.createdAt)}</span>
+      <span style="font-size:12px;color:#888">${formatDate(item.updatedAt)}</span>
+    `;
+    row.addEventListener("click", () => openCustomerModal(item.id));
+    tbody.appendChild(row);
+  }
+
+  function atualizarLinhaListagem(item) {
+    const row = tbody.querySelector(`.customer-row[data-id="${item.id}"]`);
+    if (!row) return;
+    const wasSelected = row.classList.contains("row-selected");
+    row.className     = "customer-row" + (!item.enabled ? " row-inactive" : "") + (wasSelected ? " row-selected" : "");
+
+    const dotColor  = item.enabled ? "#1D9E75" : "#E24B4A";
+    const textColor = item.enabled ? "#085041"  : "#791F1F";
+    const label     = item.enabled ? "Ativo"    : "Inativo";
+
+    row.innerHTML = `
+      <span class="text-[13px] font-mono text-[#1a1a1a]">${item.id}</span>
+      <span class="text-[13px] text-[#1a1a1a] truncate">${item.name}</span>
+      <span class="flex items-center gap-1.5">
+        <span style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0"></span>
+        <span style="font-size:13px;color:${textColor}">${label}</span>
+      </span>
+      <span class="text-[13px] text-[#1a1a1a]">
+        <span style="font-weight:500">${item.circuitCount}</span>
+        <span style="color:#888;font-size:12px"> circ.</span>
+      </span>
+      <span style="font-size:12px;color:#888">${formatDate(item.createdAt)}</span>
+      <span style="font-size:12px;color:#888">${formatDate(item.updatedAt)}</span>
+    `;
+    row.addEventListener("click", () => openCustomerModal(item.id));
+  }
+
+  function removerLinhaDaListagem(id) {
+    tbody.querySelector(`.customer-row[data-id="${id}"]`)?.remove();
   }
 
   btnPrev.addEventListener("click", () => { if (currentPage > 0) carregarDados(currentPage - 1); });
@@ -533,14 +664,20 @@ import Layout from "../../layouts/Layout.astro";
     if (!r.ok) return;
     const c = await r.json();
 
-    document.getElementById("modal-title").textContent    = c.name;
-    document.getElementById("modal-subtitle").textContent = "Cliente";
-    document.getElementById("field-id").value             = c.id;
-    document.getElementById("field-name").value           = c.name;
-    document.getElementById("field-enabled").checked      = c.enabled;
-    document.getElementById("toggle-enabled-label").textContent = c.enabled ? "Ativo" : "Inativo";
+    document.getElementById("modal-title").textContent              = c.name;
+    document.getElementById("modal-subtitle").textContent           = "Cliente";
+    document.getElementById("field-id").value                       = c.id;
+    document.getElementById("field-name").value                     = c.name;
+    document.getElementById("field-enabled").checked               = c.enabled;
+    document.getElementById("toggle-enabled-label").textContent     = c.enabled ? "Ativo" : "Inativo";
+    document.getElementById("btn-delete-customer").style.display    = "";
 
     activateTab("detalhes");
+
+    deselectRows();
+    const row = tbody.querySelector(`.customer-row[data-id="${id}"]`);
+    if (row) row.classList.add("row-selected");
+
     ms.openMain(String(c.id));
   }
 
@@ -606,13 +743,12 @@ import Layout from "../../layouts/Layout.astro";
       name:    document.getElementById("field-name").value.trim(),
       enabled: document.getElementById("field-enabled").checked,
     };
-    const r = await fetch(`/api/customer/${currentCustomerId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    const isNew = !currentCustomerId;
+    const url    = isNew ? "/api/customer/customers" : `/api/customer/${currentCustomerId}`;
+    const method = isNew ? "POST" : "PUT";
+    const r = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (r.ok) {
-      ms.closeAll();
+      closeModalAndDeselect();
       carregarDados(currentPage);
     } else {
       const err = await r.json().catch(() => ({}));
@@ -632,8 +768,8 @@ import Layout from "../../layouts/Layout.astro";
       clearTimeout(deleteTimer);
       const r = await fetch(`/api/customer/${currentCustomerId}`, { method: "DELETE" });
       if (r.ok || r.status === 204) {
-        ms.closeAll();
-        carregarDados(currentPage);
+        removerLinhaDaListagem(currentCustomerId);
+        closeModalAndDeselect();
       } else {
         const err = await r.json().catch(() => ({}));
         showModalError(err.message || "Erro ao deletar cliente.");
@@ -642,8 +778,8 @@ import Layout from "../../layouts/Layout.astro";
     }
   });
 
-  document.getElementById("btn-cancel-customer").addEventListener("click", () => ms.closeAll());
-  document.getElementById("modal-btn-close").addEventListener("click",     () => ms.closeAll());
+  document.getElementById("btn-cancel-customer").addEventListener("click", () => closeModalAndDeselect());
+  document.getElementById("modal-btn-close").addEventListener("click",     () => closeModalAndDeselect());
 
   function resetDeleteBtn() {
     deleteClickCount = 0;
@@ -693,8 +829,8 @@ import Layout from "../../layouts/Layout.astro";
     document.getElementById("csub-toggle-active-label").textContent = c.active ? "Ativo" : "Inativo";
     document.getElementById("csub-field-password").value = c.password || "";
 
-    if (c.trunkName)    csSubTrunk.setValue(c.trunkName);         else csSubTrunk.clear();
-    if (c.plan?.id)     csSubPlan.setValue(String(c.plan.id));    else csSubPlan.clear();
+    if (c.trunkName)    csSubTrunk.setValue(c.trunkName);              else csSubTrunk.clear();
+    if (c.plan?.id)     csSubPlan.setValue(String(c.plan.id));         else csSubPlan.clear();
     if (c.customer?.id) csSubCustomer.setValue(String(c.customer.id)); else csSubCustomer.clear();
 
     ms.openSub();
@@ -789,7 +925,7 @@ import Layout from "../../layouts/Layout.astro";
 
   document.getElementById("csub-btn-back").addEventListener("click",  () => ms.closeSub());
   document.getElementById("csub-btn-back2").addEventListener("click", () => ms.closeSub());
-  document.getElementById("csub-btn-close").addEventListener("click", () => ms.closeAll());
+  document.getElementById("csub-btn-close").addEventListener("click", () => closeModalAndDeselect());
 
   function resetCSubDeleteBtn() {
     csSubDeleteCount = 0;
@@ -871,7 +1007,9 @@ import Layout from "../../layouts/Layout.astro";
     else { const err = await r.json().catch(() => ({})); alert(err.message || "Erro ao vincular DID."); }
   });
 
-  // ── Deep link on load ─────────────────────────────────────────────────────
+  // ── Init ──────────────────────────────────────────────────────────────────
+  updateSortIcons();
+
   const urlParam = new URLSearchParams(window.location.search).get("modal");
   if (urlParam) {
     carregarDados(0);
