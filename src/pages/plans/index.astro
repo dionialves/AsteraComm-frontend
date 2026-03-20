@@ -2,510 +2,574 @@
 import Layout from "../../layouts/Layout.astro";
 ---
 
+<style is:global>
+  .plan-row {
+    display: grid;
+    grid-template-columns: 40px minmax(0,1fr) 120px 120px 120px 120px 120px minmax(0,1fr);
+    gap: 6px;
+    padding: 11px 16px;
+    align-items: center;
+    cursor: pointer;
+    background: #ffffff;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.1s;
+  }
+  .plan-row:last-child { border-bottom: none; }
+  .plan-row:hover { background: #fafafa; }
+  .plan-row.row-selected { background: #E6F1FB !important; border-left: 2px solid #378ADD; }
+</style>
+
 <Layout>
-    <div class="bg-white rounded-lg shadow mb-6">
-        <div class="flex items-center justify-between px-6 py-5">
-            <div>
-                <h1 class="page-title">Planos</h1>
-                <p class="page-subtitle">Franquias de minutos e tarifação por destino</p>
-            </div>
-            <button id="btnAdd" class="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-green-700">+ Adicionar</button>
-        </div>
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <h1 class="text-[22px] font-medium text-[#1a1a1a]">Planos</h1>
+      <p class="text-[13px] text-[#888] mt-0.5">Franquias de minutos e tarifação por destino</p>
+    </div>
+    <button id="btn-add" class="flex items-center gap-1.5 bg-[#1D9E75] text-white text-[13px] font-medium px-3 py-[9px] rounded-md hover:opacity-90 transition-opacity">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Novo plano
+    </button>
+  </div>
 
-        <hr class="border-gray-200" />
-
-        <div class="listing-toolbar px-6 py-3">
-            <div class="listing-search">
-                <input id="input-search" type="text" placeholder="Pesquisar por nome..." class="listing-search-input" />
-                <button id="btn-search" class="listing-search-btn" title="Pesquisar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="listing-pagination">
-                <button id="btn-prev" class="listing-page-btn">‹ Anterior</button>
-                <span id="page-info" class="listing-page-info">Página 1 de 1</span>
-                <button id="btn-next" class="listing-page-btn">Próxima ›</button>
-            </div>
-        </div>
-
-        <div class="overflow-x-auto px-4 pb-4">
-
-        <table id="table-plans" class="table-fixed w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
-            <thead class="bg-gray-100 text-gray-900">
-                <tr class="font-semibold">
-                    <th data-field="id" class="w-12 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">ID</th>
-                    <th data-field="name" class="w-48 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Nome</th>
-                    <th data-field="monthlyPrice" class="w-28 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Mensalidade</th>
-                    <th data-field="fixedLocal" class="w-24 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Fixo Local</th>
-                    <th data-field="fixedLongDistance" class="w-28 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Fixo Interurb.</th>
-                    <th data-field="mobileLocal" class="w-24 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Móvel Local</th>
-                    <th data-field="mobileLongDistance" class="w-20 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Móvel LD</th>
-                    <th data-field="packageType" class="w-40 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Pacote</th>
-                    <th class="px-4 py-2 text-left font-semibold whitespace-nowrap">Ações</th>
-                </tr>
-            </thead>
-            <tbody id="tbody-plans" class="divide-y divide-gray-200">
-                <tr id="loading" class="py-4 px-4 text-gray-500">
-                    <td>Carregando...</td>
-                </tr>
-            </tbody>
-        </table>
-        </div>
+  <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between mb-3 gap-3 flex-wrap">
+    <!-- Busca (esquerda) -->
+    <div class="relative w-[280px]">
+      <svg class="absolute left-[10px] top-1/2 -translate-y-1/2 pointer-events-none text-[#aaa]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input id="input-search" type="text" placeholder="Buscar por nome..." class="w-full pl-[34px] pr-3 py-[9px] text-[13px] border border-[#e0e0e0] rounded-md outline-none text-[#1a1a1a] placeholder:text-[#aaa] bg-white" />
     </div>
 
-    <!-- Modal Overlay -->
-    <div id="modalOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+    <!-- Paginação (direita — exibida apenas quando totalPages > 1) -->
+    <div id="pagination-bar" class="hidden items-center gap-2">
+      <button id="btn-prev" class="flex items-center justify-center w-7 h-7 rounded border border-[#e0e0e0] text-[#888] hover:bg-[#f5f5f5] transition-colors disabled:opacity-40 disabled:cursor-default">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span id="page-info" class="text-[12px] text-[#888] whitespace-nowrap">Página 1 de 1</span>
+      <button id="btn-next" class="flex items-center justify-center w-7 h-7 rounded border border-[#e0e0e0] text-[#888] hover:bg-[#f5f5f5] transition-colors disabled:opacity-40 disabled:cursor-default">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
 
-    <!-- Modal Criar / Editar -->
-    <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-screen overflow-y-auto">
+  <!-- ── Tabela ───────────────────────────────────────────────────────────── -->
+  <div class="rounded-xl border border-[#e0e0e0] overflow-hidden">
+    <!-- Header -->
+    <div class="plan-row bg-[#f5f5f5] border-b border-[#e0e0e0]" style="cursor:default">
+      <span data-field="id"               class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">ID</span>
+      <span data-field="name"             class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Nome</span>
+      <span data-field="monthlyPrice"     class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Mensalidade</span>
+      <span data-field="fixedLocal"       class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Fixo Local</span>
+      <span data-field="fixedLongDistance" class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Fixo LD</span>
+      <span data-field="mobileLocal"      class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Móvel Local</span>
+      <span data-field="mobileLongDistance" class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Móvel LD</span>
+      <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Pacote</span>
+    </div>
+    <!-- Linhas geradas via JS -->
+    <div id="tbody-plans">
+      <div class="px-4 py-3 text-[13px] text-[#888]">Carregando...</div>
+    </div>
+  </div>
 
-            <div class="bg-gray-50 flex items-center justify-between px-6 py-4 border-b border-gray-200 sticky top-0">
-                <h2 id="modalTitle" class="text-lg font-semibold text-gray-800">Novo Plano</h2>
-                <div class="flex items-center gap-2">
-                    <button id="btnSave" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700 transition">
-                        Salvar
-                    </button>
-                    <button id="btnCancel" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">
-                        Cancelar
-                    </button>
-                </div>
-            </div>
+  <!-- ── Rodapé contador ─────────────────────────────────────────────────── -->
+  <p id="footer-count" class="text-[12px] text-[#888] text-right mt-3"></p>
 
-            <div class="px-6 py-4 space-y-5">
-                <div id="formMessage" class="hidden px-4 py-2 rounded text-sm"></div>
+  <!-- ── Overlay ─────────────────────────────────────────────────────────── -->
+  <div id="modal-overlay" class="modal-overlay"></div>
 
-                <!-- Nome e Mensalidade -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-                        <input id="inputName" type="text"
-                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                            placeholder="Ex: Plano Básico" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Mensalidade (R$)</label>
-                        <input id="inputMonthlyPrice" type="text" inputmode="numeric"
-                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                            placeholder="0,00" />
-                    </div>
-                </div>
-
-                <!-- Pacote de minutos -->
-                <div>
-                    <p class="text-sm font-semibold text-gray-700 mb-2">Pacote de minutos</p>
-                    <div class="mb-3">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Tipo de pacote</label>
-                        <select id="selectPackageType"
-                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300">
-                            <option value="UNIFIED">Unificado (pool compartilhado)</option>
-                            <option value="PER_CATEGORY">Por categoria</option>
-                            <option value="NONE">Sem pacote</option>
-                        </select>
-                    </div>
-
-                    <!-- UNIFIED -->
-                    <div id="sectionUnified">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Total de minutos</label>
-                        <input id="inputPackageTotalMinutes" type="number" min="1" step="1"
-                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                            placeholder="Ex: 400" />
-                    </div>
-
-                    <!-- PER_CATEGORY -->
-                    <div id="sectionPerCategory" class="hidden grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Fixo Local (min)</label>
-                            <input id="inputPkgFixedLocal" type="number" min="0" step="1"
-                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                                placeholder="0" />
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Fixo Interurbano (min)</label>
-                            <input id="inputPkgFixedLongDistance" type="number" min="0" step="1"
-                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                                placeholder="0" />
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Móvel Local (min)</label>
-                            <input id="inputPkgMobileLocal" type="number" min="0" step="1"
-                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                                placeholder="0" />
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Móvel LD (min)</label>
-                            <input id="inputPkgMobileLongDistance" type="number" min="0" step="1"
-                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                                placeholder="0" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tarifas por minuto -->
-                <div>
-                    <p class="text-sm font-semibold text-gray-700 mb-2">Tarifas por minuto (R$)</p>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Fixo Local</label>
-                            <input id="inputFixedLocal" type="text" inputmode="numeric"
-                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                                placeholder="0,0000" />
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Fixo Interurbano</label>
-                            <input id="inputFixedLongDistance" type="text" inputmode="numeric"
-                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                                placeholder="0,0000" />
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Móvel Local</label>
-                            <input id="inputMobileLocal" type="text" inputmode="numeric"
-                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                                placeholder="0,0000" />
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Móvel Longa Distância</label>
-                            <input id="inputMobileLongDistance" type="text" inputmode="numeric"
-                                class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                                placeholder="0,0000" />
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <!-- ── Modal de Plano ──────────────────────────────────────────────────── -->
+  <div id="modal-plan" class="modal-main" style="width:620px;height:auto;max-height:90vh">
+    <div class="modal-header">
+      <div class="modal-header-top">
+        <div class="modal-header-titles">
+          <span class="modal-subtitle">Plano</span>
+          <span id="modal-title" class="modal-title">Novo Plano</span>
         </div>
+        <button id="btn-close-modal" class="modal-btn-close" title="Fechar">✕</button>
+      </div>
     </div>
 
-<script type="module" defer>
-    const tbody = document.getElementById("tbody-plans");
-    const loading = document.getElementById("loading");
-    const table = document.getElementById("table-plans");
-    const btnPrev = document.getElementById("btn-prev");
-    const btnNext = document.getElementById("btn-next");
-    const pageInfo = document.getElementById("page-info");
+    <div id="modal-error" class="modal-error"></div>
 
-    const modal = document.getElementById("modal");
-    const modalOverlay = document.getElementById("modalOverlay");
-    const modalTitle = document.getElementById("modalTitle");
-    const formMessage = document.getElementById("formMessage");
+    <div class="modal-body">
+      <!-- Nome e Mensalidade -->
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Nome</label>
+          <input id="input-name" type="text" class="form-input" placeholder="Ex: Plano Básico" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mensalidade (R$)</label>
+          <input id="input-monthly-price" type="text" inputmode="numeric" class="form-input" placeholder="0,00" />
+        </div>
+      </div>
 
-    const inputName = document.getElementById("inputName");
-    const inputMonthlyPrice = document.getElementById("inputMonthlyPrice");
-    const inputFixedLocal = document.getElementById("inputFixedLocal");
-    const inputFixedLongDistance = document.getElementById("inputFixedLongDistance");
-    const inputMobileLocal = document.getElementById("inputMobileLocal");
-    const inputMobileLongDistance = document.getElementById("inputMobileLongDistance");
-    const selectPackageType = document.getElementById("selectPackageType");
-    const sectionUnified = document.getElementById("sectionUnified");
-    const sectionPerCategory = document.getElementById("sectionPerCategory");
-    const inputPackageTotalMinutes = document.getElementById("inputPackageTotalMinutes");
-    const inputPkgFixedLocal = document.getElementById("inputPkgFixedLocal");
-    const inputPkgFixedLongDistance = document.getElementById("inputPkgFixedLongDistance");
-    const inputPkgMobileLocal = document.getElementById("inputPkgMobileLocal");
-    const inputPkgMobileLongDistance = document.getElementById("inputPkgMobileLongDistance");
+      <hr class="section-divider" />
 
-    let currentPage = 0;
-    let totalPages = 0;
-    let currentSortField = "id";
-    let currentSortDirection = "desc";
-    let editingId = null;
+      <!-- Tarifas por minuto -->
+      <p class="section-title">Tarifas por minuto (R$)</p>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Fixo Local</label>
+          <input id="input-fixed-local" type="text" inputmode="numeric" class="form-input" placeholder="0,0000" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fixo Interurbano</label>
+          <input id="input-fixed-ld" type="text" inputmode="numeric" class="form-input" placeholder="0,0000" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Móvel Local</label>
+          <input id="input-mobile-local" type="text" inputmode="numeric" class="form-input" placeholder="0,0000" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Móvel Longa Distância</label>
+          <input id="input-mobile-ld" type="text" inputmode="numeric" class="form-input" placeholder="0,0000" />
+        </div>
+      </div>
 
-    // === Ordenação ===
-    document.querySelectorAll("thead th[data-field]").forEach(th => {
-        th.addEventListener("click", () => {
-            const field = th.getAttribute("data-field");
-            if (currentSortField === field) {
-                currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
-            } else {
-                currentSortField = field;
-                currentSortDirection = "asc";
-            }
-            carregarDados(0);
-        });
-    });
+      <hr class="section-divider" />
 
-    // === Pesquisa ===
-    const searchInput = document.getElementById("input-search");
-    searchInput.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") { currentPage = 0; carregarDados(0); }
-    });
-    document.getElementById("btn-search").addEventListener("click", () => {
-        currentPage = 0;
-        carregarDados(0);
-    });
+      <!-- Pacote de minutos -->
+      <p class="section-title">Pacote de minutos</p>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Tipo de pacote</label>
+        <select id="select-package-type" class="cs-select">
+          <option value="UNIFIED">Unificado (pool compartilhado)</option>
+          <option value="PER_CATEGORY">Por categoria</option>
+          <option value="NONE">Sem pacote</option>
+        </select>
+      </div>
 
-    // === Máscaras ===
+      <!-- UNIFIED -->
+      <div id="section-unified" class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Total de minutos</label>
+        <input id="input-pkg-total" type="number" min="1" step="1" class="form-input" placeholder="Ex: 400" />
+      </div>
 
-    // Mensalidade: x.xxx,xx (2 casas decimais)
-    function applyMaskCurrency(input) {
-        const digits = input.value.replace(/\D/g, '');
-        if (!digits) { input.value = ''; return; }
-        const cents = parseInt(digits, 10);
-        const intPart = Math.floor(cents / 100)
-            .toString()
-            .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        const decPart = (cents % 100).toString().padStart(2, '0');
-        input.value = `${intPart},${decPart}`;
-    }
+      <!-- PER_CATEGORY -->
+      <div id="section-per-category" class="form-grid-2" style="display:none;margin-bottom:12px">
+        <div class="form-group">
+          <label class="form-label">Fixo Local (min)</label>
+          <input id="input-pkg-fl" type="number" min="0" step="1" class="form-input" placeholder="0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fixo Interurbano (min)</label>
+          <input id="input-pkg-fi" type="number" min="0" step="1" class="form-input" placeholder="0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Móvel Local (min)</label>
+          <input id="input-pkg-ml" type="number" min="0" step="1" class="form-input" placeholder="0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Móvel LD (min)</label>
+          <input id="input-pkg-mld" type="number" min="0" step="1" class="form-input" placeholder="0" />
+        </div>
+      </div>
+    </div>
 
-    // Tarifa/min: x,xxxx (4 casas decimais)
-    function applyMaskRate(input) {
-        const digits = input.value.replace(/\D/g, '');
-        if (!digits) { input.value = ''; return; }
-        const value = parseInt(digits, 10);
-        const intPart = Math.floor(value / 10000);
-        const decPart = (value % 10000).toString().padStart(4, '0');
-        input.value = `${intPart},${decPart}`;
-    }
-
-    // Converter máscara → número para o backend
-    function parseCurrency(masked) {
-        if (!masked) return null;
-        return parseFloat(masked.replace(/\./g, '').replace(',', '.'));
-    }
-
-    function parseRate(masked) {
-        if (!masked) return null;
-        return parseFloat(masked.replace(',', '.'));
-    }
-
-    // Converter número do backend → máscara para exibir no input
-    function toMaskedCurrency(value) {
-        if (value == null) return '';
-        const cents = Math.round(parseFloat(value) * 100);
-        const intPart = Math.floor(cents / 100)
-            .toString()
-            .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        const decPart = (cents % 100).toString().padStart(2, '0');
-        return `${intPart},${decPart}`;
-    }
-
-    function toMaskedRate(value) {
-        if (value == null) return '';
-        const tenths = Math.round(parseFloat(value) * 10000);
-        const intPart = Math.floor(tenths / 10000);
-        const decPart = (tenths % 10000).toString().padStart(4, '0');
-        return `${intPart},${decPart}`;
-    }
-
-    inputMonthlyPrice.addEventListener('input', () => applyMaskCurrency(inputMonthlyPrice));
-    [inputFixedLocal, inputFixedLongDistance, inputMobileLocal, inputMobileLongDistance]
-        .forEach(el => el.addEventListener('input', () => applyMaskRate(el)));
-
-    // === Pacote ===
-    selectPackageType.addEventListener("change", updatePackageSections);
-
-    function updatePackageSections() {
-        const type = selectPackageType.value;
-        sectionUnified.classList.toggle("hidden", type !== "UNIFIED");
-        sectionPerCategory.classList.toggle("hidden", type !== "PER_CATEGORY");
-    }
-
-    // === Formatação da tabela ===
-    function formatPrice(value) {
-        if (value == null) return "—";
-        return `R$ ${parseFloat(value).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    }
-
-    function formatRate(value) {
-        if (value == null) return "—";
-        return parseFloat(value).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-    }
-
-    function formatPackage(item) {
-        if (item.packageType === "NONE") return "Sem pacote";
-        if (item.packageType === "UNIFIED") return `Unif. ${item.packageTotalMinutes} min`;
-        if (item.packageType === "PER_CATEGORY") {
-            return `FL:${item.packageFixedLocal} FI:${item.packageFixedLongDistance} ML:${item.packageMobileLocal} MLD:${item.packageMobileLongDistance}`;
-        }
-        return "—";
-    }
-
-    function showMessage(text, type) {
-        formMessage.textContent = text;
-        formMessage.classList.remove("hidden", "bg-green-100", "text-green-700", "bg-red-100", "text-red-700");
-        formMessage.classList.add(type === "success" ? "bg-green-100" : "bg-red-100",
-                                   type === "success" ? "text-green-700" : "text-red-700");
-    }
-
-    function openModal(item = null) {
-        editingId = item ? item.id : null;
-        modalTitle.textContent = item ? "Editar Plano" : "Novo Plano";
-        formMessage.classList.add("hidden");
-
-        inputName.value = item?.name ?? "";
-        inputMonthlyPrice.value = item ? toMaskedCurrency(item.monthlyPrice) : "";
-        inputFixedLocal.value = item ? toMaskedRate(item.fixedLocal) : "";
-        inputFixedLongDistance.value = item ? toMaskedRate(item.fixedLongDistance) : "";
-        inputMobileLocal.value = item ? toMaskedRate(item.mobileLocal) : "";
-        inputMobileLongDistance.value = item ? toMaskedRate(item.mobileLongDistance) : "";
-        selectPackageType.value = item?.packageType ?? "UNIFIED";
-
-        inputPackageTotalMinutes.value = item?.packageTotalMinutes ?? "";
-        inputPkgFixedLocal.value = item?.packageFixedLocal ?? "";
-        inputPkgFixedLongDistance.value = item?.packageFixedLongDistance ?? "";
-        inputPkgMobileLocal.value = item?.packageMobileLocal ?? "";
-        inputPkgMobileLongDistance.value = item?.packageMobileLongDistance ?? "";
-
-        updatePackageSections();
-        modal.classList.remove("hidden");
-        modalOverlay.classList.remove("hidden");
-    }
-
-    function closeModal() {
-        modal.classList.add("hidden");
-        modalOverlay.classList.add("hidden");
-        editingId = null;
-    }
-
-    document.getElementById("btnAdd").addEventListener("click", () => openModal());
-    document.getElementById("btnCancel").addEventListener("click", closeModal);
-    modalOverlay.addEventListener("click", closeModal);
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
-    });
-
-    // === Salvar ===
-    document.getElementById("btnSave").addEventListener("click", async () => {
-        const name = inputName.value.trim();
-        const monthlyPrice = parseCurrency(inputMonthlyPrice.value);
-        const fixedLocal = parseRate(inputFixedLocal.value);
-        const fixedLongDistance = parseRate(inputFixedLongDistance.value);
-        const mobileLocal = parseRate(inputMobileLocal.value);
-        const mobileLongDistance = parseRate(inputMobileLongDistance.value);
-        const packageType = selectPackageType.value;
-
-        if (!name || monthlyPrice == null || fixedLocal == null || fixedLongDistance == null
-                || mobileLocal == null || mobileLongDistance == null) {
-            showMessage("Preencha todos os campos obrigatórios.", "error");
-            return;
-        }
-
-        const payload = { name, monthlyPrice, fixedLocal, fixedLongDistance, mobileLocal, mobileLongDistance, packageType };
-
-        if (packageType === "UNIFIED") {
-            const total = inputPackageTotalMinutes.value;
-            if (!total || parseInt(total) < 1) {
-                showMessage("Informe o total de minutos para o pacote unificado.", "error");
-                return;
-            }
-            payload.packageTotalMinutes = parseInt(total);
-        } else if (packageType === "PER_CATEGORY") {
-            const fl = inputPkgFixedLocal.value;
-            const fld = inputPkgFixedLongDistance.value;
-            const ml = inputPkgMobileLocal.value;
-            const mld = inputPkgMobileLongDistance.value;
-            if (fl === "" || fld === "" || ml === "" || mld === "") {
-                showMessage("Preencha todos os campos do pacote por categoria.", "error");
-                return;
-            }
-            payload.packageFixedLocal = parseInt(fl);
-            payload.packageFixedLongDistance = parseInt(fld);
-            payload.packageMobileLocal = parseInt(ml);
-            payload.packageMobileLongDistance = parseInt(mld);
-        }
-
-        try {
-            const url = editingId ? `/api/plan/${editingId}` : "/api/plan/plans";
-            const method = editingId ? "PUT" : "POST";
-
-            const res = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-
-            if (res.ok || res.status === 201) {
-                closeModal();
-                carregarDados(currentPage);
-                window.showToast(editingId ? "Plano atualizado com sucesso!" : "Plano cadastrado com sucesso!", "success");
-            } else {
-                const errorText = await res.text();
-                showMessage(errorText || "Erro ao salvar.", "error");
-            }
-        } catch {
-            showMessage("Erro ao comunicar com o servidor.", "error");
-        }
-    });
-
-    // === Excluir ===
-    async function deletePlan(id) {
-        if (!confirm("Tem certeza que deseja excluir este plano?")) return;
-
-        try {
-            const res = await fetch(`/api/plan/${id}`, { method: "DELETE" });
-
-            if (res.ok || res.status === 204) {
-                carregarDados(currentPage);
-                window.showToast("Plano excluído com sucesso!", "success");
-            } else {
-                const errorText = await res.text();
-                window.showToast(errorText || "Erro ao excluir.", "error");
-            }
-        } catch {
-            window.showToast("Erro ao comunicar com o servidor.", "error");
-        }
-    }
-
-    // === Tabela ===
-    function carregarDados(pagina) {
-        loading.style.display = "block";
-
-        const search = encodeURIComponent(searchInput.value.trim());
-        fetch(`/api/plan/plans?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${search}`)
-            .then(res => {
-                if (!res.ok) throw new Error("Erro na resposta da API");
-                return res.json();
-            })
-            .then(data => {
-                loading.style.display = "none";
-                table.style.display = "table";
-
-                currentPage = pagina;
-                totalPages = data.totalPages;
-                tbody.innerHTML = "";
-
-                if (data.content.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-gray-500">Nenhum plano cadastrado.</td></tr>`;
-                } else {
-                    data.content.forEach(item => {
-                        const tr = document.createElement("tr");
-                        tr.className = "odd:bg-gray-50 text-gray-700";
-
-                        tr.innerHTML = `
-                            <td class="px-4 py-2 text-gray-500">${item.id}</td>
-                            <td class="px-4 py-2 font-medium">${item.name}</td>
-                            <td class="px-4 py-2">${formatPrice(item.monthlyPrice)}</td>
-                            <td class="px-4 py-2 font-mono text-xs">${formatRate(item.fixedLocal)}</td>
-                            <td class="px-4 py-2 font-mono text-xs">${formatRate(item.fixedLongDistance)}</td>
-                            <td class="px-4 py-2 font-mono text-xs">${formatRate(item.mobileLocal)}</td>
-                            <td class="px-4 py-2 font-mono text-xs">${formatRate(item.mobileLongDistance)}</td>
-                            <td class="px-4 py-2 text-xs text-gray-600">${formatPackage(item)}</td>
-                            <td class="px-4 py-2 flex gap-2">
-                                <button class="btn-edit px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition">Editar</button>
-                                <button class="btn-delete px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition">Excluir</button>
-                            </td>
-                        `;
-
-                        tr.querySelector(".btn-edit").addEventListener("click", () => openModal(item));
-                        tr.querySelector(".btn-delete").addEventListener("click", () => deletePlan(item.id));
-
-                        tbody.appendChild(tr);
-                    });
-                }
-
-                pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
-            })
-            .catch(err => {
-                loading.textContent = "Erro ao carregar dados.";
-                console.error(err);
-            });
-    }
-
-    btnPrev.addEventListener("click", () => { if (currentPage > 0) carregarDados(currentPage - 1); });
-    btnNext.addEventListener("click", () => { if (currentPage < totalPages - 1) carregarDados(currentPage + 1); });
-
-    carregarDados(0);
-</script>
+    <div class="modal-footer">
+      <button id="btn-delete" class="btn-modal-delete" style="visibility:hidden">Excluir</button>
+      <div class="modal-footer-right">
+        <button id="btn-cancel" class="btn-modal-cancel">Cancelar</button>
+        <button id="btn-save" class="btn-modal-save">Salvar</button>
+      </div>
+    </div>
+  </div>
 </Layout>
+
+<script type="module">
+
+  // ── Referências DOM ──────────────────────────────────────────────────────
+  const tbody         = document.getElementById("tbody-plans");
+  const paginationBar = document.getElementById("pagination-bar");
+  const btnPrev       = document.getElementById("btn-prev");
+  const btnNext       = document.getElementById("btn-next");
+  const pageInfo      = document.getElementById("page-info");
+  const footerCount   = document.getElementById("footer-count");
+  const searchInput   = document.getElementById("input-search");
+
+  const overlay     = document.getElementById("modal-overlay");
+  const modal       = document.getElementById("modal-plan");
+  const modalTitle  = document.getElementById("modal-title");
+  const modalError  = document.getElementById("modal-error");
+
+  const inputName      = document.getElementById("input-name");
+  const inputMonthly   = document.getElementById("input-monthly-price");
+  const inputFL        = document.getElementById("input-fixed-local");
+  const inputFI        = document.getElementById("input-fixed-ld");
+  const inputML        = document.getElementById("input-mobile-local");
+  const inputMLD       = document.getElementById("input-mobile-ld");
+  const selectPkgType  = document.getElementById("select-package-type");
+  const sectionUnified = document.getElementById("section-unified");
+  const sectionPerCat  = document.getElementById("section-per-category");
+  const inputPkgTotal  = document.getElementById("input-pkg-total");
+  const inputPkgFL     = document.getElementById("input-pkg-fl");
+  const inputPkgFI     = document.getElementById("input-pkg-fi");
+  const inputPkgML     = document.getElementById("input-pkg-ml");
+  const inputPkgMLD    = document.getElementById("input-pkg-mld");
+
+  const btnAdd    = document.getElementById("btn-add");
+  const btnClose  = document.getElementById("btn-close-modal");
+  const btnCancel = document.getElementById("btn-cancel");
+  const btnSave   = document.getElementById("btn-save");
+  const btnDelete = document.getElementById("btn-delete");
+
+  // ── Estado ───────────────────────────────────────────────────────────────
+  let currentPage      = 0;
+  let totalPages       = 0;
+  let currentSortField = "id";
+  let currentSortDir   = "asc";
+  let editingId        = null;
+  let selectedRow      = null;
+  let debounceTimer    = null;
+
+  // ── Ordenação ─────────────────────────────────────────────────────────────
+  function updateSortIndicators() {
+    document.querySelectorAll(".sort-col").forEach(col => {
+      const field = col.dataset.field;
+      const arrow = col.querySelector(".sort-arrow");
+      if (arrow) arrow.remove();
+      if (field === currentSortField) {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("class", "sort-arrow");
+        svg.setAttribute("width", "10");
+        svg.setAttribute("height", "10");
+        svg.setAttribute("viewBox", "0 0 24 24");
+        svg.setAttribute("fill", "none");
+        svg.setAttribute("stroke", "currentColor");
+        svg.setAttribute("stroke-width", "2.5");
+        svg.setAttribute("stroke-linecap", "round");
+        svg.setAttribute("stroke-linejoin", "round");
+        const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+        poly.setAttribute("points", currentSortDir === "asc" ? "18 15 12 9 6 15" : "6 9 12 15 18 9");
+        svg.appendChild(poly);
+        col.appendChild(svg);
+      }
+    });
+  }
+
+  document.querySelectorAll(".sort-col[data-field]").forEach(col => {
+    col.addEventListener("click", () => {
+      const field = col.dataset.field;
+      if (currentSortField === field) {
+        currentSortDir = currentSortDir === "asc" ? "desc" : "asc";
+      } else {
+        currentSortField = field;
+        currentSortDir   = "asc";
+      }
+      updateSortIndicators();
+      loadData(0);
+    });
+  });
+
+  // ── Busca com debounce ────────────────────────────────────────────────────
+  searchInput.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => loadData(0), 300);
+  });
+
+  // ── Máscaras ─────────────────────────────────────────────────────────────
+  function applyMaskCurrency(input) {
+    const digits = input.value.replace(/\D/g, "");
+    if (!digits) { input.value = ""; return; }
+    const cents   = parseInt(digits, 10);
+    const intPart = Math.floor(cents / 100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    const decPart = (cents % 100).toString().padStart(2, "0");
+    input.value = `${intPart},${decPart}`;
+  }
+
+  function applyMaskRate(input) {
+    const digits = input.value.replace(/\D/g, "");
+    if (!digits) { input.value = ""; return; }
+    const value   = parseInt(digits, 10);
+    const intPart = Math.floor(value / 10000);
+    const decPart = (value % 10000).toString().padStart(4, "0");
+    input.value = `${intPart},${decPart}`;
+  }
+
+  function parseCurrency(masked) {
+    if (!masked) return null;
+    return parseFloat(masked.replace(/\./g, "").replace(",", "."));
+  }
+
+  function parseRate(masked) {
+    if (!masked) return null;
+    return parseFloat(masked.replace(",", "."));
+  }
+
+  function toMaskedCurrency(value) {
+    if (value == null) return "";
+    const cents   = Math.round(parseFloat(value) * 100);
+    const intPart = Math.floor(cents / 100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    const decPart = (cents % 100).toString().padStart(2, "0");
+    return `${intPart},${decPart}`;
+  }
+
+  function toMaskedRate(value) {
+    if (value == null) return "";
+    const tenths  = Math.round(parseFloat(value) * 10000);
+    const intPart = Math.floor(tenths / 10000);
+    const decPart = (tenths % 10000).toString().padStart(4, "0");
+    return `${intPart},${decPart}`;
+  }
+
+  inputMonthly.addEventListener("input", () => applyMaskCurrency(inputMonthly));
+  [inputFL, inputFI, inputML, inputMLD].forEach(el => el.addEventListener("input", () => applyMaskRate(el)));
+
+  // ── Seções de pacote ──────────────────────────────────────────────────────
+  function updatePackageSections() {
+    const type = selectPkgType.value;
+    sectionUnified.style.display = type === "UNIFIED"      ? ""     : "none";
+    sectionPerCat.style.display  = type === "PER_CATEGORY" ? "grid" : "none";
+  }
+  selectPkgType.addEventListener("change", updatePackageSections);
+
+  // ── Formatação da tabela ──────────────────────────────────────────────────
+  function formatMonthly(value) {
+    if (value == null) return "—";
+    return `R$ ${parseFloat(value).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  function formatRate(value) {
+    if (value == null) return "—";
+    return parseFloat(value).toLocaleString("pt-BR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+  }
+
+  function pkgMinutes(item, type) {
+    if (item.packageType === "NONE") return 0;
+    if (item.packageType === "UNIFIED") return item.packageTotalMinutes || 0;
+    if (type === "FL")  return item.packageFixedLocal         || 0;
+    if (type === "FI")  return item.packageFixedLongDistance  || 0;
+    if (type === "ML")  return item.packageMobileLocal        || 0;
+    if (type === "MLD") return item.packageMobileLongDistance || 0;
+    return 0;
+  }
+
+  function badge(minutes, label) {
+    const active = minutes > 0;
+    const bg     = active ? "#E6F1FB" : "#f5f5f5";
+    const color  = active ? "#0C447C" : "#888";
+    return `<span style="background:${bg};color:${color};border-radius:99px;font-size:11px;padding:1px 8px;font-weight:500;white-space:nowrap">${label}</span>`;
+  }
+
+  function renderBadges(item) {
+    return `<div style="display:flex;gap:4px;flex-wrap:wrap">
+      ${badge(pkgMinutes(item, "FL"),  "FL")}
+      ${badge(pkgMinutes(item, "FI"),  "FI")}
+      ${badge(pkgMinutes(item, "ML"),  "ML")}
+      ${badge(pkgMinutes(item, "MLD"), "MLD")}
+    </div>`;
+  }
+
+  // ── Carregar dados ────────────────────────────────────────────────────────
+  function loadData(page) {
+    tbody.innerHTML = `<div class="px-4 py-3 text-[13px] text-[#888]">Carregando...</div>`;
+
+    const search = encodeURIComponent(searchInput.value.trim());
+    fetch(`/api/plan/plans?page=${page}&size=20&sort=${currentSortField},${currentSortDir}&search=${search}`)
+      .then(res => {
+        if (!res.ok) throw new Error("Erro na resposta da API");
+        return res.json();
+      })
+      .then(data => {
+        currentPage = page;
+        totalPages  = data.totalPages;
+        const items = data.content;
+
+        // Paginação: só exibe se houver mais de uma página
+        if (totalPages > 1) {
+          paginationBar.classList.remove("hidden");
+          paginationBar.classList.add("flex");
+          btnPrev.disabled = currentPage === 0;
+          btnNext.disabled = currentPage >= totalPages - 1;
+          pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages}`;
+        } else {
+          paginationBar.classList.add("hidden");
+          paginationBar.classList.remove("flex");
+        }
+
+        // Rodapé contador
+        const total = data.totalElements;
+        footerCount.textContent = total === 1 ? "1 plano cadastrado" : `${total} planos cadastrados`;
+
+        // Linhas
+        if (items.length === 0) {
+          tbody.innerHTML = `<div class="px-4 py-6 text-[13px] text-[#888] text-center">Nenhum plano encontrado.</div>`;
+          return;
+        }
+
+        tbody.innerHTML = "";
+        items.forEach(item => {
+          const row = document.createElement("div");
+          row.className = "plan-row";
+          row.innerHTML = `
+            <span class="text-[13px] font-mono text-[#888]">${item.id}</span>
+            <span class="text-[13px] font-medium text-[#1a1a1a] truncate">${item.name}</span>
+            <span class="text-[12px] font-mono font-medium text-[#1a1a1a]">${formatMonthly(item.monthlyPrice)}</span>
+            <span class="text-[12px] font-mono text-[#1a1a1a]">${formatRate(item.fixedLocal)}</span>
+            <span class="text-[12px] font-mono text-[#1a1a1a]">${formatRate(item.fixedLongDistance)}</span>
+            <span class="text-[12px] font-mono text-[#1a1a1a]">${formatRate(item.mobileLocal)}</span>
+            <span class="text-[12px] font-mono text-[#1a1a1a]">${formatRate(item.mobileLongDistance)}</span>
+            <span>${renderBadges(item)}</span>
+          `;
+          row.addEventListener("click", () => openModal(item, row));
+          tbody.appendChild(row);
+        });
+      })
+      .catch(err => {
+        tbody.innerHTML = `<div class="px-4 py-3 text-[13px] text-[#888]">Erro ao carregar dados.</div>`;
+        console.error(err);
+      });
+  }
+
+  btnPrev.addEventListener("click", () => { if (currentPage > 0) loadData(currentPage - 1); });
+  btnNext.addEventListener("click", () => { if (currentPage < totalPages - 1) loadData(currentPage + 1); });
+
+  // ── Modal ─────────────────────────────────────────────────────────────────
+  function openModal(item, row) {
+    editingId = item ? item.id : null;
+    modalTitle.textContent = item ? item.name : "Novo Plano";
+    hideError();
+    resetDeleteBtn();
+
+    inputName.value     = item?.name                                    ?? "";
+    inputMonthly.value  = item ? toMaskedCurrency(item.monthlyPrice)    : "";
+    inputFL.value       = item ? toMaskedRate(item.fixedLocal)          : "";
+    inputFI.value       = item ? toMaskedRate(item.fixedLongDistance)   : "";
+    inputML.value       = item ? toMaskedRate(item.mobileLocal)         : "";
+    inputMLD.value      = item ? toMaskedRate(item.mobileLongDistance)  : "";
+    selectPkgType.value = item?.packageType                             ?? "UNIFIED";
+    inputPkgTotal.value = item?.packageTotalMinutes                     ?? "";
+    inputPkgFL.value    = item?.packageFixedLocal                       ?? "";
+    inputPkgFI.value    = item?.packageFixedLongDistance                ?? "";
+    inputPkgML.value    = item?.packageMobileLocal                      ?? "";
+    inputPkgMLD.value   = item?.packageMobileLongDistance               ?? "";
+
+    updatePackageSections();
+
+    btnDelete.style.visibility = editingId ? "visible" : "hidden";
+
+    if (selectedRow) selectedRow.classList.remove("row-selected");
+    if (row) { row.classList.add("row-selected"); selectedRow = row; }
+
+    overlay.classList.add("active");
+    modal.classList.add("open");
+  }
+
+  function closeModal() {
+    overlay.classList.remove("active");
+    modal.classList.remove("open");
+    if (selectedRow) { selectedRow.classList.remove("row-selected"); selectedRow = null; }
+    editingId = null;
+    resetDeleteBtn();
+    hideError();
+  }
+
+  function showError(msg) {
+    modalError.textContent = msg;
+    modalError.style.display = "block";
+  }
+
+  function hideError() {
+    modalError.textContent = "";
+    modalError.style.display = "none";
+  }
+
+  function resetDeleteBtn() {
+    btnDelete.classList.remove("confirm");
+    btnDelete.textContent = "Excluir";
+  }
+
+  btnAdd.addEventListener("click", () => openModal(null, null));
+  btnClose.addEventListener("click", closeModal);
+  btnCancel.addEventListener("click", closeModal);
+  overlay.addEventListener("click", closeModal);
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && modal.classList.contains("open")) closeModal();
+  });
+
+  // ── Salvar ────────────────────────────────────────────────────────────────
+  btnSave.addEventListener("click", async () => {
+    const name              = inputName.value.trim();
+    const monthlyPrice      = parseCurrency(inputMonthly.value);
+    const fixedLocal        = parseRate(inputFL.value);
+    const fixedLongDistance = parseRate(inputFI.value);
+    const mobileLocal       = parseRate(inputML.value);
+    const mobileLongDistance = parseRate(inputMLD.value);
+    const packageType       = selectPkgType.value;
+
+    if (!name || monthlyPrice == null || fixedLocal == null || fixedLongDistance == null
+        || mobileLocal == null || mobileLongDistance == null) {
+      showError("Preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    const payload = { name, monthlyPrice, fixedLocal, fixedLongDistance, mobileLocal, mobileLongDistance, packageType };
+
+    if (packageType === "UNIFIED") {
+      const total = inputPkgTotal.value;
+      if (!total || parseInt(total) < 1) { showError("Informe o total de minutos para o pacote unificado."); return; }
+      payload.packageTotalMinutes = parseInt(total);
+    } else if (packageType === "PER_CATEGORY") {
+      const fl  = inputPkgFL.value;
+      const fi  = inputPkgFI.value;
+      const ml  = inputPkgML.value;
+      const mld = inputPkgMLD.value;
+      if (fl === "" || fi === "" || ml === "" || mld === "") { showError("Preencha todos os campos do pacote por categoria."); return; }
+      payload.packageFixedLocal         = parseInt(fl);
+      payload.packageFixedLongDistance  = parseInt(fi);
+      payload.packageMobileLocal        = parseInt(ml);
+      payload.packageMobileLongDistance = parseInt(mld);
+    }
+
+    try {
+      const url    = editingId ? `/api/plan/${editingId}` : "/api/plan/plans";
+      const method = editingId ? "PUT" : "POST";
+      const res    = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+
+      if (res.ok || res.status === 201) {
+        closeModal();
+        loadData(currentPage);
+        window.showToast(editingId ? "Plano atualizado com sucesso!" : "Plano cadastrado com sucesso!", "success");
+      } else {
+        const text = await res.text();
+        showError(text || "Erro ao salvar.");
+      }
+    } catch {
+      showError("Erro ao comunicar com o servidor.");
+    }
+  });
+
+  // ── Excluir (dois cliques) ────────────────────────────────────────────────
+  btnDelete.addEventListener("click", async () => {
+    if (!btnDelete.classList.contains("confirm")) {
+      btnDelete.classList.add("confirm");
+      btnDelete.textContent = "Confirmar exclusão";
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/plan/${editingId}`, { method: "DELETE" });
+      if (res.ok || res.status === 204) {
+        closeModal();
+        loadData(currentPage);
+        window.showToast("Plano excluído com sucesso!", "success");
+      } else {
+        const text = await res.text();
+        showError(text || "Erro ao excluir.");
+        resetDeleteBtn();
+      }
+    } catch {
+      showError("Erro ao comunicar com o servidor.");
+      resetDeleteBtn();
+    }
+  });
+
+  // ── Inicializar ───────────────────────────────────────────────────────────
+  updateSortIndicators();
+  loadData(0);
+</script>
