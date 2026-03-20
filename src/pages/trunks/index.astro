@@ -2,372 +2,424 @@
 import Layout from "../../layouts/Layout.astro";
 ---
 
+<style is:global>
+  .trunk-row {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,1.5fr) minmax(0,1fr) 130px;
+    gap: 8px;
+    padding: 14px 16px;
+    align-items: center;
+    cursor: pointer;
+    background: #ffffff;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.1s;
+  }
+  .trunk-row:last-child { border-bottom: none; }
+  .trunk-row:hover { background: #fafafa; }
+  .trunk-row.row-selected { background: #E6F1FB !important; border-left: 2px solid #378ADD; }
+
+  .modal-trunk {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0; pointer-events: none;
+    width: 780px;
+    background: #fff; border-radius: 12px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+    z-index: 15;
+    display: flex; flex-direction: column;
+    transition: transform 250ms cubic-bezier(0.4,0,0.2,1), opacity 250ms cubic-bezier(0.4,0,0.2,1);
+  }
+  .modal-trunk.open {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1; pointer-events: auto;
+  }
+</style>
+
 <Layout>
-    <div class="bg-white rounded-lg shadow mb-6">
-        <div class="flex items-center justify-between px-6 py-5">
-            <div>
-                <h1 class="page-title">Troncos</h1>
-                <p class="page-subtitle">Conexões SIP com operadoras de telefonia</p>
-            </div>
-            <button id="btnAdd" class="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-green-700">+ Adicionar</button>
-        </div>
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <h1 class="text-[22px] font-medium text-[#1a1a1a]">Troncos</h1>
+      <p class="text-[13px] text-[#888] mt-0.5">Conexões SIP com operadoras de telefonia</p>
+    </div>
+    <button id="btnAdd" class="flex items-center gap-1.5 bg-[#1D9E75] text-white text-[13px] font-medium px-3 py-[9px] rounded-md hover:opacity-90 transition-opacity">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Novo tronco
+    </button>
+  </div>
 
-        <hr class="border-gray-200" />
-
-        <div class="listing-toolbar px-6 py-3">
-            <div class="listing-search">
-                <input id="input-search" type="text" placeholder="Pesquisar por nome, host ou usuário..." class="listing-search-input" />
-                <button id="btn-search" class="listing-search-btn" title="Pesquisar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="listing-pagination">
-                <button id="btn-prev" class="listing-page-btn">‹ Anterior</button>
-                <span id="page-info" class="listing-page-info">Página 1 de 1</span>
-                <button id="btn-next" class="listing-page-btn">Próxima ›</button>
-            </div>
-        </div>
-
-        <div class="overflow-x-auto px-4 pb-4">
-
-        <table id="table-trunks" class="table-fixed w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
-            <thead class="bg-gray-100 text-gray-900">
-                <tr class="font-semibold">
-                    <th data-field="name" class="w-1/4 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Nome</th>
-                    <th data-field="host" class="w-1/4 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Host</th>
-                    <th data-field="username" class="w-1/4 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Usuário</th>
-                    <th data-field="registered" class="px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Registro</th>
-                </tr>
-            </thead>
-            <tbody id="tbody-trunks" class="divide-y divide-gray-200">
-                <tr id="loading" class="py-4 px-4 text-gray-500">
-                    <td>Carregando...</td>
-                </tr>
-            </tbody>
-        </table>
-        </div>
+  <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between mb-3 gap-3 flex-wrap">
+    <div class="relative w-[280px]">
+      <svg class="absolute left-[10px] top-1/2 -translate-y-1/2 pointer-events-none text-[#aaa]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input id="input-search" type="text" placeholder="Buscar por nome, host ou usuário..." class="w-full pl-[34px] pr-3 py-[9px] text-[13px] border border-[#e0e0e0] rounded-md outline-none text-[#1a1a1a] placeholder:text-[#aaa] bg-white" />
     </div>
 
-    <!-- Modal Overlay -->
-    <div id="modalOverlay" class="hidden fixed inset-0 bg-black/50 z-40"></div>
-
-    <!-- Modal Criar/Editar -->
-    <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg">
-
-            <!-- Header do Modal -->
-            <div class="bg-gray-50 flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                <h2 id="modalTitle" class="text-lg font-semibold text-gray-800">Novo Tronco</h2>
-                <div class="flex items-center gap-2">
-                    <button id="btnSave" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700 transition">
-                        Salvar
-                    </button>
-                    <button id="btnDelete" class="hidden bg-red-600 text-white rounded px-4 py-2 text-sm hover:bg-red-700 transition">
-                        Excluir
-                    </button>
-                    <button id="btnCancel" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm text-gray-700 transition">
-                        Cancelar
-                    </button>
-                </div>
-            </div>
-
-            <!-- Body do Modal -->
-            <div class="px-6 py-4">
-                <div id="formMessage" class="hidden mb-4 px-4 py-2 rounded text-sm"></div>
-
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome <span class="text-red-500">*</span></label>
-                        <input
-                            id="inputName"
-                            type="text"
-                            maxlength="50"
-                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                            placeholder="Ex: operadora-a"
-                        />
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Host / Domínio SIP <span class="text-red-500">*</span></label>
-                        <input
-                            id="inputHost"
-                            type="text"
-                            maxlength="255"
-                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                            placeholder="Ex: sip.operadora.com.br"
-                        />
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Usuário <span class="text-red-500">*</span></label>
-                        <input
-                            id="inputUsername"
-                            type="text"
-                            maxlength="100"
-                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                            placeholder="Usuário SIP"
-                        />
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Senha <span class="text-red-500">*</span></label>
-                        <input
-                            id="inputPassword"
-                            type="password"
-                            maxlength="100"
-                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                            placeholder="Deixe em branco para não alterar"
-                        />
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Prefixo de discagem</label>
-                        <input
-                            id="inputPrefix"
-                            type="text"
-                            maxlength="20"
-                            class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring focus:border-blue-300"
-                            placeholder="Ex: 8712 (opcional)"
-                        />
-                        <p class="text-xs text-gray-400 mt-1">Adicionado antes do número discado. Deixe em branco se não usar.</p>
-                    </div>
-                </div>
-            </div>
-
-        </div>
+    <!-- Pagination — hidden when totalPages <= 1 -->
+    <div id="pagination-area" style="display:none" class="flex items-center gap-2">
+      <button id="btn-prev" class="flex items-center justify-center w-7 h-7 rounded border border-[#e0e0e0] text-[#888] hover:bg-[#f5f5f5] transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span id="page-info" class="text-[12px] text-[#888] whitespace-nowrap">Página 1 de 1</span>
+      <button id="btn-next" class="flex items-center justify-center w-7 h-7 rounded border border-[#e0e0e0] text-[#888] hover:bg-[#f5f5f5] transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </div>
+  </div>
+
+  <!-- ── Table ───────────────────────────────────────────────────────────── -->
+  <div class="rounded-xl border border-[#e0e0e0] overflow-hidden">
+    <div class="trunk-row bg-[#f5f5f5] border-b border-[#e0e0e0]" style="cursor:default">
+      <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Nome</span>
+      <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Host</span>
+      <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Usuário</span>
+      <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Registro</span>
+    </div>
+    <div id="tbody-trunks"></div>
+  </div>
+
+  <!-- ── Footer counter ─────────────────────────────────────────────────── -->
+  <p id="counter" class="text-[12px] text-[#888] text-right mt-3"></p>
+
+  <!-- ── Overlay ────────────────────────────────────────────────────────── -->
+  <div id="modal-overlay-1" class="modal-overlay"></div>
+
+  <!-- ── Modal Tronco ───────────────────────────────────────────────────── -->
+  <div id="modal-trunk" class="modal-trunk">
+
+    <div class="modal-header">
+      <div class="modal-header-top">
+        <div class="modal-header-titles">
+          <span class="modal-subtitle">Tronco</span>
+          <span id="modal-title" class="modal-title">Novo Tronco</span>
+        </div>
+        <button id="btnClose" class="modal-btn-close" title="Fechar">✕</button>
+      </div>
+    </div>
+
+    <div id="modal-error" class="modal-error"></div>
+
+    <div class="modal-body">
+
+      <p class="section-title">Identificação</p>
+      <div class="form-group" style="margin-bottom:16px">
+        <label class="form-label">Nome <span style="color:#ef4444">*</span></label>
+        <input id="inputName" type="text" maxlength="50" placeholder="Ex: operadora-a" class="form-input" />
+      </div>
+
+      <hr class="section-divider" />
+      <p class="section-title">Conexão SIP</p>
+
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Host / Domínio SIP <span style="color:#ef4444">*</span></label>
+        <input id="inputHost" type="text" maxlength="255" placeholder="Ex: sip.operadora.com.br" class="form-input" style="font-family:monospace;font-size:12px" />
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Usuário <span style="color:#ef4444">*</span></label>
+          <input id="inputUsername" type="text" maxlength="100" placeholder="Usuário SIP" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Senha <span style="color:#ef4444">*</span></label>
+          <div class="input-password-wrap">
+            <input id="inputPassword" type="password" maxlength="100" placeholder="••••••••" class="form-input" autocomplete="new-password" />
+            <button id="btn-toggle-pw" class="btn-eye" type="button" title="Ver senha">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider" />
+      <p class="section-title">Configuração</p>
+
+      <div class="form-group">
+        <label class="form-label">Prefixo de discagem</label>
+        <input id="inputPrefix" type="text" maxlength="20" placeholder="Ex: 8712 (opcional)" class="form-input" />
+        <span style="font-size:11px;color:#aaa;margin-top:4px;display:block">Adicionado antes do número discado. Deixe em branco se não usar.</span>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button id="btnDelete" class="btn-modal-delete" style="display:none">Excluir</button>
+      <div class="modal-footer-right">
+        <button id="btnCancel" class="btn-modal-cancel">Cancelar</button>
+        <button id="btnSave"   class="btn-modal-save">Salvar</button>
+      </div>
+    </div>
+
+  </div>
 
 <script type="module" defer>
-    const tbody = document.getElementById("tbody-trunks");
-    const loading = document.getElementById("loading");
-    const table = document.getElementById("table-trunks");
-    const btnPrev = document.getElementById("btn-prev");
-    const btnNext = document.getElementById("btn-next");
-    const pageInfo = document.getElementById("page-info");
+  // ── DOM refs ──────────────────────────────────────────────────────────────
+  const tbody          = document.getElementById('tbody-trunks');
+  const counter        = document.getElementById('counter');
+  const inputSearch    = document.getElementById('input-search');
+  const paginationArea = document.getElementById('pagination-area');
+  const btnPrev        = document.getElementById('btn-prev');
+  const btnNext        = document.getElementById('btn-next');
+  const pageInfo       = document.getElementById('page-info');
 
-    const modal = document.getElementById("modal");
-    const modalOverlay = document.getElementById("modalOverlay");
-    const modalTitle = document.getElementById("modalTitle");
-    const inputName = document.getElementById("inputName");
-    const inputHost = document.getElementById("inputHost");
-    const inputUsername = document.getElementById("inputUsername");
-    const inputPassword = document.getElementById("inputPassword");
-    const inputPrefix = document.getElementById("inputPrefix");
-    const formMessage = document.getElementById("formMessage");
-    const btnDelete = document.getElementById("btnDelete");
+  const overlay        = document.getElementById('modal-overlay-1');
+  const modalTrunk     = document.getElementById('modal-trunk');
+  const modalTitle     = document.getElementById('modal-title');
+  const modalError     = document.getElementById('modal-error');
+  const inputName      = document.getElementById('inputName');
+  const inputHost      = document.getElementById('inputHost');
+  const inputUsername  = document.getElementById('inputUsername');
+  const inputPassword  = document.getElementById('inputPassword');
+  const inputPrefix    = document.getElementById('inputPrefix');
+  const btnDelete      = document.getElementById('btnDelete');
 
-    let currentPage = 0;
-    let totalPages = 0;
-    let currentSortField = "name";
-    let currentSortDirection = "asc";
-    let editingTrunkName = null;
+  // ── State ─────────────────────────────────────────────────────────────────
+  let currentPage      = 0;
+  let totalPages       = 0;
+  let totalElements    = 0;
+  let editingTrunkName = null;
+  let selectedRow      = null;
+  let debounceTimer    = null;
+  let deleteClickCount = 0;
+  let deleteTimer      = null;
 
-    // === Ordenação ===
-    document.querySelectorAll("thead th[data-field]").forEach(th => {
-        th.addEventListener("click", () => {
-            const field = th.getAttribute("data-field");
-            if (currentSortField === field) {
-                currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
-            } else {
-                currentSortField = field;
-                currentSortDirection = "asc";
-            }
-            carregarDados(0);
-        });
+  // ── Search debounce ───────────────────────────────────────────────────────
+  inputSearch.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => loadTrunks(0), 300);
+  });
+
+  // ── Pagination ────────────────────────────────────────────────────────────
+  btnPrev.addEventListener('click', () => { if (currentPage > 0) loadTrunks(currentPage - 1); });
+  btnNext.addEventListener('click', () => { if (currentPage < totalPages - 1) loadTrunks(currentPage + 1); });
+
+  // ── Password toggle ───────────────────────────────────────────────────────
+  document.getElementById('btn-toggle-pw').addEventListener('click', () => {
+    inputPassword.type = inputPassword.type === 'password' ? 'text' : 'password';
+  });
+
+  // ── Load data ─────────────────────────────────────────────────────────────
+  function loadTrunks(page) {
+    const search = encodeURIComponent(inputSearch.value.trim());
+    const url = `/api/trunk/trunks?page=${page}&size=20&sort=name,asc&search=${search}`;
+
+    tbody.innerHTML = `<div class="trunk-row" style="cursor:default"><span style="font-size:13px;color:#aaa">Carregando...</span></div>`;
+
+    fetch(url)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => {
+        currentPage   = page;
+        totalPages    = data.totalPages;
+        totalElements = data.totalElements;
+        renderTable(data.content);
+        renderCounter();
+        renderPagination();
+      })
+      .catch(() => {
+        tbody.innerHTML = `<div class="trunk-row" style="cursor:default"><span style="font-size:13px;color:#888">Erro ao carregar dados.</span></div>`;
+      });
+  }
+
+  // ── Render table ──────────────────────────────────────────────────────────
+  function renderTable(items) {
+    if (items.length === 0) {
+      tbody.innerHTML = `<div class="trunk-row" style="cursor:default"><span style="font-size:13px;color:#888">Nenhum tronco cadastrado.</span></div>`;
+      return;
+    }
+    tbody.innerHTML = '';
+    items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'trunk-row';
+      row.dataset.name = item.name;
+
+      const badge = item.registered
+        ? `<span style="background:#E1F5EE;color:#085041;border-radius:99px;font-size:11px;padding:2px 10px;font-weight:500">Registrado</span>`
+        : `<span style="background:#FCEBEB;color:#791F1F;border-radius:99px;font-size:11px;padding:2px 10px;font-weight:500">Não registrado</span>`;
+
+      row.innerHTML = `
+        <span style="font-size:13px;font-weight:500;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.name}</span>
+        <span style="font-size:12px;font-family:monospace;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.host}</span>
+        <span style="font-size:13px;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.username}</span>
+        <span>${badge}</span>
+      `;
+      row.addEventListener('click', () => openModal(item.name, row));
+      tbody.appendChild(row);
     });
+  }
 
-    // === Pesquisa ===
-    document.getElementById("input-search").addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-            currentPage = 0;
-            carregarDados(0);
-        }
-    });
-    document.getElementById("btn-search").addEventListener("click", () => {
-        currentPage = 0;
-        carregarDados(0);
-    });
+  // ── Render counter ────────────────────────────────────────────────────────
+  function renderCounter() {
+    counter.textContent = totalElements === 1
+      ? '1 tronco cadastrado'
+      : `${totalElements} troncos cadastrados`;
+  }
 
-    // === Auxiliares ===
-    function showMessage(text, type) {
-        formMessage.textContent = text;
-        formMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
-        formMessage.classList.add(type === 'success' ? 'bg-green-100' : 'bg-red-100');
-        formMessage.classList.add(type === 'success' ? 'text-green-700' : 'text-red-700');
+  // ── Render pagination ─────────────────────────────────────────────────────
+  function renderPagination() {
+    if (totalPages <= 1) {
+      paginationArea.style.display = 'none';
+      return;
+    }
+    paginationArea.style.display = 'flex';
+    pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages}`;
+    btnPrev.disabled = currentPage === 0;
+    btnNext.disabled = currentPage >= totalPages - 1;
+  }
+
+  // ── Modal open ────────────────────────────────────────────────────────────
+  function openModal(trunkName, row) {
+    editingTrunkName = trunkName || null;
+    const isEdit = !!editingTrunkName;
+
+    inputName.value     = '';
+    inputHost.value     = '';
+    inputUsername.value = '';
+    inputPassword.value = '';
+    inputPrefix.value   = '';
+    hideError();
+
+    modalTitle.textContent = isEdit ? editingTrunkName : 'Novo Tronco';
+
+    if (isEdit) {
+      inputName.value    = editingTrunkName;
+      inputName.disabled = true;
+      btnDelete.style.display = '';
+
+      if (selectedRow) selectedRow.classList.remove('row-selected');
+      selectedRow = row;
+      if (selectedRow) selectedRow.classList.add('row-selected');
+
+      fetch(`/api/trunk/${editingTrunkName}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data) {
+            inputHost.value     = data.host     || '';
+            inputUsername.value = data.username || '';
+            inputPassword.value = data.password || '';
+            inputPrefix.value   = data.prefix   || '';
+          }
+        })
+        .catch(() => {});
+    } else {
+      inputName.disabled = false;
+      btnDelete.style.display = 'none';
     }
 
-    // === Modal ===
-    function openModal(trunkName) {
-        editingTrunkName = trunkName || null;
-        const isEdit = !!editingTrunkName;
+    overlay.classList.add('active');
+    modalTrunk.classList.add('open');
+  }
 
-        inputName.value = '';
-        inputHost.value = '';
-        inputUsername.value = '';
-        inputPassword.value = '';
-        inputPrefix.value = '';
-        formMessage.classList.add('hidden');
+  // ── Modal close ───────────────────────────────────────────────────────────
+  function closeModal() {
+    overlay.classList.remove('active');
+    modalTrunk.classList.remove('open');
+    editingTrunkName = null;
+    if (selectedRow) { selectedRow.classList.remove('row-selected'); selectedRow = null; }
+    clearTimeout(deleteTimer);
+    resetDeleteBtn();
+  }
 
-        modalTitle.textContent = isEdit ? 'Editar Tronco' : 'Novo Tronco';
+  // ── Error helpers ─────────────────────────────────────────────────────────
+  function showError(text) {
+    modalError.textContent = text;
+    modalError.style.display = 'block';
+  }
+  function hideError() {
+    modalError.style.display = 'none';
+    modalError.textContent   = '';
+  }
 
-        if (isEdit) {
-            inputName.value = editingTrunkName;
-            inputName.readOnly = true;
-            inputName.classList.add('bg-gray-100', 'cursor-not-allowed');
-            btnDelete.classList.remove('hidden');
+  // ── Event listeners ───────────────────────────────────────────────────────
+  document.getElementById('btnAdd').addEventListener('click', () => openModal(null, null));
+  document.getElementById('btnClose').addEventListener('click', closeModal);
+  document.getElementById('btnCancel').addEventListener('click', closeModal);
+  overlay.addEventListener('click', closeModal);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modalTrunk.classList.contains('open')) closeModal();
+  });
 
-            fetch(`/api/trunk/${editingTrunkName}`)
-                .then(r => r.ok ? r.json() : null)
-                .then(data => {
-                    if (data) {
-                        inputHost.value = data.host || '';
-                        inputUsername.value = data.username || '';
-                        inputPrefix.value = data.prefix || '';
-                    }
-                })
-                .catch(() => {});
-        } else {
-            inputName.readOnly = false;
-            inputName.classList.remove('bg-gray-100', 'cursor-not-allowed');
-            btnDelete.classList.add('hidden');
-        }
+  // ── Save ──────────────────────────────────────────────────────────────────
+  document.getElementById('btnSave').addEventListener('click', async () => {
+    const name     = inputName.value.trim();
+    const host     = inputHost.value.trim();
+    const username = inputUsername.value.trim();
+    const password = inputPassword.value;
+    const prefix   = inputPrefix.value.trim() || null;
+    const isEdit   = !!editingTrunkName;
 
-        modal.classList.remove('hidden');
-        modalOverlay.classList.remove('hidden');
+    if (!name)     { showError('O nome é obrigatório.');    return; }
+    if (!host)     { showError('O host é obrigatório.');    return; }
+    if (!username) { showError('O usuário é obrigatório.'); return; }
+    if (!isEdit && !password) { showError('A senha é obrigatória.'); return; }
+
+    try {
+      const res = isEdit
+        ? await fetch(`/api/trunk/${editingTrunkName}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: editingTrunkName, host, username, password, prefix }),
+          })
+        : await fetch('/api/trunk/trunks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, host, username, password, prefix }),
+          });
+
+      if (res.ok || res.status === 201) {
+        closeModal();
+        loadTrunks(currentPage);
+        window.showToast(isEdit ? 'Tronco atualizado com sucesso!' : 'Tronco criado com sucesso!', 'success');
+      } else {
+        const err = await res.text();
+        showError(err || 'Erro ao salvar tronco.');
+      }
+    } catch {
+      showError('Erro ao comunicar com o servidor.');
+    }
+  });
+
+  // ── Delete (dois cliques) ─────────────────────────────────────────────────
+  btnDelete.addEventListener('click', async () => {
+    if (!editingTrunkName) return;
+
+    if (deleteClickCount === 0) {
+      deleteClickCount = 1;
+      btnDelete.textContent = 'Confirmar exclusão';
+      btnDelete.classList.add('confirm');
+      deleteTimer = setTimeout(resetDeleteBtn, 3000);
+      return;
     }
 
-    function closeModal() {
-        modal.classList.add('hidden');
-        modalOverlay.classList.add('hidden');
-        editingTrunkName = null;
+    clearTimeout(deleteTimer);
+    try {
+      const res = await fetch(`/api/trunk/${editingTrunkName}`, { method: 'DELETE' });
+      if (res.ok || res.status === 204) {
+        closeModal();
+        loadTrunks(currentPage);
+        window.showToast('Tronco excluído com sucesso!', 'success');
+      } else {
+        resetDeleteBtn();
+        showError('Erro ao excluir tronco.');
+      }
+    } catch {
+      resetDeleteBtn();
+      showError('Erro ao comunicar com o servidor.');
     }
+  });
 
-    document.getElementById("btnAdd").addEventListener("click", () => openModal(null));
-    document.getElementById("btnCancel").addEventListener("click", closeModal);
-    modalOverlay.addEventListener("click", closeModal);
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
-    });
+  function resetDeleteBtn() {
+    deleteClickCount = 0;
+    btnDelete.textContent = 'Excluir';
+    btnDelete.classList.remove('confirm');
+  }
 
-    // === Salvar ===
-    document.getElementById("btnSave").addEventListener("click", async () => {
-        const name = inputName.value.trim();
-        const host = inputHost.value.trim();
-        const username = inputUsername.value.trim();
-        const password = inputPassword.value;
-        const prefix = inputPrefix.value.trim() || null;
-        const isEdit = !!editingTrunkName;
-
-        if (!name) { showMessage('O nome é obrigatório.', 'error'); return; }
-        if (!host) { showMessage('O host é obrigatório.', 'error'); return; }
-        if (!username) { showMessage('O usuário é obrigatório.', 'error'); return; }
-        if (!isEdit && !password) { showMessage('A senha é obrigatória.', 'error'); return; }
-
-        try {
-            let res;
-            if (isEdit) {
-                res = await fetch(`/api/trunk/${editingTrunkName}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: editingTrunkName, host, username, password, prefix }),
-                });
-            } else {
-                res = await fetch('/api/trunk/trunks', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, host, username, password, prefix }),
-                });
-            }
-
-            if (res.ok || res.status === 201) {
-                closeModal();
-                carregarDados(currentPage);
-                window.showToast(isEdit ? 'Tronco atualizado com sucesso!' : 'Tronco criado com sucesso!', 'success');
-            } else {
-                const errorText = await res.text();
-                showMessage(errorText || 'Erro ao salvar tronco.', 'error');
-            }
-        } catch {
-            showMessage('Erro ao comunicar com o servidor.', 'error');
-        }
-    });
-
-    // === Excluir ===
-    btnDelete.addEventListener("click", async () => {
-        if (!editingTrunkName) return;
-        if (!confirm('Tem certeza que deseja excluir este tronco?')) return;
-
-        try {
-            const res = await fetch(`/api/trunk/${editingTrunkName}`, { method: 'DELETE' });
-
-            if (res.ok || res.status === 204) {
-                closeModal();
-                carregarDados(currentPage);
-                window.showToast('Tronco excluído com sucesso!', 'success');
-            } else {
-                showMessage('Erro ao excluir tronco.', 'error');
-            }
-        } catch {
-            showMessage('Erro ao comunicar com o servidor.', 'error');
-        }
-    });
-
-    // === Tabela ===
-    function carregarDados(pagina) {
-        loading.style.display = "block";
-        table.style.visibility = "visible";
-
-        const termoPesquisa = encodeURIComponent(document.getElementById("input-search").value.trim());
-        const url = `/api/trunk/trunks?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${termoPesquisa}`;
-
-        fetch(url)
-            .then(res => {
-                if (!res.ok) throw new Error("Erro na resposta da API");
-                return res.json();
-            })
-            .then(data => {
-                loading.style.display = "none";
-                table.style.display = "table";
-
-                currentPage = pagina;
-                totalPages = data.totalPages;
-
-                tbody.innerHTML = "";
-
-                if (data.content.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">Nenhum tronco cadastrado.</td></tr>`;
-                } else {
-                    data.content.forEach(item => {
-                        const tr = document.createElement("tr");
-                        tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
-
-                        tr.innerHTML = `
-                            <td class="px-4 py-2 font-medium">${item.name}</td>
-                            <td class="px-4 py-2 text-gray-500">${item.host}</td>
-                            <td class="px-4 py-2 text-gray-500">${item.username}</td>
-                            <td class="px-4 py-2 font-semibold ${item.registered ? 'text-green-600' : 'text-red-600'}">
-                                ${item.registered ? 'Registrado' : 'Não registrado'}
-                            </td>
-                        `;
-
-                        tr.addEventListener('click', () => openModal(item.name));
-                        tbody.appendChild(tr);
-                    });
-                }
-
-                pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
-            })
-            .catch(err => {
-                loading.textContent = "Erro ao carregar dados.";
-                console.error(err);
-            });
-    }
-
-    btnPrev.addEventListener("click", () => { if (currentPage > 0) carregarDados(currentPage - 1); });
-    btnNext.addEventListener("click", () => { if (currentPage < totalPages - 1) carregarDados(currentPage + 1); });
-
-    carregarDados(0);
+  // ── Init ──────────────────────────────────────────────────────────────────
+  loadTrunks(0);
 </script>
 </Layout>
