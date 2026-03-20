@@ -17,6 +17,10 @@ export const GET: APIRoute = async ({ cookies, url }) => {
     sort: url.searchParams.get("sort") ?? "id,asc",
     search: url.searchParams.get("search") ?? "",
   });
+  const online = url.searchParams.get("online");
+  const status = url.searchParams.get("status");
+  if (online !== null) query.set("online", online);
+  if (status !== null) query.set("status", status);
 
   try {
     const response = await fetch(`${config.api.baseUrl}/circuits?${query.toString()}`, {

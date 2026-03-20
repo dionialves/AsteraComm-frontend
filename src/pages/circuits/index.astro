@@ -3,8 +3,7 @@ import Layout from "../../layouts/Layout.astro";
 ---
 
 <style is:global>
-  main { background-color: #f9fafb; }
-
+  /* DID selection modal — page-specific */
   .modal-overlay-did {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.15);
@@ -38,54 +37,91 @@ import Layout from "../../layouts/Layout.astro";
   .did-select-num { flex: 1; }
   .did-select-id { font-size: 11px; color: #9ca3af; }
   .did-select-item.selected .did-select-id { color: #93c5fd; }
+
+  /* Circuit row grid layout */
+  .circuit-row {
+    display: grid;
+    grid-template-columns: 48px 68px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 64px 110px 70px;
+    gap: 6px;
+    padding: 11px 16px;
+    align-items: center;
+    cursor: pointer;
+    background: #ffffff;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.1s;
+  }
+  .circuit-row:last-child { border-bottom: none; }
+  .circuit-row:hover { background: #fafafa; }
+  .circuit-row.row-selected { background: #E6F1FB !important; border-left: 2px solid #378ADD; }
+  .circuit-row.row-inactive { opacity: 0.55; }
+  .circuit-row.row-inactive:hover { opacity: 0.75; }
 </style>
 
 
 <Layout>
-  <!-- ── Listing ─────────────────────────────────────────────────────────── -->
-  <div class="bg-white rounded-lg shadow mb-6">
-    <div class="flex items-center justify-between px-6 py-5">
-      <div>
-        <h1 class="page-title">Circuitos</h1>
-        <p class="page-subtitle">Gerenciamento de ramais SIP e clientes ativos</p>
-      </div>
-      <button id="btnAdd" class="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-green-700">+ Adicionar</button>
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <h1 class="text-[22px] font-medium text-[#1a1a1a]">Circuitos</h1>
+      <p class="text-[13px] text-[#888] mt-0.5">Gerenciamento de ramais SIP</p>
     </div>
-    <hr class="border-gray-200" />
-    <div class="listing-toolbar px-6 py-3">
-      <div class="listing-search">
-        <input id="input-search" type="text" placeholder="Pesquisar..." class="listing-search-input" />
-        <button id="btn-search" class="listing-search-btn" title="Pesquisar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
+    <button id="btnAdd" class="flex items-center gap-1.5 bg-[#1D9E75] text-white text-[13px] font-medium px-3 py-[9px] rounded-md hover:opacity-90 transition-opacity">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Novo circuito
+    </button>
+  </div>
+
+  <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between mb-3 gap-3 flex-wrap">
+    <!-- Search + Filters (left) -->
+    <div class="flex items-center gap-3">
+      <div class="relative w-[340px]">
+        <svg class="absolute left-[10px] top-1/2 -translate-y-1/2 pointer-events-none text-[#aaa]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input id="input-search" type="text" placeholder="Buscar circuito, cliente ou IP..." class="w-full pl-[34px] pr-3 py-[9px] text-[13px] border border-[#e0e0e0] rounded-md outline-none text-[#1a1a1a] placeholder:text-[#aaa] bg-white" />
+      </div>
+
+      <!-- Filter button group -->
+      <div class="flex border border-[#e0e0e0] rounded-md overflow-hidden text-[13px]">
+        <button data-filter="all"      class="filter-btn active-filter px-3 py-[7px] bg-white text-[#1a1a1a] font-medium border-r border-[#e0e0e0]">Todos</button>
+        <button data-filter="online"   class="filter-btn px-3 py-[7px] text-[#888] border-r border-[#e0e0e0] hover:bg-[#fafafa]">Online</button>
+        <button data-filter="offline"  class="filter-btn px-3 py-[7px] text-[#888] border-r border-[#e0e0e0] hover:bg-[#fafafa]">Offline</button>
+        <button data-filter="inactive" class="filter-btn px-3 py-[7px] text-[#888] hover:bg-[#fafafa]">Inativos</button>
+      </div>
+    </div>
+
+    <!-- Pagination (right) -->
+    <div class="flex items-center gap-2">
+        <button id="btn-prev" class="flex items-center justify-center w-7 h-7 rounded border border-[#e0e0e0] text-[#888] hover:bg-[#f5f5f5] transition-colors">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span id="page-info" class="text-[12px] text-[#888] whitespace-nowrap">Página 1 de 1</span>
+        <button id="btn-next" class="flex items-center justify-center w-7 h-7 rounded border border-[#e0e0e0] text-[#888] hover:bg-[#f5f5f5] transition-colors">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
-      <div class="listing-pagination">
-        <button id="btn-prev" class="listing-page-btn">‹ Anterior</button>
-        <span id="page-info" class="listing-page-info">Página 1 de 1</span>
-        <button id="btn-next" class="listing-page-btn">Próxima ›</button>
-      </div>
+  </div>
+
+  <!-- ── Table ───────────────────────────────────────────────────────────── -->
+  <div class="rounded-xl border border-[#e0e0e0] overflow-hidden">
+    <!-- Header -->
+    <div class="circuit-row bg-[#f5f5f5] border-b border-[#e0e0e0]" style="cursor:default">
+      <span data-field="id"           class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">ID</span>
+      <span data-field="active"       class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Status</span>
+      <span data-field="number"       class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Código</span>
+      <span data-field="customerName" class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Cliente</span>
+      <span data-field="planName"     class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Plano</span>
+      <span data-field="trunkName"    class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Tronco</span>
+      <span data-field="online"       class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Online</span>
+      <span data-field="ip"           class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">IP</span>
+      <span data-field="rtt"          class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">RTT</span>
     </div>
-    <div class="overflow-x-auto px-4 pb-4">
-      <table id="table-circuits" class="table-fixed w-full border border-gray-200 rounded-lg shadow-sm text-sm bg-white">
-        <thead class="bg-gray-100 text-gray-900">
-          <tr class="font-semibold">
-            <th data-field="id"           class="w-16 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">ID</th>
-            <th data-field="active"       class="w-20 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Status</th>
-            <th data-field="number"       class="w-36 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Código</th>
-            <th data-field="customerName" class="w-80 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Cliente</th>
-            <th data-field="planName"     class="w-80 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Plano</th>
-            <th data-field="trunkName"    class="w-48 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Tronco</th>
-            <th data-field="online"       class="w-20 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">Online</th>
-            <th data-field="ip"           class="w-32 px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">IP</th>
-            <th data-field="rtt"          class="px-4 py-2 text-left font-semibold whitespace-nowrap cursor-pointer">RTT</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-circuits" class="divide-y divide-gray-200">
-          <tr id="loading"><td>Carregando...</td></tr>
-        </tbody>
-      </table>
+    <!-- Rows -->
+    <div id="tbody-circuits">
+      <div class="px-4 py-3 text-[13px] text-[#888]">Carregando...</div>
     </div>
   </div>
 
@@ -450,7 +486,6 @@ import Layout from "../../layouts/Layout.astro";
     _setLocked(locked) {
       this._locked = locked;
       if (locked) {
-        // Chip mode: visual unificado com bg cinza e botões com borda separadora
         this._container.classList.remove("gap-1");
         this._container.classList.add("cs-chip");
         this._inner.style.cssText = "display:flex;align-items:center;height:100%;flex:1;min-width:0;position:relative";
@@ -459,7 +494,6 @@ import Layout from "../../layouts/Layout.astro";
         this._btnLink.className  = "cs-chip-link";
         this._btnClear.className = "cs-chip-clear";
       } else {
-        // Search mode: trigger com borda e bg branco
         this._container.classList.add("gap-1");
         this._container.classList.remove("cs-chip");
         this._inner.style.cssText = "position:relative;flex:1;min-width:0";
@@ -494,17 +528,18 @@ import Layout from "../../layouts/Layout.astro";
 
   // ── Elements ──────────────────────────────────────────────────────────────
   const tbody       = document.getElementById("tbody-circuits");
-  const loading     = document.getElementById("loading");
-  const table       = document.getElementById("table-circuits");
   const btnPrev     = document.getElementById("btn-prev");
   const btnNext     = document.getElementById("btn-next");
   const pageInfo    = document.getElementById("page-info");
   const searchInput = document.getElementById("input-search");
 
-  let currentPage          = 0;
-  let totalPages           = 0;
-  let currentSortField     = "id";
-  let currentSortDirection = "desc";
+  let currentPage      = 0;
+  let totalPages       = 0;
+  let currentFilter    = "all";
+  let currentSortField = "id";
+  let currentSortDir   = "desc";
+  let searchDebounce   = null;
+  let selectedRow      = null;
 
   // ── Modal system ──────────────────────────────────────────────────────────
   const ms = new ModalSystem({
@@ -520,81 +555,162 @@ import Layout from "../../layouts/Layout.astro";
   const csCustomer = new SearchSelect(document.getElementById("cs-customer"), [], { placeholder: "Selecionar cliente..." });
 
   // ── State ─────────────────────────────────────────────────────────────────
-  let currentCircuitId   = null;
+  let currentCircuitId     = null;
   let currentCircuitNumber = null;
-  let deleteClickCount   = 0;
-  let deleteTimer        = null;
-  let subDeleteCount     = 0;
-  let subDeleteTimer     = null;
-  let subEntityType      = null; // "trunk" | "plan" | "customer"
-  let subEntityId        = null;
+  let deleteClickCount     = 0;
+  let deleteTimer          = null;
+  let subDeleteCount       = 0;
+  let subDeleteTimer       = null;
+  let subEntityType        = null;
+  let subEntityId          = null;
 
-  // ── Listing ───────────────────────────────────────────────────────────────
-  document.getElementById("btnAdd").addEventListener("click", () => {
-    window.location.href = "/circuits/new";
-  });
+  // ── Summary ───────────────────────────────────────────────────────────────
+  async function carregarSummary() {
+    try {
+      const r = await fetch("/api/circuit/summary");
+      if (!r.ok) return;
+      const d = await r.json();
+      document.getElementById("summary-total").textContent    = d.total    ?? "—";
+      document.getElementById("summary-active").textContent   = d.active   ?? "—";
+      document.getElementById("summary-online").textContent   = d.online   ?? "—";
+      document.getElementById("summary-inactive").textContent = d.inactive ?? "—";
+    } catch {}
+  }
 
-  document.querySelectorAll("thead th[data-field]").forEach(th => {
-    th.addEventListener("click", () => {
-      const field = th.getAttribute("data-field");
-      if (currentSortField === field) {
-        currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
-      } else {
-        currentSortField     = field;
-        currentSortDirection = "asc";
+  // ── Sort columns ─────────────────────────────────────────────────────────
+  function updateSortIndicators() {
+    document.querySelectorAll(".sort-col").forEach(col => {
+      const field = col.dataset.field;
+      const arrow = col.querySelector(".sort-arrow");
+      if (arrow) arrow.remove();
+      if (field === currentSortField) {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("class", "sort-arrow");
+        svg.setAttribute("width", "10");
+        svg.setAttribute("height", "10");
+        svg.setAttribute("viewBox", "0 0 24 24");
+        svg.setAttribute("fill", "none");
+        svg.setAttribute("stroke", "currentColor");
+        svg.setAttribute("stroke-width", "2.5");
+        svg.setAttribute("stroke-linecap", "round");
+        svg.setAttribute("stroke-linejoin", "round");
+        const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+        poly.setAttribute("points", currentSortDir === "asc" ? "18 15 12 9 6 15" : "6 9 12 15 18 9");
+        svg.appendChild(poly);
+        col.appendChild(svg);
       }
+    });
+  }
+
+  document.querySelectorAll(".sort-col").forEach(col => {
+    col.addEventListener("click", () => {
+      const field = col.dataset.field;
+      if (currentSortField === field) {
+        currentSortDir = currentSortDir === "asc" ? "desc" : "asc";
+      } else {
+        currentSortField = field;
+        currentSortDir   = "asc";
+      }
+      updateSortIndicators();
       carregarDados(0);
     });
   });
 
-  searchInput.addEventListener("keydown", e => { if (e.key === "Enter") carregarDados(0); });
-  document.getElementById("btn-search").addEventListener("click", () => carregarDados(0));
+  // ── Filter buttons ────────────────────────────────────────────────────────
+  document.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentFilter = btn.dataset.filter;
+      document.querySelectorAll(".filter-btn").forEach(b => {
+        const isActive = b === btn;
+        b.classList.toggle("bg-white",      isActive);
+        b.classList.toggle("text-[#1a1a1a]",isActive);
+        b.classList.toggle("font-medium",   isActive);
+        b.classList.toggle("text-[#888]",   !isActive);
+      });
+      carregarDados(0);
+    });
+  });
 
-  function formatDate(d) {
-    if (!d) return "—";
-    return new Date(d).toLocaleDateString("pt-BR", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
+  // ── Debounced search ──────────────────────────────────────────────────────
+  searchInput.addEventListener("input", () => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => carregarDados(0), 300);
+  });
+
+  // ── Listing ───────────────────────────────────────────────────────────────
+  document.getElementById("btnAdd").addEventListener("click", () => {
+    openCircuitModal(null, null);
+  });
+
+  function buildFilterParams() {
+    if (currentFilter === "online")   return "online=true";
+    if (currentFilter === "offline")  return "online=false&status=ACTIVE";
+    if (currentFilter === "inactive") return "status=INACTIVE";
+    return "";
   }
 
   function carregarDados(pagina) {
-    loading.style.display = "block";
-    table.style.visibility = "visible";
-    const search = encodeURIComponent(searchInput.value.trim());
-    const url = `/api/circuit/circuits?page=${pagina}&size=20&sort=${currentSortField},${currentSortDirection}&search=${search}`;
+    tbody.innerHTML = `<div class="px-4 py-3 text-[13px] text-[#888]">Carregando...</div>`;
+    const search  = encodeURIComponent(searchInput.value.trim());
+    const filters = buildFilterParams();
+    let url = `/api/circuit/circuits?page=${pagina}&size=20&sort=${currentSortField},${currentSortDir}&search=${search}`;
+    if (filters) url += `&${filters}`;
 
     fetch(url)
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(data => {
-        loading.style.display = "none";
-        table.style.display   = "table";
         currentPage = pagina;
         totalPages  = data.totalPages;
         tbody.innerHTML = "";
+        selectedRow = null;
 
-        if (data.content.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-gray-500">Nenhum circuito encontrado.</td></tr>`;
+        if (!data.content.length) {
+          tbody.innerHTML = `<div class="px-4 py-6 text-center text-[13px] text-[#888]">Nenhum circuito encontrado.</div>`;
         } else {
           data.content.forEach(item => {
-            const tr = document.createElement("tr");
-            tr.className = "odd:bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer";
-            tr.dataset.id = item.id;
-            tr.innerHTML = `
-              <td class="px-4 py-2 text-gray-500">${item.id}</td>
-              <td class="px-4 py-2 font-semibold ${item.active ? 'text-green-600' : 'text-red-600'}">${item.active ? 'Ativo' : 'Inativo'}</td>
-              <td class="px-4 py-2">${item.number}</td>
-              <td class="px-4 py-2 text-gray-600">${item.customerName || '—'}</td>
-              <td class="px-4 py-2 text-gray-600">${item.planName || '—'}</td>
-              <td class="px-4 py-2 text-gray-600">${item.trunkName || '—'}</td>
-              <td class="px-4 py-2 font-semibold ${item.online ? 'text-green-600' : 'text-red-600'}">${item.online ? 'OK' : 'Offline'}</td>
-              <td class="px-4 py-2 text-gray-600">${item.ip || '—'}</td>
-              <td class="px-4 py-2 text-gray-600">${item.rtt || '—'}</td>
+            const row = document.createElement("div");
+            row.className = "circuit-row" + (!item.active ? " row-inactive" : "");
+            row.dataset.id     = item.id;
+            row.dataset.number = item.number;
+
+            const statusDot   = item.active ? "#1D9E75" : "#E24B4A";
+            const statusText  = item.active ? "Ativo"   : "Inativo";
+            const statusColor = item.active ? "#085041" : "#791F1F";
+
+            const onlineBg    = item.online ? "#E1F5EE" : "#f5f5f5";
+            const onlineColor = item.online ? "#085041" : "#888";
+            const onlineText  = item.online ? "OK"      : "Off";
+
+            row.innerHTML = `
+              <span class="text-[13px] text-[#888]">${item.id}</span>
+              <span class="flex items-center gap-1.5 text-[13px]">
+                <span style="width:7px;height:7px;border-radius:50%;background:${statusDot};flex-shrink:0;display:inline-block"></span>
+                <span style="color:${statusColor}">${statusText}</span>
+              </span>
+              <span class="text-[13px] font-mono text-[#1a1a1a]">${item.number ?? "—"}</span>
+              <span class="text-[13px] text-[#555] truncate">${item.customerName ?? "—"}</span>
+              <span class="text-[13px] text-[#555] truncate">${item.planName ?? "—"}</span>
+              <span class="text-[13px] text-[#555] truncate">${item.trunkName ?? "—"}</span>
+              <span>
+                <span style="background:${onlineBg};color:${onlineColor};border-radius:99px;font-size:12px;padding:2px 9px;font-weight:500">${onlineText}</span>
+              </span>
+              <span class="text-[13px] font-mono text-[#555]">${item.ip ?? "—"}</span>
+              <span class="text-[13px] font-mono text-[#555]">${item.rtt != null ? item.rtt + " ms" : "—"}</span>
             `;
-            tr.addEventListener("click", () => openCircuitModal(item.id, item.number));
-            tbody.appendChild(tr);
+
+            row.addEventListener("click", () => openCircuitModal(item.id, item.number));
+            tbody.appendChild(row);
           });
         }
-        pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
+
+        const total = totalPages === 0 ? 1 : totalPages;
+        pageInfo.textContent = `Página ${currentPage + 1} de ${total}`;
+        btnPrev.disabled = currentPage === 0;
+        btnNext.disabled = currentPage >= totalPages - 1;
       })
-      .catch(() => { loading.textContent = "Erro ao carregar dados."; });
+      .catch(() => {
+        tbody.innerHTML = `<div class="px-4 py-3 text-[13px] text-red-500">Erro ao carregar dados.</div>`;
+      });
   }
 
   btnPrev.addEventListener("click", () => { if (currentPage > 0) carregarDados(currentPage - 1); });
@@ -605,12 +721,11 @@ import Layout from "../../layouts/Layout.astro";
 
   async function loadChipOptions() {
     const [trunks, plans, customers] = await Promise.all([
-      fetch("/api/trunk/trunks?page=0&size=200").then(r => r.ok ? r.json() : { content: [] }),
-      fetch("/api/plan/plans?page=0&size=200").then(r => r.ok ? r.json() : { content: [] }),
-      fetch("/api/customer/customers?page=0&size=200").then(r => r.ok ? r.json() : { content: [] }),
+      fetch("/api/trunk/trunks?page=0&size=900").then(r => r.ok ? r.json() : { content: [] }),
+      fetch("/api/plan/plans?page=0&size=900").then(r => r.ok ? r.json() : { content: [] }),
+      fetch("/api/customer/customers?page=0&size=999").then(r => r.ok ? r.json() : { content: [] }),
     ]);
     trunksData = trunks.content || [];
-    // Trunk: value = name (entidade Circuit armazena trunkName como string)
     csTrunk.setOptions(trunksData.map(t => ({ value: t.name, label: t.name })));
     csPlan.setOptions((plans.content || []).map(p => ({ value: String(p.id), label: p.name })));
     csCustomer.setOptions((customers.content || []).map(c => ({ value: String(c.id), label: c.name })));
@@ -625,40 +740,61 @@ import Layout from "../../layouts/Layout.astro";
 
     await loadChipOptions();
 
+    // Create mode
+    if (!id) {
+      document.getElementById("modal-title").textContent    = "Novo circuito";
+      document.getElementById("modal-subtitle").textContent = "Circuito";
+      document.getElementById("field-id").value     = "";
+      document.getElementById("field-number").value = "(gerado automaticamente)";
+      document.getElementById("field-active").checked = true;
+      document.getElementById("toggle-active-label").textContent = "Ativo";
+      document.getElementById("field-password").value = "";
+      csTrunk.clear(); csPlan.clear(); csCustomer.clear();
+      document.getElementById("btn-delete-circuit").style.display = "none";
+      activateTab("detalhes");
+      ms.openMain();
+      return;
+    }
+
+    document.getElementById("btn-delete-circuit").style.display = "";
+
     const r = await fetch(`/api/circuit/${number}`);
     if (!r.ok) return;
     const c = await r.json();
 
-    // Populate header
     document.getElementById("modal-title").textContent    = c.number;
     document.getElementById("modal-subtitle").textContent = "Circuito";
-
-    // Populate fields
     document.getElementById("field-id").value       = c.id;
     document.getElementById("field-number").value   = c.number;
     document.getElementById("field-active").checked = c.active;
     document.getElementById("toggle-active-label").textContent = c.active ? "Ativo" : "Inativo";
     document.getElementById("field-password").value = c.password || "";
 
-    // Chips
-    // Trunk: armazenado como string trunkName na entidade, sem FK
     if (c.trunkName) csTrunk.setValue(c.trunkName); else csTrunk.clear();
-    // Plan: objeto aninhado EAGER
     if (c.plan?.id)  csPlan.setValue(String(c.plan.id));  else csPlan.clear();
-    // Customer: objeto aninhado LAZY (pode ser null)
     if (c.customer?.id) csCustomer.setValue(String(c.customer.id)); else csCustomer.clear();
 
-    // Chip link handlers — para trunk precisa buscar o ID pelo nome na lista carregada
     const trunkObj = trunksData.find(t => t.name === c.trunkName);
     csTrunk.setLinkClickHandler(() => openSubModal("trunk", trunkObj?.id));
     csPlan.setLinkClickHandler(() => openSubModal("plan", c.plan?.id));
     csCustomer.setLinkClickHandler(() => openSubModal("customer", c.customer?.id));
 
-    // Activate Detalhes tab
     activateTab("detalhes");
+
+    // Highlight selected row
+    if (selectedRow) selectedRow.classList.remove("row-selected");
+    selectedRow = tbody.querySelector(`[data-id="${id}"]`);
+    if (selectedRow) selectedRow.classList.add("row-selected");
 
     ms.openMain(String(c.number));
   }
+
+  // Deselect row on modal close
+  const origCloseAll = ms.closeAll.bind(ms);
+  ms.closeAll = function() {
+    origCloseAll();
+    if (selectedRow) { selectedRow.classList.remove("row-selected"); selectedRow = null; }
+  };
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
   document.querySelectorAll(".modal-tab").forEach(btn => {
@@ -675,12 +811,10 @@ import Layout from "../../layouts/Layout.astro";
     document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("active", p.id === `tab-${name}`));
   }
 
-  // ── Toggle active label ───────────────────────────────────────────────────
   document.getElementById("field-active").addEventListener("change", function() {
     document.getElementById("toggle-active-label").textContent = this.checked ? "Ativo" : "Inativo";
   });
 
-  // ── Password visibility ───────────────────────────────────────────────────
   document.getElementById("btn-toggle-pw").addEventListener("click", () => {
     const input = document.getElementById("field-password");
     input.type  = input.type === "password" ? "text" : "password";
@@ -716,8 +850,8 @@ import Layout from "../../layouts/Layout.astro";
   document.getElementById("btn-add-did").addEventListener("click", () => openDidModal());
 
   // ── DID search modal ──────────────────────────────────────────────────────
-  let didSearchData  = [];
-  let selectedDidId  = null;
+  let didSearchData = [];
+  let selectedDidId = null;
 
   async function openDidModal() {
     selectedDidId = null;
@@ -805,8 +939,6 @@ import Layout from "../../layouts/Layout.astro";
   // ── History tab ───────────────────────────────────────────────────────────
   async function loadHistory() {
     const list = document.getElementById("history-list");
-    list.innerHTML = `<p class="history-empty">Carregando...</p>`;
-    // History endpoint not implemented yet — show empty state
     list.innerHTML = `<p class="history-empty">Nenhum registro.</p>`;
   }
 
@@ -820,14 +952,16 @@ import Layout from "../../layouts/Layout.astro";
       planId:     csPlan.getValue()     ? Number(csPlan.getValue())     : null,
       customerId: csCustomer.getValue() ? Number(csCustomer.getValue()) : null,
     };
-    const r = await fetch(`/api/circuit/${currentCircuitNumber}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+
+    const isCreate = !currentCircuitNumber;
+    const r = await fetch(
+      isCreate ? "/api/circuit/circuits" : `/api/circuit/${currentCircuitNumber}`,
+      { method: isCreate ? "POST" : "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+    );
     if (r.ok) {
       ms.closeAll();
       carregarDados(currentPage);
+      carregarSummary();
     } else {
       const err = await r.json().catch(() => ({}));
       showModalError(err.message || "Erro ao salvar circuito.");
@@ -848,6 +982,7 @@ import Layout from "../../layouts/Layout.astro";
       if (r.ok || r.status === 204) {
         ms.closeAll();
         carregarDados(currentPage);
+        carregarSummary();
       } else {
         const err = await r.json().catch(() => ({}));
         showModalError(err.message || "Erro ao deletar circuito.");
@@ -889,12 +1024,10 @@ import Layout from "../../layouts/Layout.astro";
 
   function wireSubModalContent(type, data) {
     if (type === "customer") {
-      // Toggle label
       const chk = document.getElementById("sub-field-enabled");
       const lbl = document.getElementById("sub-toggle-enabled-label");
       if (chk && lbl) chk.addEventListener("change", () => { lbl.textContent = chk.checked ? "Ativo" : "Inativo"; });
 
-      // Tabs
       const subSaveBtn   = document.getElementById("sub-btn-save");
       const subDeleteBtn = document.getElementById("sub-btn-delete");
       document.querySelectorAll("[data-subtab]").forEach(btn => {
@@ -1009,7 +1142,6 @@ import Layout from "../../layouts/Layout.astro";
     });
     if (r.ok) {
       ms.closeSub();
-      // Refresh chip label after sub-modal save
       const data = await r.json().catch(() => ({}));
       if (subEntityType === "trunk" && data.name) {
         trunksData = trunksData.map(t => t.id === subEntityId ? { ...t, name: data.name } : t);
@@ -1035,12 +1167,12 @@ import Layout from "../../layouts/Layout.astro";
       clearTimeout(subDeleteTimer);
       const r = await fetch(`/api/${subEntityType}/${subEntityId}`, { method: "DELETE" });
       if (r.ok || r.status === 204) {
-        // Clear the chip that referenced this entity
         if (subEntityType === "trunk")    csTrunk.clear();
         if (subEntityType === "plan")     csPlan.clear();
         if (subEntityType === "customer") csCustomer.clear();
         ms.closeAll();
         carregarDados(currentPage);
+        carregarSummary();
       } else {
         const err = await r.json().catch(() => ({}));
         showSubModalError(err.message || "Erro ao deletar.");
@@ -1081,18 +1213,17 @@ import Layout from "../../layouts/Layout.astro";
   // ── Deep link on load ─────────────────────────────────────────────────────
   const urlParam = new URLSearchParams(window.location.search).get("modal");
   if (urlParam) {
-    // Wait for data to load then open
     carregarDados(0);
-    // Try to open after listing loads (simple approach: wait a tick)
     setTimeout(async () => {
-      const tr = tbody.querySelector(`tr[data-id]`);
-      // Find the row with matching number
-      const rows = Array.from(tbody.querySelectorAll("tr[data-id]"));
-      const row  = rows.find(r => r.children[2]?.textContent?.trim() === urlParam);
+      const rows = Array.from(tbody.querySelectorAll("[data-number]"));
+      const row  = rows.find(r => r.dataset.number === urlParam);
       if (row) openCircuitModal(Number(row.dataset.id), urlParam);
     }, 800);
   } else {
     carregarDados(0);
   }
+
+  carregarSummary();
+  updateSortIndicators();
 </script>
 </Layout>
