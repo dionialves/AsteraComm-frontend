@@ -103,6 +103,9 @@ import Layout from "../../layouts/Layout.astro";
     <div id="tbody-customers"></div>
   </div>
 
+  <!-- ── Footer counter ─────────────────────────────────────────────────── -->
+  <p id="counter" class="text-[12px] text-[#888] text-right mt-3"></p>
+
   <!-- ── Overlay 1 ───────────────────────────────────────────────────────── -->
   <div id="modal-overlay-1" class="modal-overlay"></div>
 
@@ -451,6 +454,7 @@ import Layout from "../../layouts/Layout.astro";
 
   // ── State ─────────────────────────────────────────────────────────────────
   const tbody       = document.getElementById("tbody-customers");
+  const counter     = document.getElementById("counter");
   const btnPrev     = document.getElementById("btn-prev");
   const btnNext     = document.getElementById("btn-next");
   const pageInfo    = document.getElementById("page-info");
@@ -458,6 +462,7 @@ import Layout from "../../layouts/Layout.astro";
 
   let currentPage          = 0;
   let totalPages           = 0;
+  let totalElements        = 0;
   let currentSortField     = "id";
   let currentSortDirection = "desc";
   let currentFilter        = "all";
@@ -574,8 +579,9 @@ import Layout from "../../layouts/Layout.astro";
     fetch(url)
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(data => {
-        currentPage = pagina;
-        totalPages  = data.totalPages;
+        currentPage   = pagina;
+        totalPages    = data.totalPages;
+        totalElements = data.totalElements;
         tbody.innerHTML = "";
 
         if (!data.content.length) {
@@ -587,10 +593,19 @@ import Layout from "../../layouts/Layout.astro";
         pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages === 0 ? 1 : totalPages}`;
         btnPrev.disabled = currentPage === 0;
         btnNext.disabled = currentPage >= totalPages - 1;
+        renderCounter();
       })
       .catch(() => {
         tbody.innerHTML = `<div class="customer-row" style="cursor:default"><span style="grid-column:1/-1;color:#E24B4A;font-size:13px">Erro ao carregar dados.</span></div>`;
       });
+  }
+
+  // ── Render counter ────────────────────────────────────────────────────────
+  function renderCounter() {
+    const n = totalElements.toLocaleString('pt-BR');
+    counter.textContent = totalElements === 1
+      ? '1 cliente cadastrado'
+      : `${n} clientes cadastrados`;
   }
 
   function renderRow(item) {
@@ -603,7 +618,7 @@ import Layout from "../../layouts/Layout.astro";
     const label     = item.enabled ? "Ativo"    : "Inativo";
 
     row.innerHTML = `
-      <span class="text-[13px] font-mono text-[#1a1a1a]">${item.id}</span>
+      <span class="text-[13px] font-mono text-[#888]">${item.id}</span>
       <span class="text-[13px] text-[#1a1a1a] truncate">${item.name}</span>
       <span class="flex items-center gap-1.5">
         <span style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0"></span>
@@ -631,7 +646,7 @@ import Layout from "../../layouts/Layout.astro";
     const label     = item.enabled ? "Ativo"    : "Inativo";
 
     row.innerHTML = `
-      <span class="text-[13px] font-mono text-[#1a1a1a]">${item.id}</span>
+      <span class="text-[13px] font-mono text-[#888]">${item.id}</span>
       <span class="text-[13px] text-[#1a1a1a] truncate">${item.name}</span>
       <span class="flex items-center gap-1.5">
         <span style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0"></span>
