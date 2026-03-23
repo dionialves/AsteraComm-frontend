@@ -18,6 +18,9 @@ export const GET: APIRoute = async ({ cookies, url }) => {
     search: url.searchParams.get("search") ?? "",
   });
 
+  const active = url.searchParams.get("active");
+  if (active !== null) query.set("active", active);
+
   try {
     const response = await fetch(`${config.api.baseUrl}/plans?${query.toString()}`, {
       headers: {

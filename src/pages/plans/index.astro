@@ -5,7 +5,7 @@ import Layout from "../../layouts/Layout.astro";
 <style is:global>
   .plan-row {
     display: grid;
-    grid-template-columns: 40px minmax(0,1fr) 120px 120px 120px 120px 120px minmax(0,1fr);
+    grid-template-columns: 40px minmax(0,1fr) 80px 120px 120px 120px 120px 120px minmax(0,1fr);
     gap: 6px;
     padding: 11px 16px;
     align-items: center;
@@ -17,6 +17,8 @@ import Layout from "../../layouts/Layout.astro";
   .plan-row:last-child { border-bottom: none; }
   .plan-row:hover { background: #fafafa; }
   .plan-row.row-selected { background: #E6F1FB !important; border-left: 2px solid #378ADD; }
+  .plan-row.row-inactive { opacity: 0.55; }
+  .plan-row.row-inactive:hover { opacity: 0.75; }
 </style>
 
 <Layout>
@@ -36,16 +38,24 @@ import Layout from "../../layouts/Layout.astro";
 
   <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
   <div class="flex items-center justify-between mb-3 gap-3 flex-wrap">
-    <!-- Busca (esquerda) -->
-    <div class="relative w-[280px]">
-      <svg class="absolute left-[10px] top-1/2 -translate-y-1/2 pointer-events-none text-[#aaa]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <input id="input-search" type="text" placeholder="Buscar por nome..." class="w-full pl-[34px] pr-3 py-[9px] text-[13px] border border-[#e0e0e0] rounded-md outline-none text-[#1a1a1a] placeholder:text-[#aaa] bg-white" />
+    <!-- Esquerda: busca + filtros -->
+    <div class="flex items-center gap-3">
+      <div class="relative w-[280px]">
+        <svg class="absolute left-[10px] top-1/2 -translate-y-1/2 pointer-events-none text-[#aaa]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input id="input-search" type="text" placeholder="Buscar por nome..." class="w-full pl-[34px] pr-3 py-[9px] text-[13px] border border-[#e0e0e0] rounded-md outline-none text-[#1a1a1a] placeholder:text-[#aaa] bg-white" />
+      </div>
+      <!-- Filtro ativo/inativo -->
+      <div class="flex border border-[#e0e0e0] rounded-md overflow-hidden text-[13px]">
+        <button data-filter="all"   class="filter-btn active-filter px-3 py-[7px] bg-white text-[#1a1a1a] font-medium border-r border-[#e0e0e0]">Todos</button>
+        <button data-filter="true"  class="filter-btn px-3 py-[7px] text-[#888] border-r border-[#e0e0e0] hover:bg-[#fafafa]">Ativos</button>
+        <button data-filter="false" class="filter-btn px-3 py-[7px] text-[#888] hover:bg-[#fafafa]">Inativos</button>
+      </div>
     </div>
 
-    <!-- Paginação (direita — exibida apenas quando totalPages > 1) -->
-    <div id="pagination-bar" class="hidden items-center gap-2">
+    <!-- Paginação (direita — sempre visível) -->
+    <div class="flex items-center gap-2">
       <button id="btn-prev" class="flex items-center justify-center w-7 h-7 rounded border border-[#e0e0e0] text-[#888] hover:bg-[#f5f5f5] transition-colors disabled:opacity-40 disabled:cursor-default">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
@@ -62,6 +72,7 @@ import Layout from "../../layouts/Layout.astro";
     <div class="plan-row bg-[#f5f5f5] border-b border-[#e0e0e0]" style="cursor:default">
       <span data-field="id"               class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">ID</span>
       <span data-field="name"             class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Nome</span>
+      <span data-field="active"           class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Status</span>
       <span data-field="monthlyPrice"     class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Mensalidade</span>
       <span data-field="fixedLocal"       class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Fixo Local</span>
       <span data-field="fixedLongDistance" class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Fixo LD</span>
@@ -82,7 +93,7 @@ import Layout from "../../layouts/Layout.astro";
   <div id="modal-overlay" class="modal-overlay"></div>
 
   <!-- ── Modal de Plano ──────────────────────────────────────────────────── -->
-  <div id="modal-plan" class="modal-main" style="width:620px;height:auto;max-height:90vh">
+  <div id="modal-plan" class="modal-main">
     <div class="modal-header">
       <div class="modal-header-top">
         <div class="modal-header-titles">
@@ -96,16 +107,31 @@ import Layout from "../../layouts/Layout.astro";
     <div id="modal-error" class="modal-error"></div>
 
     <div class="modal-body">
-      <!-- Nome e Mensalidade -->
+      <!-- Identificação -->
       <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">ID</label>
+          <input id="input-id" type="text" class="form-input" disabled />
+        </div>
         <div class="form-group">
           <label class="form-label">Nome</label>
           <input id="input-name" type="text" class="form-input" placeholder="Ex: Plano Básico" />
         </div>
-        <div class="form-group">
-          <label class="form-label">Mensalidade (R$)</label>
-          <input id="input-monthly-price" type="text" inputmode="numeric" class="form-input" placeholder="0,00" />
-        </div>
+      </div>
+      <div class="toggle-group">
+        <label class="toggle-switch">
+          <input id="field-active" type="checkbox" checked />
+          <span class="toggle-slider"></span>
+        </label>
+        <span id="toggle-active-label" class="toggle-label">Ativo</span>
+      </div>
+
+      <hr class="section-divider" />
+
+      <!-- Mensalidade -->
+      <div class="form-group" style="margin-bottom:12px;max-width:50%">
+        <label class="form-label">Mensalidade (R$)</label>
+        <input id="input-monthly-price" type="text" inputmode="numeric" class="form-input" placeholder="0,00" />
       </div>
 
       <hr class="section-divider" />
@@ -185,17 +211,21 @@ import Layout from "../../layouts/Layout.astro";
 
   // ── Referências DOM ──────────────────────────────────────────────────────
   const tbody         = document.getElementById("tbody-plans");
-  const paginationBar = document.getElementById("pagination-bar");
   const btnPrev       = document.getElementById("btn-prev");
   const btnNext       = document.getElementById("btn-next");
   const pageInfo      = document.getElementById("page-info");
   const footerCount   = document.getElementById("footer-count");
   const searchInput   = document.getElementById("input-search");
+  const filterBtns    = document.querySelectorAll(".filter-btn");
 
   const overlay     = document.getElementById("modal-overlay");
   const modal       = document.getElementById("modal-plan");
   const modalTitle  = document.getElementById("modal-title");
   const modalError  = document.getElementById("modal-error");
+
+  const inputId           = document.getElementById("input-id");
+  const fieldActive       = document.getElementById("field-active");
+  const toggleActiveLbl   = document.getElementById("toggle-active-label");
 
   const inputName      = document.getElementById("input-name");
   const inputMonthly   = document.getElementById("input-monthly-price");
@@ -223,6 +253,7 @@ import Layout from "../../layouts/Layout.astro";
   let totalPages       = 0;
   let currentSortField = "id";
   let currentSortDir   = "asc";
+  let currentFilter    = "all";   // "all" | "true" | "false"
   let editingId        = null;
   let selectedRow      = null;
   let debounceTimer    = null;
@@ -262,6 +293,25 @@ import Layout from "../../layouts/Layout.astro";
         currentSortDir   = "asc";
       }
       updateSortIndicators();
+      loadData(0);
+    });
+  });
+
+  // ── Filtro ativo/inativo ──────────────────────────────────────────────────
+  function updateFilterBtns() {
+    filterBtns.forEach(btn => {
+      const isActive = btn.dataset.filter === currentFilter;
+      btn.classList.toggle("bg-white",       isActive);
+      btn.classList.toggle("text-[#1a1a1a]", isActive);
+      btn.classList.toggle("font-medium",    isActive);
+      btn.classList.toggle("text-[#888]",   !isActive);
+    });
+  }
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentFilter = btn.dataset.filter;
+      updateFilterBtns();
       loadData(0);
     });
   });
@@ -320,6 +370,11 @@ import Layout from "../../layouts/Layout.astro";
   inputMonthly.addEventListener("input", () => applyMaskCurrency(inputMonthly));
   [inputFL, inputFI, inputML, inputMLD].forEach(el => el.addEventListener("input", () => applyMaskRate(el)));
 
+  // ── Toggle ativo ─────────────────────────────────────────────────────────
+  fieldActive.addEventListener("change", () => {
+    toggleActiveLbl.textContent = fieldActive.checked ? "Ativo" : "Inativo";
+  });
+
   // ── Seções de pacote ──────────────────────────────────────────────────────
   function updatePackageSections() {
     const type = selectPkgType.value;
@@ -370,7 +425,8 @@ import Layout from "../../layouts/Layout.astro";
     tbody.innerHTML = `<div class="px-4 py-3 text-[13px] text-[#888]">Carregando...</div>`;
 
     const search = encodeURIComponent(searchInput.value.trim());
-    fetch(`/api/plan/plans?page=${page}&size=20&sort=${currentSortField},${currentSortDir}&search=${search}`)
+    const activeParam = currentFilter !== "all" ? `&active=${currentFilter}` : "";
+    fetch(`/api/plan/plans?page=${page}&size=20&sort=${currentSortField},${currentSortDir}&search=${search}${activeParam}`)
       .then(res => {
         if (!res.ok) throw new Error("Erro na resposta da API");
         return res.json();
@@ -380,17 +436,10 @@ import Layout from "../../layouts/Layout.astro";
         totalPages  = data.totalPages;
         const items = data.content;
 
-        // Paginação: só exibe se houver mais de uma página
-        if (totalPages > 1) {
-          paginationBar.classList.remove("hidden");
-          paginationBar.classList.add("flex");
-          btnPrev.disabled = currentPage === 0;
-          btnNext.disabled = currentPage >= totalPages - 1;
-          pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages}`;
-        } else {
-          paginationBar.classList.add("hidden");
-          paginationBar.classList.remove("flex");
-        }
+        // Paginação: sempre visível
+        btnPrev.disabled = currentPage === 0;
+        btnNext.disabled = currentPage >= totalPages - 1;
+        pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages || 1}`;
 
         // Rodapé contador
         const total = data.totalElements;
@@ -405,10 +454,18 @@ import Layout from "../../layouts/Layout.astro";
         tbody.innerHTML = "";
         items.forEach(item => {
           const row = document.createElement("div");
-          row.className = "plan-row";
+          row.className = "plan-row" + (item.active === false ? " row-inactive" : "");
+          const statusDot   = item.active !== false ? "#1D9E75" : "#E24B4A";
+          const statusText  = item.active !== false ? "Ativo"   : "Inativo";
+          const statusColor = item.active !== false ? "#085041" : "#791F1F";
+
           row.innerHTML = `
             <span class="text-[13px] font-mono text-[#888]">${item.id}</span>
             <span class="text-[13px] font-medium text-[#1a1a1a] truncate">${item.name}</span>
+            <span class="flex items-center gap-1.5 text-[13px]">
+              <span style="width:7px;height:7px;border-radius:50%;background:${statusDot};flex-shrink:0;display:inline-block"></span>
+              <span style="color:${statusColor}">${statusText}</span>
+            </span>
             <span class="text-[12px] font-mono font-medium text-[#1a1a1a]">${formatMonthly(item.monthlyPrice)}</span>
             <span class="text-[12px] font-mono text-[#1a1a1a]">${formatRate(item.fixedLocal)}</span>
             <span class="text-[12px] font-mono text-[#1a1a1a]">${formatRate(item.fixedLongDistance)}</span>
@@ -436,7 +493,8 @@ import Layout from "../../layouts/Layout.astro";
     hideError();
     resetDeleteBtn();
 
-    inputName.value     = item?.name                                    ?? "";
+    inputId.value       = item?.id                                       ?? "";
+    inputName.value     = item?.name                                     ?? "";
     inputMonthly.value  = item ? toMaskedCurrency(item.monthlyPrice)    : "";
     inputFL.value       = item ? toMaskedRate(item.fixedLocal)          : "";
     inputFI.value       = item ? toMaskedRate(item.fixedLongDistance)   : "";
@@ -448,6 +506,9 @@ import Layout from "../../layouts/Layout.astro";
     inputPkgFI.value    = item?.packageFixedLongDistance                ?? "";
     inputPkgML.value    = item?.packageMobileLocal                      ?? "";
     inputPkgMLD.value   = item?.packageMobileLongDistance               ?? "";
+
+    fieldActive.checked       = item?.active !== false;
+    toggleActiveLbl.textContent = fieldActive.checked ? "Ativo" : "Inativo";
 
     updatePackageSections();
 
@@ -508,7 +569,7 @@ import Layout from "../../layouts/Layout.astro";
       return;
     }
 
-    const payload = { name, monthlyPrice, fixedLocal, fixedLongDistance, mobileLocal, mobileLongDistance, packageType };
+    const payload = { name, monthlyPrice, fixedLocal, fixedLongDistance, mobileLocal, mobileLongDistance, packageType, ...(editingId ? { active: fieldActive.checked } : {}) };
 
     if (packageType === "UNIFIED") {
       const total = inputPkgTotal.value;
@@ -571,5 +632,6 @@ import Layout from "../../layouts/Layout.astro";
 
   // ── Inicializar ───────────────────────────────────────────────────────────
   updateSortIndicators();
+  updateFilterBtns();
   loadData(0);
 </script>
