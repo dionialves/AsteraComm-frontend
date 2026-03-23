@@ -32,7 +32,6 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                             <a href="/plans" class="block px-3 py-2 rounded hover:text-white hover:bg-zinc-600 transition">Planos</a>
                             <a href="/reports" class="block px-3 py-2 rounded hover:text-white hover:bg-zinc-600 transition">Relatórios</a>
 <a id="menuUsers" href="/users" class="hidden block px-3 py-2 rounded hover:text-white hover:bg-zinc-600 transition">Usuários</a>
-<a id="menuAudit" href="/audit" class="hidden block px-3 py-2 rounded hover:text-white hover:bg-zinc-600 transition">Auditoria</a>
                         </nav>
                     </div>
 
@@ -241,7 +240,6 @@ const { title = 'AsteraComm - Softswitch' } = Astro.props;
                             }
                             if (data.role === 'SUPER_ADMIN') {
                                 document.getElementById('menuUsers')?.classList.remove('hidden');
-                                document.getElementById('menuAudit')?.classList.remove('hidden');
                             }
                         }
                     })

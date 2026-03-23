@@ -18,10 +18,20 @@ import ReportCard from "../../components/ReportCard.astro";
       title="Custo por circuito"
       description="Total de ligações, minutos consumidos e custo gerado por cada circuito em um mês/ano selecionado."
     >
-      <!-- Ícone cifrão -->
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#085041" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="12" y1="1" x2="12" y2="23"/>
         <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+    </ReportCard>
+    <ReportCard
+      href="/reports/audit"
+      iconBg="#E6F1FB"
+      title="Auditoria"
+      description="Simulação do cálculo de custo chamada a chamada para validar a lógica de billing por circuito."
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0C447C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 11l3 3L22 4"/>
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
       </svg>
     </ReportCard>
   </div>

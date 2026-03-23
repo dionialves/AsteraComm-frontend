@@ -1,0 +1,695 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<style is:global>
+  .audit-row {
+    display: grid;
+    grid-template-columns: 130px minmax(0,1fr) 80px 70px 80px 80px 100px 80px;
+    gap: 4px;
+    padding: 10px 12px;
+    align-items: center;
+    background: #ffffff;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .audit-row:last-child { border-bottom: none; }
+</style>
+
+<Layout title="Auditoria — AsteraComm">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <div class="mb-5">
+    <div class="flex items-center gap-2 mb-1">
+      <a href="/reports" class="flex items-center justify-center w-[30px] h-[30px] rounded border border-[#d0d0d0] text-[#555] hover:bg-[#f5f5f5] transition-colors">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </a>
+      <h1 class="text-[22px] font-medium text-[#1a1a1a]">Auditoria</h1>
+    </div>
+    <p class="text-[13px] text-[#888] ml-[39px]">Simulação do cálculo de custo chamada a chamada para validar a lógica de billing</p>
+  </div>
+
+  <!-- ── Card de filtros ─────────────────────────────────────────────────── -->
+  <div class="bg-white border border-[#e0e0e0] rounded-xl p-4 mb-4">
+    <div class="flex items-end gap-3 flex-wrap">
+
+      <!-- Circuito -->
+      <div class="flex flex-col gap-1 w-96">
+        <label class="text-[12px] text-[#555] font-medium">Circuito</label>
+        <div id="cs-circuit"></div>
+      </div>
+
+      <!-- Mês -->
+      <div class="flex flex-col gap-1">
+        <label class="text-[12px] text-[#555] font-medium">Mês</label>
+        <select id="select-month" class="cs-select" style="width:140px">
+          <option value="1">Janeiro</option>
+          <option value="2">Fevereiro</option>
+          <option value="3">Março</option>
+          <option value="4">Abril</option>
+          <option value="5">Maio</option>
+          <option value="6">Junho</option>
+          <option value="7">Julho</option>
+          <option value="8">Agosto</option>
+          <option value="9">Setembro</option>
+          <option value="10">Outubro</option>
+          <option value="11">Novembro</option>
+          <option value="12">Dezembro</option>
+        </select>
+      </div>
+
+      <!-- Ano -->
+      <div class="flex flex-col gap-1">
+        <label class="text-[12px] text-[#555] font-medium">Ano</label>
+        <select id="select-year" class="cs-select" style="width:100px"></select>
+      </div>
+
+      <!-- Processar -->
+      <button id="btn-process" class="btn-modal-save px-5 py-[9px] text-[13px]">Processar</button>
+    </div>
+  </div>
+
+  <!-- ── Resultado (oculto até processar) ───────────────────────────────── -->
+  <div id="result-container" class="hidden">
+
+    <!-- Card de contexto -->
+    <div class="bg-white rounded-xl p-4 mb-4" style="border:0.5px solid #e0e0e0">
+      <div class="flex gap-8">
+        <div>
+          <p class="text-[11px] font-medium uppercase tracking-wide text-[#888] mb-1">Circuito</p>
+          <p id="ctx-circuit" class="text-[15px] font-medium text-[#1a1a1a] font-mono">—</p>
+        </div>
+        <div>
+          <p class="text-[11px] font-medium uppercase tracking-wide text-[#888] mb-1">Plano</p>
+          <p id="ctx-plan" class="text-[15px] font-medium text-[#1a1a1a]">—</p>
+        </div>
+        <div>
+          <p class="text-[11px] font-medium uppercase tracking-wide text-[#888] mb-1">Período</p>
+          <p id="ctx-period" class="text-[15px] font-medium text-[#1a1a1a]">—</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de controles -->
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <button
+          id="toggle-btn"
+          role="switch"
+          aria-checked="false"
+          class="relative flex-shrink-0 transition-colors duration-200"
+          style="width:36px;height:20px;border-radius:99px;background:#e0e0e0;border:none;cursor:pointer;padding:0;outline:none">
+          <span
+            id="toggle-thumb"
+            class="absolute top-[2px] left-[2px] transition-transform duration-200"
+            style="width:16px;height:16px;border-radius:50%;background:#fff;display:block">
+          </span>
+        </button>
+        <span class="text-[13px] text-[#1a1a1a] select-none">Apenas chamadas relevantes</span>
+      </div>
+      <button id="btn-pdf" class="flex items-center gap-2 px-3 py-[7px] border border-[#d0d0d0] bg-white rounded-md text-[13px] text-[#555] hover:bg-[#f5f5f5] transition-colors">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Baixar PDF
+      </button>
+    </div>
+
+    <!-- Tabela -->
+    <div class="rounded-xl border border-[#e0e0e0] overflow-hidden mb-4">
+      <div class="audit-row bg-[#f5f5f5] border-b border-[#e0e0e0]" style="cursor:default">
+        <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Data/hora</span>
+        <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Destino</span>
+        <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Tipo</span>
+        <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Duração</span>
+        <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Tarifa R$/min</span>
+        <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Min. pacote</span>
+        <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Acum. pacote</span>
+        <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide text-right">Custo</span>
+      </div>
+      <div id="tbody-audit">
+        <div class="px-4 py-6 text-[13px] text-[#888] text-center">Nenhum dado para exibir.</div>
+      </div>
+    </div>
+
+    <!-- 5 Totalizadores -->
+    <div class="grid grid-cols-5 gap-3">
+      <div class="bg-[#f5f5f5] rounded-lg px-4 py-[14px] text-center">
+        <p class="text-[12px] text-[#888] mb-1">Total ligações</p>
+        <p id="tot-calls" class="text-[20px] font-medium text-[#1a1a1a]">—</p>
+      </div>
+      <div class="bg-[#f5f5f5] rounded-lg px-4 py-[14px] text-center">
+        <p class="text-[12px] text-[#888] mb-1">Tempo faturável</p>
+        <p id="tot-billable" class="text-[20px] font-medium text-[#1a1a1a]">—</p>
+      </div>
+      <div class="rounded-lg px-4 py-[14px] text-center" style="background:#E6F1FB">
+        <p class="text-[12px] mb-1" style="color:#0C447C">Tempo do pacote</p>
+        <p id="tot-package" class="text-[20px] font-medium" style="color:#0C447C">—</p>
+      </div>
+      <div class="rounded-lg px-4 py-[14px] text-center" style="background:#FAEEDA">
+        <p class="text-[12px] mb-1" style="color:#854F0B">Tempo excedente</p>
+        <p id="tot-excess" class="text-[20px] font-medium" style="color:#854F0B">—</p>
+      </div>
+      <div class="rounded-lg px-4 py-[14px] text-center" style="background:#E1F5EE">
+        <p class="text-[12px] mb-1" style="color:#085041">Custo total</p>
+        <p id="tot-cost" class="text-[20px] font-medium" style="color:#085041">—</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Mensagem de erro -->
+  <div id="error-msg" class="hidden mt-4 px-4 py-3 bg-[#fee2e2] text-[#dc2626] rounded-lg text-[13px]"></div>
+
+</Layout>
+
+<!-- ── Sub-modal: detalhes do circuito ────────────────────────────────── -->
+  <div id="modal-sub" class="modal-sub">
+    <div class="sub-modal-header">
+      <button id="csub-btn-back" class="btn-sub-back" title="Voltar">←</button>
+      <div class="sub-modal-titles">
+        <span id="csub-subtitle" class="modal-subtitle">Circuito</span>
+        <span id="csub-title"    class="modal-title" style="font-size:16px">—</span>
+      </div>
+      <button id="csub-btn-close" class="modal-btn-close" title="Fechar tudo">✕</button>
+    </div>
+    <div class="modal-tabs" style="flex-shrink:0;padding:0 20px;border-bottom:1px solid #e5e7eb">
+      <button class="modal-tab active" data-csub-tab="detalhes">Detalhes</button>
+      <button class="modal-tab"        data-csub-tab="dids">DIDs</button>
+      <button class="modal-tab"        data-csub-tab="historico">Histórico</button>
+    </div>
+    <div id="csub-error" class="modal-error"></div>
+    <div class="modal-body">
+      <!-- Tab: Detalhes -->
+      <div id="csub-tab-detalhes" class="tab-panel active">
+        <p class="section-title">Identificação</p>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">ID</label>
+            <input id="csub-field-id" type="text" class="form-input" disabled />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Código</label>
+            <input id="csub-field-number" type="text" class="form-input" disabled />
+          </div>
+        </div>
+        <div class="toggle-group">
+          <label class="toggle-switch">
+            <input id="csub-field-active" type="checkbox" />
+            <span class="toggle-slider"></span>
+          </label>
+          <span id="csub-toggle-active-label" class="toggle-label">Ativo</span>
+        </div>
+        <hr class="section-divider" />
+        <p class="section-title">Autenticação</p>
+        <div class="form-group" style="margin-bottom:12px">
+          <label class="form-label">Senha</label>
+          <div class="input-password-wrap">
+            <input id="csub-field-password" type="password" class="form-input" autocomplete="new-password" />
+            <button id="csub-btn-toggle-pw" class="btn-eye" type="button" title="Ver senha">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <hr class="section-divider" />
+        <p class="section-title">Configuração</p>
+        <div class="form-grid-2" style="margin-bottom:12px">
+          <div class="form-group">
+            <label class="form-label">Tronco</label>
+            <div id="csub-cs-trunk"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Plano</label>
+            <div id="csub-cs-plan"></div>
+          </div>
+        </div>
+        <div class="form-group" style="max-width:50%">
+          <label class="form-label">Cliente</label>
+          <div id="csub-cs-customer"></div>
+        </div>
+      </div>
+      <!-- Tab: DIDs -->
+      <div id="csub-tab-dids" class="tab-panel">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <button id="csub-btn-add-did" class="btn-modal-cancel" type="button">+ Adicionar</button>
+        </div>
+        <div class="did-grid-header">
+          <span>ID</span><span>Número</span><span>Vinculado em</span><span></span>
+        </div>
+        <div id="csub-did-list"></div>
+      </div>
+      <!-- Tab: Histórico -->
+      <div id="csub-tab-historico" class="tab-panel">
+        <p class="history-empty">Nenhum registro.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="csub-btn-delete" class="btn-modal-delete" type="button">Deletar</button>
+      <div class="modal-footer-right">
+        <button id="csub-btn-back2" class="btn-modal-cancel" type="button">Voltar</button>
+        <button id="csub-btn-save"  class="btn-modal-save"   type="button">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+<script type="module">
+  const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+  // ── SearchSelect (inline — mesmo padrão das demais páginas) ───────────────
+  class SearchSelect {
+    constructor(container, options, config = {}) {
+      this._container       = container;
+      this._options         = options;
+      this._value           = "";
+      this._label           = "";
+      this._locked          = false;
+      this._placeholder     = config.placeholder ?? "Selecione...";
+      this._onChange        = config.onChange ?? null;
+      this._linkClickHandler = null;
+      this._boundClose      = this._onOutsideClick.bind(this);
+      this._render();
+      this._renderList("");
+    }
+
+    getValue() { return this._value; }
+
+    setValue(value) {
+      const found = this._options.find(o => o.value === value);
+      if (!found) return;
+      this._value = found.value;
+      this._label = found.label;
+      this._setLocked(true);
+      this._updateTriggerLabel();
+      this._updateActions();
+    }
+
+    clear() {
+      this._value = "";
+      this._label = "";
+      this._setLocked(false);
+      this._updateTriggerLabel();
+      this._updateActions();
+    }
+
+    setOptions(options) {
+      this._options = options;
+      this.clear();
+      if (this._searchInput) this._searchInput.value = "";
+      this._renderList("");
+    }
+
+    setLinkClickHandler(fn) { this._linkClickHandler = fn; }
+
+    _render() {
+      this._container.innerHTML = "";
+      this._container.classList.add("flex", "items-center", "gap-1");
+
+      this._inner = document.createElement("div");
+      this._inner.className = "relative flex-1 min-w-0";
+
+      this._trigger = document.createElement("button");
+      this._trigger.type = "button";
+      this._trigger.className = "w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded text-sm bg-white text-left focus:outline-none cursor-pointer";
+      this._trigger.addEventListener("click", () => this._toggle());
+
+      const labelSpan = document.createElement("span");
+      labelSpan.dataset.label = "1";
+      labelSpan.textContent = this._placeholder;
+      labelSpan.className = "text-gray-400 truncate";
+
+      this._arrow = document.createElement("span");
+      this._arrow.innerHTML = `<svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>`;
+
+      this._trigger.appendChild(labelSpan);
+      this._trigger.appendChild(this._arrow);
+
+      this._dropdown = document.createElement("div");
+      this._dropdown.className = "hidden absolute left-0 right-0 top-full mt-1 z-50 bg-white border border-gray-300 rounded shadow-lg";
+
+      this._searchInput = document.createElement("input");
+      this._searchInput.type = "text";
+      this._searchInput.placeholder = "Pesquisar...";
+      this._searchInput.className = "w-full px-3 py-2 text-sm border-b border-gray-200 focus:outline-none";
+      this._searchInput.addEventListener("input", () => this._renderList(this._searchInput.value));
+
+      this._list = document.createElement("ul");
+      this._list.className = "max-h-52 overflow-y-auto";
+
+      this._emptyMsg = document.createElement("li");
+      this._emptyMsg.className = "hidden px-3 py-2 text-sm text-gray-400 text-center";
+      this._emptyMsg.textContent = "Nenhuma opção encontrada.";
+
+      this._dropdown.appendChild(this._searchInput);
+      this._dropdown.appendChild(this._list);
+      this._dropdown.appendChild(this._emptyMsg);
+
+      this._inner.appendChild(this._trigger);
+      this._inner.appendChild(this._dropdown);
+
+      this._btnClear = document.createElement("button");
+      this._btnClear.type = "button";
+      this._btnClear.className = "flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition";
+      this._btnClear.style.display = "none";
+      this._btnClear.title = "Limpar";
+      this._btnClear.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`;
+      this._btnClear.addEventListener("click", () => this.clear());
+
+      this._btnLink = document.createElement("button");
+      this._btnLink.type = "button";
+      this._btnLink.className = "flex-shrink-0 p-1 text-gray-400 hover:text-blue-600 transition";
+      this._btnLink.style.display = "none";
+      this._btnLink.title = "Ver detalhes";
+      this._btnLink.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>`;
+      this._btnLink.addEventListener("click", () => { if (this._linkClickHandler) this._linkClickHandler(); });
+
+      this._container.appendChild(this._inner);
+      this._container.appendChild(this._btnClear);
+      this._container.appendChild(this._btnLink);
+    }
+
+    _renderList(query) {
+      const q = query.toLowerCase();
+      const filtered = this._options.filter(o => o.label.toLowerCase().includes(q)).slice(0, 10);
+      this._list.innerHTML = "";
+      this._emptyMsg.classList.add("hidden");
+      if (!filtered.length) { this._emptyMsg.classList.remove("hidden"); return; }
+      filtered.forEach(opt => {
+        const li = document.createElement("li");
+        li.textContent = opt.label;
+        li.className = "px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 cursor-pointer";
+        li.addEventListener("click", () => this._select(opt));
+        this._list.appendChild(li);
+      });
+    }
+
+    _toggle() {
+      if (this._locked) return;
+      this._dropdown.classList.contains("hidden") ? this._open() : this._close();
+    }
+
+    _open() {
+      this._dropdown.classList.remove("hidden");
+      this._searchInput.value = "";
+      this._renderList("");
+      this._searchInput.focus();
+      document.addEventListener("mousedown", this._boundClose);
+    }
+
+    _close() {
+      this._dropdown.classList.add("hidden");
+      document.removeEventListener("mousedown", this._boundClose);
+    }
+
+    _select(opt) {
+      this._value = opt.value;
+      this._label = opt.label;
+      this._setLocked(true);
+      this._updateTriggerLabel();
+      this._updateActions();
+      this._close();
+      if (this._onChange) this._onChange(opt.value, opt.label);
+    }
+    
+    _setLocked(locked) {
+      this._locked = locked;
+      if (locked) {
+        this._container.classList.remove("gap-1");
+        this._container.classList.add("cs-chip");
+        this._inner.style.cssText = "display:flex;align-items:center;height:100%;flex:1;min-width:0;position:relative";
+        this._trigger.className = "cs-chip-text pointer-events-none border-0 bg-transparent h-full text-left";
+        this._arrow.style.display = "none";
+        this._btnLink.className  = "cs-chip-link";
+        this._btnClear.className = "cs-chip-clear";
+      } else {
+        this._container.classList.add("gap-1");
+        this._container.classList.remove("cs-chip");
+        this._inner.style.cssText = "position:relative;flex:1;min-width:0";
+        this._trigger.className = "w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded text-sm bg-white text-left focus:outline-none cursor-pointer";
+        this._arrow.style.display = "";
+        this._btnLink.className  = "flex-shrink-0 p-1 text-gray-400 hover:text-blue-600 transition";
+        this._btnClear.className = "flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition";
+      }
+    }
+
+    _updateTriggerLabel() {
+      const span = this._trigger.querySelector("[data-label]");
+      if (this._label) {
+        span.textContent = this._label;
+        span.className = "text-gray-700 truncate";
+      } else {
+        span.textContent = this._placeholder;
+        span.className = "text-gray-400 truncate";
+      }
+    }
+
+    _updateActions() {
+      const hasValue = this._value !== "";
+      this._btnClear.style.display = hasValue ? "" : "none";
+      this._btnLink.style.display  = hasValue ? "" : "none";
+    }
+
+    _onOutsideClick(e) {
+      if (!this._container.contains(e.target)) this._close();
+    }
+  }
+
+  // ── Elementos ─────────────────────────────────────────────────────────────
+  const selectMonth     = document.getElementById("select-month");
+  const selectYear      = document.getElementById("select-year");
+  const btnProcess      = document.getElementById("btn-process");
+  const btnPdf          = document.getElementById("btn-pdf");
+  const resultContainer = document.getElementById("result-container");
+  const errorMsg        = document.getElementById("error-msg");
+  const tbody           = document.getElementById("tbody-audit");
+  const toggleBtn       = document.getElementById("toggle-btn");
+  const toggleThumb     = document.getElementById("toggle-thumb");
+
+  // ── Preencher anos ────────────────────────────────────────────────────────
+  const now = new Date();
+  for (let y = now.getFullYear(); y >= now.getFullYear() - 4; y--) {
+    const opt = document.createElement("option");
+    opt.value = String(y);
+    opt.textContent = String(y);
+    selectYear.appendChild(opt);
+  }
+  selectMonth.value = String(now.getMonth() + 1);
+
+  // ── SearchSelect de circuitos ─────────────────────────────────────────────
+  const csCircuit = new SearchSelect(
+    document.getElementById("cs-circuit"),
+    [],
+    { placeholder: "Selecionar circuito..." }
+  );
+
+  csCircuit.setLinkClickHandler(() => {
+    window.location.href = `/circuits?modal=${csCircuit.getValue()}`;
+  });
+
+  fetch("/api/circuit/circuits?page=0&size=9999&sort=number,asc")
+    .then(r => r.ok ? r.json() : { content: [] })
+    .then(data => {
+      csCircuit.setOptions(
+        (data.content || []).map(c => ({
+          value: c.number,
+          label: `${c.number} — ${c.customerName}`,
+        }))
+      );
+    });
+
+ 
+
+  // ── Estado ────────────────────────────────────────────────────────────────
+  let auditData  = null;
+  let allRows    = [];
+  let toggleOn   = false;
+
+  // ── Toggle ────────────────────────────────────────────────────────────────
+  toggleBtn.addEventListener("click", () => {
+    toggleOn = !toggleOn;
+    toggleBtn.setAttribute("aria-checked", String(toggleOn));
+    toggleBtn.style.background      = toggleOn ? "#1D9E75" : "#e0e0e0";
+    toggleThumb.style.transform     = toggleOn ? "translateX(16px)" : "translateX(0)";
+    renderRows(toggleOn
+      ? allRows.filter(l => !(l.quotaUsedThisCall === 0 && parseFloat(l.cost) === 0))
+      : allRows
+    );
+  });
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.classList.remove("hidden");
+  }
+
+  function hideError() { errorMsg.classList.add("hidden"); }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString("pt-BR") + " " +
+      d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function formatDuration(s) {
+    const m = Math.floor(s / 60);
+    return `${m}:${String(s % 60).padStart(2, "0")}`;
+  }
+
+  function badgeCallType(t) {
+    const map = {
+      "FIXED_LOCAL":          { label: "Fixo Local",  bg: "#E6F1FB", color: "#0C447C" },
+      "FIXED_LONG_DISTANCE":  { label: "Fixo LD",     bg: "#f5f5f5", color: "#888"    },
+      "MOBILE_LOCAL":         { label: "Móvel Local", bg: "#EEEDFE", color: "#3C3489" },
+      "MOBILE_LONG_DISTANCE": { label: "Móvel LD",    bg: "#FAECE7", color: "#712B13" },
+    };
+    const b = map[t] ?? { label: t, bg: "#f5f5f5", color: "#888" };
+    return `<span style="background:${b.bg};color:${b.color}" class="rounded-[99px] text-[12px] px-[9px] py-[2px] font-medium whitespace-nowrap">${b.label}</span>`;
+  }
+
+  function formatCost(val) {
+    return parseFloat(String(val)).toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+  }
+
+  // ── Renderizar linhas ─────────────────────────────────────────────────────
+  function renderRows(lines) {
+    tbody.innerHTML = "";
+    if (!lines.length) {
+      tbody.innerHTML = `<div class="px-4 py-6 text-[13px] text-[#888] text-center">Nenhuma chamada no período informado.</div>`;
+      return;
+    }
+    lines.forEach(line => {
+      const cost       = parseFloat(line.cost);
+      const hasPackage = line.quotaUsedThisCall > 0;
+      const div        = document.createElement("div");
+      div.className    = "audit-row";
+      div.innerHTML = `
+        <span class="text-[13px] text-[#1a1a1a] font-mono">${formatDate(line.callDate)}</span>
+        <span class="text-[13px] text-[#1a1a1a] font-mono truncate">${line.dst || "—"}</span>
+        <span>${badgeCallType(line.callType)}</span>
+        <span class="text-[13px] text-[#1a1a1a]">${formatDuration(line.billSeconds)}</span>
+        <span class="text-[13px] text-[#1a1a1a] font-mono">${parseFloat(line.ratePerMinute).toFixed(4)}</span>
+        <span class="text-[13px] font-medium" style="color:${hasPackage ? "#085041" : "#888"}">${hasPackage ? "+" + line.quotaUsedThisCall + " min" : "—"}</span>
+        <span class="text-[13px] text-[#1a1a1a]">${line.quotaAccumulated}</span>
+        <span class="text-[13px] font-mono text-right${cost > 0 ? " font-medium" : ""}" style="color:${cost > 0 ? "#085041" : "#888"}">${formatCost(line.cost)}</span>
+      `;
+      tbody.appendChild(div);
+    });
+  }
+
+  // ── Processar ─────────────────────────────────────────────────────────────
+  btnProcess.addEventListener("click", async () => {
+    const circuitNumber = csCircuit.getValue();
+    if (!circuitNumber) { showError("Selecione um circuito."); return; }
+
+    const month = selectMonth.value;
+    const year  = selectYear.value;
+
+    hideError();
+    resultContainer.classList.add("hidden");
+    toggleOn = false;
+    toggleBtn.setAttribute("aria-checked", "false");
+    toggleBtn.style.background    = "#e0e0e0";
+    toggleThumb.style.transform   = "translateX(0)";
+    btnProcess.disabled           = true;
+    btnProcess.textContent        = "Processando...";
+
+    try {
+      const res = await fetch(`/api/audit/simulate?${new URLSearchParams({ circuitNumber, month, year })}`);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showError(err.message ?? "Erro ao processar auditoria.");
+        return;
+      }
+
+      auditData = await res.json();
+      allRows   = auditData.lines ?? [];
+
+      document.getElementById("ctx-circuit").textContent = auditData.circuitNumber ?? "—";
+      document.getElementById("ctx-plan").textContent    = auditData.planName ?? "—";
+      document.getElementById("ctx-period").textContent  = `${MESES[parseInt(month) - 1]} ${year}`;
+
+      const s = auditData.summary;
+      document.getElementById("tot-calls").textContent    = s.totalCalls.toLocaleString("pt-BR");
+      document.getElementById("tot-billable").textContent = s.totalMinutes.toLocaleString("pt-BR") + " min";
+      document.getElementById("tot-package").textContent  = s.quotaMinutesUsed.toLocaleString("pt-BR") + " min";
+      document.getElementById("tot-excess").textContent   = s.excessMinutes.toLocaleString("pt-BR") + " min";
+      document.getElementById("tot-cost").textContent     =
+        "R$ " + parseFloat(s.totalCost).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+
+      renderRows(allRows);
+      resultContainer.classList.remove("hidden");
+    } catch {
+      showError("Erro ao comunicar com o servidor.");
+    } finally {
+      btnProcess.disabled    = false;
+      btnProcess.textContent = "Processar";
+    }
+  });
+
+  // ── Baixar PDF ────────────────────────────────────────────────────────────
+  btnPdf.addEventListener("click", async () => {
+    if (!auditData) return;
+
+    const month   = selectMonth.value;
+    const year    = selectYear.value;
+    const mesNome = MESES[parseInt(month) - 1];
+
+    const { default: jsPDF }  = await import("jspdf");
+    const { default: autoTable } = await import("jspdf-autotable");
+
+    const callTypeLabel = {
+      "FIXED_LOCAL":          "Fixo Local",
+      "FIXED_LONG_DISTANCE":  "Fixo LD",
+      "MOBILE_LOCAL":         "Móvel Local",
+      "MOBILE_LONG_DISTANCE": "Móvel LD",
+    };
+
+    const rows = (toggleOn
+      ? allRows.filter(l => !(l.quotaUsedThisCall === 0 && parseFloat(l.cost) === 0))
+      : allRows
+    ).map(l => [
+      formatDate(l.callDate),
+      l.dst || "—",
+      callTypeLabel[l.callType] ?? l.callType,
+      formatDuration(l.billSeconds),
+      parseFloat(l.ratePerMinute).toFixed(4),
+      l.quotaUsedThisCall > 0 ? "+" + l.quotaUsedThisCall + " min" : "—",
+      String(l.quotaAccumulated),
+      formatCost(l.cost),
+    ]);
+
+    const doc   = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const pageW = doc.internal.pageSize.getWidth();
+
+    doc.setFillColor(39, 39, 42);
+    doc.rect(0, 0, pageW, 18, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text(
+      `Auditoria — ${auditData.circuitNumber}  |  ${auditData.planName}  |  ${mesNome} ${year}`,
+      pageW - 8, 11,
+      { align: "right" }
+    );
+
+    autoTable(doc, {
+      startY: 22,
+      head: [["Data/hora", "Destino", "Tipo", "Duração", "Tarifa R$/min", "Min. pacote", "Acum. pacote", "Custo"]],
+      body: rows,
+      headStyles:         { fillColor: [39, 39, 42], textColor: [209, 213, 219], fontStyle: "bold", fontSize: 8 },
+      bodyStyles:         { fontSize: 8, textColor: [55, 65, 81] },
+      alternateRowStyles: { fillColor: [249, 250, 251] },
+      columnStyles:       { 7: { halign: "right" } },
+      margin:             { left: 8, right: 8 },
+    });
+
+    const mesSlug = mesNome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    doc.save(`auditoria-${auditData.circuitNumber}-${mesSlug}-${year}.pdf`);
+
+  });
+</script>
