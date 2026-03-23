@@ -140,8 +140,8 @@ import Layout from "../../layouts/Layout.astro";
       </div>
       <div class="modal-tabs">
         <button class="modal-tab active" data-tab="detalhes">Detalhes</button>
-        <button class="modal-tab"        data-tab="dids">DIDs</button>
-        <button class="modal-tab"        data-tab="historico">Histórico</button>
+        <button id="tab-btn-dids"      class="modal-tab" data-tab="dids">DIDs</button>
+        <button id="tab-btn-historico" class="modal-tab" data-tab="historico">Histórico</button>
       </div>
     </div>
     <div id="modal-error" class="modal-error"></div>
@@ -169,7 +169,7 @@ import Layout from "../../layouts/Layout.astro";
         <hr class="section-divider" />
         <p class="section-title">Autenticação</p>
         <div class="form-group" style="margin-bottom:12px">
-          <label class="form-label">Senha</label>
+          <label class="form-label">Senha <span class="text-red-500">*</span></label>
           <div class="input-password-wrap">
             <input id="field-password" type="password" class="form-input" autocomplete="new-password" />
             <button id="btn-toggle-pw" class="btn-eye" type="button" title="Ver senha">
@@ -183,16 +183,16 @@ import Layout from "../../layouts/Layout.astro";
         <p class="section-title">Configuração</p>
         <div class="form-grid-2" style="margin-bottom:12px">
           <div class="form-group">
-            <label class="form-label">Tronco</label>
+            <label class="form-label">Tronco <span class="text-red-500">*</span></label>
             <div id="cs-trunk"></div>
           </div>
           <div class="form-group">
-            <label class="form-label">Plano</label>
+            <label class="form-label">Plano <span class="text-red-500">*</span></label>
             <div id="cs-plan"></div>
           </div>
         </div>
         <div class="form-group" style="max-width:50%">
-          <label class="form-label">Cliente</label>
+          <label class="form-label">Cliente <span class="text-red-500">*</span></label>
           <div id="cs-customer"></div>
         </div>
       </div>
@@ -751,10 +751,15 @@ import Layout from "../../layouts/Layout.astro";
       document.getElementById("field-password").value = "";
       csTrunk.clear(); csPlan.clear(); csCustomer.clear();
       document.getElementById("btn-delete-circuit").style.display = "none";
+      document.getElementById("tab-btn-dids").style.display      = "none";
+      document.getElementById("tab-btn-historico").style.display = "none";
       activateTab("detalhes");
       ms.openMain();
       return;
     }
+
+    document.getElementById("tab-btn-dids").style.display      = "";
+    document.getElementById("tab-btn-historico").style.display = "";
 
     document.getElementById("btn-delete-circuit").style.display = "";
 
@@ -945,6 +950,20 @@ import Layout from "../../layouts/Layout.astro";
   // ── Save circuit ──────────────────────────────────────────────────────────
   document.getElementById("btn-save-circuit").addEventListener("click", async () => {
     hideModalError();
+    const isCreate = !currentCircuitNumber;
+
+    if (isCreate) {
+      const missing = [];
+      if (!document.getElementById("field-password").value.trim()) missing.push("Senha");
+      if (!csTrunk.getValue())    missing.push("Tronco");
+      if (!csPlan.getValue())     missing.push("Plano");
+      if (!csCustomer.getValue()) missing.push("Cliente");
+      if (missing.length) {
+        showModalError(`Campos obrigatórios não preenchidos: ${missing.join(", ")}.`);
+        return;
+      }
+    }
+
     const body = {
       active:     document.getElementById("field-active").checked,
       password:   document.getElementById("field-password").value || undefined,
@@ -952,16 +971,19 @@ import Layout from "../../layouts/Layout.astro";
       planId:     csPlan.getValue()     ? Number(csPlan.getValue())     : null,
       customerId: csCustomer.getValue() ? Number(csCustomer.getValue()) : null,
     };
-
-    const isCreate = !currentCircuitNumber;
     const r = await fetch(
       isCreate ? "/api/circuit/circuits" : `/api/circuit/${currentCircuitNumber}`,
       { method: isCreate ? "POST" : "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
     );
     if (r.ok) {
-      ms.closeAll();
+      const saved = await r.json().catch(() => null);
       carregarDados(currentPage);
       carregarSummary();
+      if (isCreate && saved?.number) {
+        openCircuitModal(saved.id, saved.number);
+      } else {
+        ms.closeAll();
+      }
     } else {
       const err = await r.json().catch(() => ({}));
       showModalError(err.message || "Erro ao salvar circuito.");
