@@ -13,6 +13,41 @@ import Layout from "../../layouts/Layout.astro";
     border-bottom: 1px solid #f0f0f0;
   }
   .audit-row:last-child { border-bottom: none; }
+
+  /* DID selection modal — audit page */
+  .modal-overlay-did {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.15);
+    z-index: 30;
+    opacity: 0; pointer-events: none;
+    transition: opacity 250ms ease;
+  }
+  .modal-overlay-did.active { opacity: 1; pointer-events: auto; }
+
+  .modal-did {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0; pointer-events: none;
+    width: 480px; height: 480px;
+    background: #fff; border-radius: 12px;
+    box-shadow: 0 12px 60px rgba(0,0,0,0.28);
+    z-index: 35;
+    display: flex; flex-direction: column;
+    transition: transform 250ms cubic-bezier(0.4,0,0.2,1), opacity 250ms cubic-bezier(0.4,0,0.2,1);
+  }
+  .modal-did.open { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
+
+  .did-select-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 6px; cursor: pointer;
+    font-size: 13px; color: #374151;
+    transition: background 0.12s;
+  }
+  .did-select-item:hover { background: #f3f4f6; }
+  .did-select-item.selected { background: #eff6ff; color: #1d4ed8; font-weight: 500; }
+  .did-select-num { flex: 1; }
+  .did-select-id { font-size: 11px; color: #9ca3af; }
+  .did-select-item.selected .did-select-id { color: #93c5fd; }
 </style>
 
 <Layout title="Auditoria — AsteraComm">
@@ -166,6 +201,9 @@ import Layout from "../../layouts/Layout.astro";
 
 </Layout>
 
+<!-- ── Overlay: modal de detalhes do circuito ──────────────────────── -->
+  <div id="circuit-modal-overlay" class="modal-overlay"></div>
+
 <!-- ── Sub-modal: detalhes do circuito ────────────────────────────────── -->
   <div id="modal-sub" class="modal-sub">
     <div class="sub-modal-header">
@@ -253,6 +291,33 @@ import Layout from "../../layouts/Layout.astro";
       <div class="modal-footer-right">
         <button id="csub-btn-back2" class="btn-modal-cancel" type="button">Voltar</button>
         <button id="csub-btn-save"  class="btn-modal-save"   type="button">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+<!-- ── Overlay DID (dentro do modal de circuito) ──────────────────────── -->
+  <div id="csub-modal-overlay-did" class="modal-overlay-did"></div>
+
+<!-- ── Modal DID (seleção) ────────────────────────────────────────────── -->
+  <div id="csub-modal-did" class="modal-did">
+    <div class="modal-header">
+      <div class="modal-header-top">
+        <div class="modal-header-titles">
+          <span class="modal-subtitle">Circuito</span>
+          <span class="modal-title" style="font-size:16px">Adicionar DID</span>
+        </div>
+        <button id="csub-did-btn-close" class="modal-btn-close" title="Fechar">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;overflow:hidden">
+      <input id="csub-did-search-input" type="text" class="form-input" placeholder="Pesquisar número..." />
+      <div id="csub-did-available-list" style="flex:1;overflow-y:auto"></div>
+    </div>
+    <div class="modal-footer">
+      <div></div>
+      <div class="modal-footer-right">
+        <button id="csub-did-btn-cancel"  class="btn-modal-cancel" type="button">Cancelar</button>
+        <button id="csub-did-btn-confirm" class="btn-modal-save"   type="button" disabled style="opacity:0.5;cursor:default">Adicionar</button>
       </div>
     </div>
   </div>
@@ -486,9 +551,7 @@ import Layout from "../../layouts/Layout.astro";
     { placeholder: "Selecionar circuito..." }
   );
 
-  csCircuit.setLinkClickHandler(() => {
-    window.location.href = `/circuits?modal=${csCircuit.getValue()}`;
-  });
+  csCircuit.setLinkClickHandler(() => openCsubCircuitModal(csCircuit.getValue()));
 
   fetch("/api/circuit/circuits?page=0&size=9999&sort=number,asc")
     .then(r => r.ok ? r.json() : { content: [] })
@@ -630,6 +693,300 @@ import Layout from "../../layouts/Layout.astro";
       btnProcess.textContent = "Processar";
     }
   });
+
+  // ── Modal de detalhes do circuito ─────────────────────────────────────────
+  const circuitModalOverlay = document.getElementById("circuit-modal-overlay");
+  const circuitModal        = document.getElementById("modal-sub");
+
+  // SearchSelects internos do modal
+  const csubCsTrunk    = new SearchSelect(document.getElementById("csub-cs-trunk"),    [], { placeholder: "Selecionar tronco..." });
+  const csubCsPlan     = new SearchSelect(document.getElementById("csub-cs-plan"),     [], { placeholder: "Selecionar plano..." });
+  const csubCsCustomer = new SearchSelect(document.getElementById("csub-cs-customer"), [], { placeholder: "Selecionar cliente..." });
+
+  let csubCircuitNumber = null;
+  let csubDeleteCount   = 0;
+  let csubDeleteTimer   = null;
+  let csubTrunksLoaded  = false;
+
+  function openCircuitModalOverlay() {
+    circuitModalOverlay.classList.add("active");
+    circuitModal.classList.add("open");
+  }
+
+  function closeCircuitModal() {
+    circuitModal.classList.remove("open");
+    circuitModalOverlay.classList.remove("active");
+    csubCircuitNumber = null;
+    resetCsubDeleteBtn();
+  }
+
+  circuitModalOverlay.addEventListener("click", closeCircuitModal);
+  document.getElementById("csub-btn-close").addEventListener("click",  closeCircuitModal);
+  document.getElementById("csub-btn-back").addEventListener("click",   closeCircuitModal);
+  document.getElementById("csub-btn-back2").addEventListener("click",  closeCircuitModal);
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && circuitModal.classList.contains("open")) {
+      if (document.getElementById("csub-modal-did").classList.contains("open")) {
+        closeCsubDidModal();
+      } else {
+        closeCircuitModal();
+      }
+    }
+  });
+
+  // Tabs do modal de circuito
+  document.querySelectorAll("[data-csub-tab]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const tab = btn.getAttribute("data-csub-tab");
+      activateCsubTab(tab);
+      if (tab === "dids") loadCsubDids();
+    });
+  });
+
+  function activateCsubTab(name) {
+    document.querySelectorAll("[data-csub-tab]").forEach(b =>
+      b.classList.toggle("active", b.getAttribute("data-csub-tab") === name)
+    );
+    ["detalhes", "dids", "historico"].forEach(t => {
+      const panel = document.getElementById(`csub-tab-${t}`);
+      if (panel) panel.classList.toggle("active", t === name);
+    });
+  }
+
+  // Toggle ativo
+  document.getElementById("csub-field-active").addEventListener("change", function() {
+    document.getElementById("csub-toggle-active-label").textContent = this.checked ? "Ativo" : "Inativo";
+  });
+
+  // Toggle senha
+  document.getElementById("csub-btn-toggle-pw").addEventListener("click", () => {
+    const input = document.getElementById("csub-field-password");
+    input.type = input.type === "password" ? "text" : "password";
+  });
+
+  // Carrega opções dos selects (uma vez)
+  async function loadCsubChipOptions() {
+    if (csubTrunksLoaded) return;
+    const [trunks, plans, customers] = await Promise.all([
+      fetch("/api/trunk/trunks?page=0&size=900").then(r => r.ok ? r.json() : { content: [] }),
+      fetch("/api/plan/plans?page=0&size=900").then(r => r.ok ? r.json() : { content: [] }),
+      fetch("/api/customer/customers?page=0&size=999").then(r => r.ok ? r.json() : { content: [] }),
+    ]);
+    csubCsTrunk.setOptions((trunks.content || []).map(t => ({ value: t.name, label: t.name })));
+    csubCsPlan.setOptions((plans.content || []).map(p => ({ value: String(p.id), label: p.name })));
+    csubCsCustomer.setOptions((customers.content || []).map(c => ({ value: String(c.id), label: c.name })));
+    csubTrunksLoaded = true;
+  }
+
+  // Abre o modal com dados do circuito
+  async function openCsubCircuitModal(circuitNumber) {
+    if (!circuitNumber) return;
+    csubCircuitNumber = circuitNumber;
+    hideCsubError();
+    resetCsubDeleteBtn();
+
+    await loadCsubChipOptions();
+
+    const r = await fetch(`/api/circuit/${circuitNumber}`);
+    if (!r.ok) return;
+    const c = await r.json();
+
+    document.getElementById("csub-title").textContent    = c.number;
+    document.getElementById("csub-subtitle").textContent = "Circuito";
+    document.getElementById("csub-field-id").value       = c.id;
+    document.getElementById("csub-field-number").value   = c.number;
+    document.getElementById("csub-field-active").checked = c.active;
+    document.getElementById("csub-toggle-active-label").textContent = c.active ? "Ativo" : "Inativo";
+    document.getElementById("csub-field-password").value = c.password || "";
+
+    if (c.trunkName)    csubCsTrunk.setValue(c.trunkName);          else csubCsTrunk.clear();
+    if (c.plan?.id)     csubCsPlan.setValue(String(c.plan.id));     else csubCsPlan.clear();
+    if (c.customer?.id) csubCsCustomer.setValue(String(c.customer.id)); else csubCsCustomer.clear();
+
+    activateCsubTab("detalhes");
+    openCircuitModalOverlay();
+  }
+
+  // ── DIDs tab ───────────────────────────────────────────────────────────────
+  async function loadCsubDids() {
+    if (!csubCircuitNumber) return;
+    const list = document.getElementById("csub-did-list");
+    list.innerHTML = `<p class="did-empty">Carregando...</p>`;
+    const r = await fetch(`/api/did/by-circuit/${csubCircuitNumber}`);
+    if (!r.ok) { list.innerHTML = `<p class="did-empty">Erro ao carregar DIDs.</p>`; return; }
+    const dids = await r.json();
+    if (!dids.length) { list.innerHTML = `<p class="did-empty">Nenhum DID vinculado.</p>`; return; }
+    list.innerHTML = dids.map(d => `
+      <div class="did-grid-row">
+        <span>${d.id}</span>
+        <span>${d.number}</span>
+        <span>${d.linkedAt ? new Date(d.linkedAt).toLocaleDateString("pt-BR") : "—"}</span>
+        <button class="btn-did-unlink" data-did-id="${d.id}" data-did-number="${d.number}" title="Desvincular">✕</button>
+      </div>
+    `).join("");
+    list.querySelectorAll(".btn-did-unlink").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const didId  = btn.getAttribute("data-did-id");
+        const number = btn.getAttribute("data-did-number");
+        if (!confirm(`Deseja desvincular o DID ${number} deste circuito?`)) return;
+        const r2 = await fetch("/api/did/unlink", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ didId: Number(didId) }),
+        });
+        if (r2.ok) loadCsubDids();
+      });
+    });
+  }
+
+  document.getElementById("csub-btn-add-did").addEventListener("click", () => openCsubDidModal());
+
+  // ── Modal de seleção de DID ────────────────────────────────────────────────
+  let csubDidSearchData = [];
+  let csubSelectedDidId = null;
+
+  async function openCsubDidModal() {
+    csubSelectedDidId = null;
+    document.getElementById("csub-did-search-input").value = "";
+    document.getElementById("csub-did-available-list").innerHTML =
+      `<p style="color:#9ca3af;font-size:13px;padding:16px 0;text-align:center">Carregando...</p>`;
+    setCsubDidConfirmState(false);
+
+    const r = await fetch("/api/did/free");
+    if (!r.ok) {
+      document.getElementById("csub-did-available-list").innerHTML =
+        `<p style="color:#ef4444;font-size:13px;padding:16px 0;text-align:center">Erro ao carregar DIDs.</p>`;
+    } else {
+      const data = await r.json();
+      csubDidSearchData = Array.isArray(data) ? data : (data.content || []);
+      renderCsubDidList("");
+    }
+
+    document.getElementById("csub-modal-overlay-did").classList.add("active");
+    document.getElementById("csub-modal-did").classList.add("open");
+  }
+
+  function closeCsubDidModal() {
+    document.getElementById("csub-modal-did").classList.remove("open");
+    document.getElementById("csub-modal-overlay-did").classList.remove("active");
+  }
+
+  function renderCsubDidList(query) {
+    const q = query.toLowerCase();
+    const filtered = csubDidSearchData
+      .filter(d => String(d.number || d.id).toLowerCase().includes(q))
+      .slice(0, 50);
+    const list = document.getElementById("csub-did-available-list");
+    if (!filtered.length) {
+      list.innerHTML = `<p style="color:#9ca3af;font-size:13px;padding:16px 0;text-align:center">Nenhum DID encontrado.</p>`;
+      return;
+    }
+    list.innerHTML = "";
+    filtered.forEach(d => {
+      const item = document.createElement("div");
+      item.className = "did-select-item" + (csubSelectedDidId === d.id ? " selected" : "");
+      item.dataset.id = d.id;
+      item.innerHTML = `<span class="did-select-num">${d.number}</span><span class="did-select-id">ID ${d.id}</span>`;
+      item.addEventListener("click", () => {
+        csubSelectedDidId = d.id;
+        list.querySelectorAll(".did-select-item").forEach(el => el.classList.remove("selected"));
+        item.classList.add("selected");
+        setCsubDidConfirmState(true);
+      });
+      list.appendChild(item);
+    });
+  }
+
+  function setCsubDidConfirmState(enabled) {
+    const btn = document.getElementById("csub-did-btn-confirm");
+    btn.disabled = !enabled;
+    btn.style.opacity = enabled ? "" : "0.5";
+    btn.style.cursor  = enabled ? "" : "default";
+  }
+
+  document.getElementById("csub-did-search-input").addEventListener("input", e => renderCsubDidList(e.target.value));
+  document.getElementById("csub-did-btn-close").addEventListener("click",  closeCsubDidModal);
+  document.getElementById("csub-did-btn-cancel").addEventListener("click", closeCsubDidModal);
+  document.getElementById("csub-modal-overlay-did").addEventListener("click", closeCsubDidModal);
+
+  document.getElementById("csub-did-btn-confirm").addEventListener("click", async () => {
+    if (!csubSelectedDidId) return;
+    const r = await fetch("/api/did/link", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ didId: csubSelectedDidId, circuitNumber: csubCircuitNumber }),
+    });
+    if (r.ok) {
+      closeCsubDidModal();
+      loadCsubDids();
+    } else {
+      const err = await r.json().catch(() => ({}));
+      alert(err.message || "Erro ao vincular DID.");
+    }
+  });
+
+  // ── Salvar circuito ────────────────────────────────────────────────────────
+  document.getElementById("csub-btn-save").addEventListener("click", async () => {
+    hideCsubError();
+    const body = {
+      active:     document.getElementById("csub-field-active").checked,
+      password:   document.getElementById("csub-field-password").value || undefined,
+      trunkName:  csubCsTrunk.getValue()    || null,
+      planId:     csubCsPlan.getValue()     ? Number(csubCsPlan.getValue())     : null,
+      customerId: csubCsCustomer.getValue() ? Number(csubCsCustomer.getValue()) : null,
+    };
+    const r = await fetch(`/api/circuit/${csubCircuitNumber}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (r.ok) {
+      closeCircuitModal();
+    } else {
+      const err = await r.json().catch(() => ({}));
+      showCsubError(err.message || "Erro ao salvar circuito.");
+    }
+  });
+
+  // ── Deletar circuito ───────────────────────────────────────────────────────
+  document.getElementById("csub-btn-delete").addEventListener("click", async () => {
+    const btn = document.getElementById("csub-btn-delete");
+    if (csubDeleteCount === 0) {
+      csubDeleteCount = 1;
+      btn.textContent = "Confirmar exclusão";
+      btn.classList.add("confirm");
+      csubDeleteTimer = setTimeout(resetCsubDeleteBtn, 3000);
+    } else {
+      clearTimeout(csubDeleteTimer);
+      const r = await fetch(`/api/circuit/${csubCircuitNumber}`, { method: "DELETE" });
+      if (r.ok || r.status === 204) {
+        closeCircuitModal();
+      } else {
+        const err = await r.json().catch(() => ({}));
+        showCsubError(err.message || "Erro ao deletar circuito.");
+        resetCsubDeleteBtn();
+      }
+    }
+  });
+
+  function resetCsubDeleteBtn() {
+    csubDeleteCount = 0;
+    const btn = document.getElementById("csub-btn-delete");
+    btn.textContent = "Deletar";
+    btn.classList.remove("confirm");
+  }
+
+  function showCsubError(msg) {
+    const el = document.getElementById("csub-error");
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+
+  function hideCsubError() {
+    const el = document.getElementById("csub-error");
+    el.style.display = "none";
+  }
 
   // ── Baixar PDF ────────────────────────────────────────────────────────────
   btnPdf.addEventListener("click", async () => {
