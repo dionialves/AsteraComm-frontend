@@ -135,19 +135,12 @@ import Layout from "../../layouts/Layout.astro";
       </div>
     </div>
 
-    <!-- Body: confirmação de exclusão -->
-    <div id="confirm-body" class="modal-body" style="display:none; padding-top:24px">
-      <p style="font-size:14px; color:#374151; margin-bottom:8px; font-weight:500">Excluir usuário?</p>
-      <p style="font-size:13px; color:#888; margin-bottom:0">Esta ação não pode ser desfeita.</p>
-    </div>
-
     <!-- Footer -->
     <div class="modal-footer">
-      <button id="btn-delete"  class="btn-modal-delete" style="display:none">Excluir</button>
+      <button id="btn-delete" class="btn-modal-delete" style="display:none">Excluir</button>
       <div class="modal-footer-right">
         <button id="btn-cancel" class="btn-modal-cancel">Cancelar</button>
         <button id="btn-save"   class="btn-modal-save">Salvar</button>
-        <button id="btn-confirm-delete" class="btn-modal-delete confirm" style="display:none">Confirmar exclusão</button>
       </div>
     </div>
 
@@ -169,7 +162,7 @@ import Layout from "../../layouts/Layout.astro";
   let searchTerm    = "";
   let selectedRow   = null;
   let editingId     = null;
-  let confirmMode   = false;
+  let deleteTimer   = null;
 
   // ── Elementos ─────────────────────────────────────────────────────────────
   const tbody       = document.getElementById("tbody-users");
@@ -185,7 +178,6 @@ import Layout from "../../layouts/Layout.astro";
   const modalTitle      = document.getElementById("modal-title");
   const modalError      = document.getElementById("modal-error");
   const formBody        = document.getElementById("form-body");
-  const confirmBody     = document.getElementById("confirm-body");
   const fieldName       = document.getElementById("field-name");
   const fieldUsername   = document.getElementById("field-username");
   const fieldPassword   = document.getElementById("field-password");
@@ -197,7 +189,6 @@ import Layout from "../../layouts/Layout.astro";
   const btnDelete       = document.getElementById("btn-delete");
   const btnCancel       = document.getElementById("btn-cancel");
   const btnSave         = document.getElementById("btn-save");
-  const btnConfirm      = document.getElementById("btn-confirm-delete");
 
   // ── Busca (debounce 300ms) ────────────────────────────────────────────────
   let debounceTimer;
@@ -387,9 +378,16 @@ import Layout from "../../layouts/Layout.astro";
   }
 
   // ── Modal: abrir / fechar ─────────────────────────────────────────────────
+  function resetDeleteBtn() {
+    clearTimeout(deleteTimer);
+    deleteTimer = null;
+    btnDelete.textContent = "Excluir";
+    btnDelete.classList.remove("confirm");
+  }
+
   function openModal(userId) {
-    editingId   = userId || null;
-    confirmMode = false;
+    editingId = userId || null;
+    resetDeleteBtn();
     const isEdit = !!editingId;
 
     // Reset campos
@@ -405,8 +403,6 @@ import Layout from "../../layouts/Layout.astro";
     passwordGroup.style.display = isEdit ? "none" : "";
     statusGroup.style.display   = isEdit ? "flex" : "none";
     btnDelete.style.display     = isEdit ? "" : "none";
-
-    showFormBody();
 
     if (isEdit) {
       fieldUsername.disabled = true;
@@ -441,26 +437,7 @@ import Layout from "../../layouts/Layout.astro";
     if (selectedRow) selectedRow.classList.remove("row-selected");
     selectedRow = null;
     editingId   = null;
-    confirmMode = false;
-  }
-
-  function showFormBody() {
-    formBody.style.display    = "";
-    confirmBody.style.display = "none";
-    btnSave.style.display     = "";
-    btnCancel.textContent     = "Cancelar";
-    btnConfirm.style.display  = "none";
-    btnDelete.style.display   = editingId ? "" : "none";
-  }
-
-  function showConfirmBody() {
-    formBody.style.display    = "none";
-    confirmBody.style.display = "";
-    btnSave.style.display     = "none";
-    btnDelete.style.display   = "none";
-    btnCancel.textContent     = "Voltar";
-    btnConfirm.style.display  = "";
-    clearError();
+    resetDeleteBtn();
   }
 
   // ── Toggle ativo/inativo ──────────────────────────────────────────────────
@@ -476,32 +453,29 @@ import Layout from "../../layouts/Layout.astro";
     if (e.key === "Escape" && modalMain.classList.contains("open")) closeModal();
   });
 
-  btnCancel.addEventListener("click", () => {
-    if (confirmMode) { confirmMode = false; showFormBody(); }
-    else closeModal();
-  });
+  btnCancel.addEventListener("click", closeModal);
 
-  btnDelete.addEventListener("click", () => {
-    confirmMode = true;
-    showConfirmBody();
-  });
-
-  btnConfirm.addEventListener("click", async () => {
-    try {
-      const res = await fetch(`/api/users/${editingId}`, { method: "DELETE" });
-      if (res.ok || res.status === 204) {
-        closeModal();
-        fetchUsers();
-        window.showToast("Usuário excluído com sucesso!", "success");
-      } else {
-        confirmMode = false;
-        showFormBody();
-        showError("Erro ao excluir usuário.");
+  btnDelete.addEventListener("click", async () => {
+    if (btnDelete.classList.contains("confirm")) {
+      // segundo clique — executar exclusão
+      resetDeleteBtn();
+      try {
+        const res = await fetch(`/api/users/${editingId}`, { method: "DELETE" });
+        if (res.ok || res.status === 204) {
+          closeModal();
+          fetchUsers();
+          window.showToast("Usuário excluído com sucesso!", "success");
+        } else {
+          showError("Erro ao excluir usuário.");
+        }
+      } catch {
+        showError("Erro ao comunicar com o servidor.");
       }
-    } catch {
-      confirmMode = false;
-      showFormBody();
-      showError("Erro ao comunicar com o servidor.");
+    } else {
+      // primeiro clique — pedir confirmação
+      btnDelete.textContent = "Confirmar exclusão";
+      btnDelete.classList.add("confirm");
+      deleteTimer = setTimeout(resetDeleteBtn, 3000);
     }
   });
 
