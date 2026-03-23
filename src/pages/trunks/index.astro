@@ -5,7 +5,7 @@ import Layout from "../../layouts/Layout.astro";
 <style is:global>
   .trunk-row {
     display: grid;
-    grid-template-columns: minmax(0,1fr) minmax(0,1.5fr) minmax(0,1fr) 130px;
+    grid-template-columns: 40px minmax(0,1fr) minmax(0,1.5fr) minmax(0,1fr) 130px;
     gap: 8px;
     padding: 14px 16px;
     align-items: center;
@@ -74,6 +74,7 @@ import Layout from "../../layouts/Layout.astro";
   <!-- ── Table ───────────────────────────────────────────────────────────── -->
   <div class="rounded-xl border border-[#e0e0e0] overflow-hidden">
     <div class="trunk-row bg-[#f5f5f5] border-b border-[#e0e0e0]" style="cursor:default">
+      <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">ID</span>
       <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Nome</span>
       <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Host</span>
       <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Usuário</span>
@@ -106,9 +107,15 @@ import Layout from "../../layouts/Layout.astro";
     <div class="modal-body">
 
       <p class="section-title">Identificação</p>
-      <div class="form-group" style="margin-bottom:16px">
-        <label class="form-label">Nome <span style="color:#ef4444">*</span></label>
-        <input id="inputName" type="text" maxlength="50" placeholder="Ex: operadora-a" class="form-input" />
+      <div class="form-grid-2" style="margin-bottom:12px">
+        <div class="form-group">
+          <label class="form-label">ID</label>
+          <input id="inputId" type="text" disabled class="form-input" placeholder="—" style="font-family:monospace;font-size:12px;color:#aaa;background:#fafafa" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nome <span style="color:#ef4444">*</span></label>
+          <input id="inputName" type="text" maxlength="50" placeholder="Ex: operadora-a" class="form-input" />
+        </div>
       </div>
 
       <hr class="section-divider" />
@@ -172,6 +179,7 @@ import Layout from "../../layouts/Layout.astro";
   const modalTrunk     = document.getElementById('modal-trunk');
   const modalTitle     = document.getElementById('modal-title');
   const modalError     = document.getElementById('modal-error');
+  const inputId        = document.getElementById('inputId');
   const inputName      = document.getElementById('inputName');
   const inputHost      = document.getElementById('inputHost');
   const inputUsername  = document.getElementById('inputUsername');
@@ -243,12 +251,13 @@ import Layout from "../../layouts/Layout.astro";
         : `<span style="background:#FCEBEB;color:#791F1F;border-radius:99px;font-size:11px;padding:2px 10px;font-weight:500">Não registrado</span>`;
 
       row.innerHTML = `
+        <span class="font-mono text-[#888] text-[13px]">${item.id}</span>
         <span style="font-size:13px;font-weight:500;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.name}</span>
         <span style="font-size:12px;font-family:monospace;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.host}</span>
         <span style="font-size:13px;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.username}</span>
         <span>${badge}</span>
       `;
-      row.addEventListener('click', () => openModal(item.name, row));
+      row.addEventListener('click', () => openModal(item.name, row, item.id));
       tbody.appendChild(row);
     });
   }
@@ -273,10 +282,11 @@ import Layout from "../../layouts/Layout.astro";
   }
 
   // ── Modal open ────────────────────────────────────────────────────────────
-  function openModal(trunkName, row) {
+  function openModal(trunkName, row, trunkId) {
     editingTrunkName = trunkName || null;
     const isEdit = !!editingTrunkName;
 
+    inputId.value       = '';
     inputName.value     = '';
     inputHost.value     = '';
     inputUsername.value = '';
@@ -287,6 +297,7 @@ import Layout from "../../layouts/Layout.astro";
     modalTitle.textContent = isEdit ? editingTrunkName : 'Novo Tronco';
 
     if (isEdit) {
+      inputId.value      = trunkId;
       inputName.value    = editingTrunkName;
       inputName.disabled = true;
       btnDelete.style.display = '';
