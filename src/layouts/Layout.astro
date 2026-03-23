@@ -34,7 +34,6 @@ function roleLabel(role: string) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title}</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 
     /* ── Sidebar ─────────────────────────────────────────────────── */
@@ -43,7 +42,7 @@ function roleLabel(role: string) {
       width: 220px; height: 100vh;
       background: #1a1a1a;
       display: flex; flex-direction: column;
-      z-index: 100; overflow-y: auto;
+      z-index: 5; overflow-y: auto;
     }
 
     .nav-item {
@@ -264,7 +263,7 @@ function roleLabel(role: string) {
   <div id="layout-overlay" class="modal-overlay"></div>
 
   <!-- ── Modal Dados Cadastrais (580px) ──────────────────────────────────── -->
-  <div id="modal-profile" class="modal-main" style="width:580px">
+  <div id="modal-profile" class="modal-main" style="width:580px;height:auto">
     <div class="modal-header">
       <div class="modal-header-top">
         <div class="modal-header-titles">
@@ -321,7 +320,7 @@ function roleLabel(role: string) {
   </div>
 
   <!-- ── Modal Alterar Senha (420px) ─────────────────────────────────────── -->
-  <div id="modal-password" class="modal-main" style="width:420px">
+  <div id="modal-password" class="modal-main" style="width:420px;height:auto">
     <div class="modal-header">
       <div class="modal-header-top">
         <div class="modal-header-titles">
