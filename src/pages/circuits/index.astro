@@ -125,6 +125,9 @@ import Layout from "../../layouts/Layout.astro";
     </div>
   </div>
 
+  <!-- ── Footer counter ─────────────────────────────────────────────────── -->
+  <p id="counter" class="text-[12px] text-[#888] text-right mt-3"></p>
+
   <!-- ── Overlay 1 ───────────────────────────────────────────────────────── -->
   <div id="modal-overlay-1" class="modal-overlay"></div>
 
@@ -528,6 +531,7 @@ import Layout from "../../layouts/Layout.astro";
 
   // ── Elements ──────────────────────────────────────────────────────────────
   const tbody       = document.getElementById("tbody-circuits");
+  const counter     = document.getElementById("counter");
   const btnPrev     = document.getElementById("btn-prev");
   const btnNext     = document.getElementById("btn-next");
   const pageInfo    = document.getElementById("page-info");
@@ -535,6 +539,7 @@ import Layout from "../../layouts/Layout.astro";
 
   let currentPage      = 0;
   let totalPages       = 0;
+  let totalElements    = 0;
   let currentFilter    = "all";
   let currentSortField = "id";
   let currentSortDir   = "desc";
@@ -659,8 +664,9 @@ import Layout from "../../layouts/Layout.astro";
     fetch(url)
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(data => {
-        currentPage = pagina;
-        totalPages  = data.totalPages;
+        currentPage   = pagina;
+        totalPages    = data.totalPages;
+        totalElements = data.totalElements;
         tbody.innerHTML = "";
         selectedRow = null;
 
@@ -707,10 +713,19 @@ import Layout from "../../layouts/Layout.astro";
         pageInfo.textContent = `Página ${currentPage + 1} de ${total}`;
         btnPrev.disabled = currentPage === 0;
         btnNext.disabled = currentPage >= totalPages - 1;
+        renderCounter();
       })
       .catch(() => {
         tbody.innerHTML = `<div class="px-4 py-3 text-[13px] text-red-500">Erro ao carregar dados.</div>`;
       });
+  }
+
+  // ── Render counter ────────────────────────────────────────────────────────
+  function renderCounter() {
+    const n = totalElements.toLocaleString('pt-BR');
+    counter.textContent = totalElements === 1
+      ? '1 circuito cadastrado'
+      : `${n} circuitos cadastrados`;
   }
 
   btnPrev.addEventListener("click", () => { if (currentPage > 0) carregarDados(currentPage - 1); });
