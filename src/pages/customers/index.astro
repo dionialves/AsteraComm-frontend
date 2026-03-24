@@ -752,8 +752,21 @@ import Layout from "../../layouts/Layout.astro";
   }
 
   // ── Save customer ─────────────────────────────────────────────────────────
+
   document.getElementById("btn-save-customer").addEventListener("click", async () => {
     hideModalError();
+
+    const isCreate = !currentCustomerId;
+    
+    if (isCreate) {
+      const missing = [];
+      if (!document.getElementById("field-name").value.trim())     missing.push("Nome");
+      if (missing.length) {
+        showModalError(`Campos obrigatórios não preenchidos: ${missing.join(", ")}.`);
+        return;
+      }
+    }
+
     const body = {
       name:    document.getElementById("field-name").value.trim(),
       enabled: document.getElementById("field-enabled").checked,
@@ -766,8 +779,15 @@ import Layout from "../../layouts/Layout.astro";
       closeModalAndDeselect();
       carregarDados(currentPage);
     } else {
-      const err = await r.json().catch(() => ({}));
-      showModalError(err.message || "Erro ao salvar cliente.");
+        const err = await r.json().catch(() => ({}));
+
+        if (err.errors) {
+            const messages = Object.values(err.errors).join(", ");
+            showModalError(messages);
+        } else {
+            showModalError(err.message || "Erro ao salvar cliente.");
+        }
+
     }
   });
 
