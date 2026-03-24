@@ -215,7 +215,7 @@ import Layout from "../../layouts/Layout.astro";
   // ── Load data ─────────────────────────────────────────────────────────────
   function loadTrunks(page) {
     const search = encodeURIComponent(inputSearch.value.trim());
-    const url = `/api/trunk/trunks?page=${page}&size=20&sort=name,asc&search=${search}`;
+    const url = `/api/trunk/trunks?page=${page}&search=${search}`;
 
     tbody.innerHTML = `<div class="trunk-row" style="cursor:default"><span style="font-size:13px;color:#aaa">Carregando...</span></div>`;
 

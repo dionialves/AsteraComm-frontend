@@ -551,18 +551,16 @@ import Layout from "../../layouts/Layout.astro";
 
   csCircuit.setLinkClickHandler(() => openCsubCircuitModal(csCircuit.getValue()));
 
-  fetch("/api/circuit/circuits?page=0&size=9999&sort=number,asc")
+  fetch("/api/circuit/summary")
     .then(r => r.ok ? r.json() : { content: [] })
     .then(data => {
       csCircuit.setOptions(
-        (data.content || []).map(c => ({
+        (data || []).map(c => ({
           value: c.number,
           label: `${c.number} — ${c.customerName}`,
         }))
       );
     });
-
- 
 
   // ── Estado ────────────────────────────────────────────────────────────────
   let auditData  = null;
@@ -767,13 +765,13 @@ import Layout from "../../layouts/Layout.astro";
   async function loadCsubChipOptions() {
     if (csubTrunksLoaded) return;
     const [trunks, plans, customers] = await Promise.all([
-      fetch("/api/trunk/trunks?page=0&size=900").then(r => r.ok ? r.json() : { content: [] }),
-      fetch("/api/plan/plans?page=0&size=900").then(r => r.ok ? r.json() : { content: [] }),
-      fetch("/api/customer/customers?page=0&size=999").then(r => r.ok ? r.json() : { content: [] }),
+      fetch("/api/trunk/summary").then(response => response.ok ? response.json() : []),
+      fetch("/api/plan/summary").then(response => response.ok ? response.json() : []),
+      fetch("/api/customer/summary").then(response => response.ok ? response.json() : []),
     ]);
-    csubCsTrunk.setOptions((trunks.content || []).map(t => ({ value: t.name, label: t.name })));
-    csubCsPlan.setOptions((plans.content || []).map(p => ({ value: String(p.id), label: p.name })));
-    csubCsCustomer.setOptions((customers.content || []).map(c => ({ value: String(c.id), label: c.name })));
+    csubCsTrunk.setOptions((trunks || []).map(t => ({ value: t.name, label: t.name })));
+    csubCsPlan.setOptions((plans || []).map(p => (AsteracommAdmin{ value: String(p.id), label: p.name })));
+    csubCsCustomer.setOptions((customers || []).map(c => ({ value: String(c.id), label: c.name })));
     csubTrunksLoaded = true;
   }
 

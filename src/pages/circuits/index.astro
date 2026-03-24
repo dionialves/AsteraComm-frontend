@@ -569,19 +569,7 @@ import Layout from "../../layouts/Layout.astro";
   let subEntityType        = null;
   let subEntityId          = null;
 
-  // ── Summary ───────────────────────────────────────────────────────────────
-  async function carregarSummary() {
-    try {
-      const r = await fetch("/api/circuit/summary");
-      if (!r.ok) return;
-      const d = await r.json();
-      document.getElementById("summary-total").textContent    = d.total    ?? "—";
-      document.getElementById("summary-active").textContent   = d.active   ?? "—";
-      document.getElementById("summary-online").textContent   = d.online   ?? "—";
-      document.getElementById("summary-inactive").textContent = d.inactive ?? "—";
-    } catch {}
-  }
-
+  
   // ── Sort columns ─────────────────────────────────────────────────────────
   function updateSortIndicators() {
     document.querySelectorAll(".sort-col").forEach(col => {
@@ -736,14 +724,14 @@ import Layout from "../../layouts/Layout.astro";
 
   async function loadChipOptions() {
     const [trunks, plans, customers] = await Promise.all([
-      fetch("/api/trunk/trunks?page=0&size=900").then(r => r.ok ? r.json() : { content: [] }),
-      fetch("/api/plan/plans?page=0&size=900").then(r => r.ok ? r.json() : { content: [] }),
-      fetch("/api/customer/customers?page=0&size=999").then(r => r.ok ? r.json() : { content: [] }),
+      fetch("/api/trunk/summary").then(response => response.ok ? response.json() : []),
+      fetch("/api/plan/summary").then(response => response.ok ? response.json() : []),
+      fetch("/api/customer/summary").then(response => response.ok ? response.json() : []),
     ]);
     trunksData = trunks.content || [];
-    csTrunk.setOptions(trunksData.map(t => ({ value: t.name, label: t.name })));
-    csPlan.setOptions((plans.content || []).map(p => ({ value: String(p.id), label: p.name })));
-    csCustomer.setOptions((customers.content || []).map(c => ({ value: String(c.id), label: c.name })));
+    csTrunk.setOptions((trunks || []).map(t => ({ value: t.name, label: t.name })));
+    csPlan.setOptions((plans || []).map(p => ({ value: String(p.id), label: p.name })));
+    csCustomer.setOptions((customers || []).map(c => ({ value: String(c.id), label: c.name })));
   }
 
   // ── Open circuit modal ────────────────────────────────────────────────────
@@ -991,7 +979,6 @@ import Layout from "../../layouts/Layout.astro";
     if (r.ok) {
       const saved = await r.json().catch(() => null);
       carregarDados(currentPage);
-      carregarSummary();
       if (isCreate && saved?.number) {
         openCircuitModal(saved.id, saved.number);
       } else {
@@ -1017,7 +1004,6 @@ import Layout from "../../layouts/Layout.astro";
       if (r.ok || r.status === 204) {
         ms.closeAll();
         carregarDados(currentPage);
-        carregarSummary();
       } else {
         const err = await r.json().catch(() => ({}));
         showModalError(err.message || "Erro ao deletar circuito.");
@@ -1207,7 +1193,6 @@ import Layout from "../../layouts/Layout.astro";
         if (subEntityType === "customer") csCustomer.clear();
         ms.closeAll();
         carregarDados(currentPage);
-        carregarSummary();
       } else {
         const err = await r.json().catch(() => ({}));
         showSubModalError(err.message || "Erro ao deletar.");
@@ -1258,7 +1243,6 @@ import Layout from "../../layouts/Layout.astro";
     carregarDados(0);
   }
 
-  carregarSummary();
   updateSortIndicators();
 </script>
 </Layout>
