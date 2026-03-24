@@ -76,14 +76,13 @@ import Layout from "../layouts/Layout.astro";
       </div>
     </div>
 
-    <!-- Faturamento mês -->
+    <!-- Excedentes mês -->
     <div class="bg-white rounded-lg p-4">
-      <div class="text-[13px] text-[#6b7280] mb-1.5">Faturamento mês</div>
+      <div class="text-[13px] text-[#6b7280] mb-1.5">Excedentes mês</div>
       <div class="mb-2">
         <span id="f-total" class="text-[24px] font-medium text-[#1D9E75]">—</span>
       </div>
-      <div id="f-subscriptions" class="text-[12px] text-[#6b7280]">Mensalidades: —</div>
-      <div id="f-excedents" class="text-[12px] text-[#6b7280]">Excedentes: —</div>
+      <div id="f-prev-month" class="text-[12px] text-[#6b7280]">Mês anterior: —</div>
     </div>
 
   </div>
@@ -93,12 +92,8 @@ import Layout from "../layouts/Layout.astro";
 
     <!-- 3. Faturamento mensal — últimos 12 meses -->
     <div class="bg-white border border-black/10 rounded-xl px-5 py-4">
-      <div class="text-[14px] font-medium mb-2">Faturamento mensal — últimos 12 meses</div>
+      <div class="text-[14px] font-medium mb-2">Excedente mensal — últimos 12 meses</div>
       <div class="flex gap-4 flex-wrap mb-3">
-        <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
-          <span class="w-2.5 h-2.5 rounded-sm flex-shrink-0 bg-[#185FA5]"></span>
-          Mensalidades
-        </div>
         <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
           <span class="w-2.5 h-2.5 rounded-sm flex-shrink-0 bg-[#BA7517]"></span>
           Excedentes
@@ -253,10 +248,9 @@ import Layout from "../layouts/Layout.astro";
       document.getElementById("l-noanswer").textContent = fmt(d.calls.noAnswer) + " n/atend.";
       document.getElementById("l-busy").textContent     = fmt(d.calls.busy) + " ocup.";
 
-      // Card Faturamento
-      document.getElementById("f-total").textContent         = fmtCur(d.billing.currentMonthCost);
-      document.getElementById("f-subscriptions").textContent = "Mensalidades: " + fmtCur(d.billing.subscriptions);
-      document.getElementById("f-excedents").textContent     = "Excedentes: "   + fmtCur(d.billing.excedents);
+      // Card Excedentes
+      document.getElementById("f-total").textContent     = fmtCur(d.billing.excedents);
+      document.getElementById("f-prev-month").textContent = "Mês anterior: " + fmtCur(d.billing.previousMonthCost);
 
       // Gráficos e tabela
       buildDailyCalls(d.dailyCalls);
@@ -316,8 +310,7 @@ import Layout from "../layouts/Layout.astro";
       data: {
         labels: data.map(d => d.month),
         datasets: [
-          { label: "Mensalidades", data: data.map(d => d.subscriptions), backgroundColor: AZUL,  borderRadius: 2, stack: "s" },
-          { label: "Excedentes",   data: data.map(d => d.excedents),     backgroundColor: AMBER, borderRadius: 2, stack: "s" },
+          { label: "Excedentes", data: data.map(d => d.excedents), backgroundColor: AMBER, borderRadius: 2, stack: "s" },
         ],
       },
       options: {
