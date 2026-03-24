@@ -420,23 +420,21 @@ import Layout from "../layouts/Layout.astro";
 
   function buildTopCircuits(data) {
     if (!data || data.length === 0) return;
-    // Reversed so highest appears at top
-    const items = [...data].reverse();
-    const usedColors = items.map(d => d.usedMinutes > d.limitMinutes ? VERMELHO : AZUL);
+    const usedColors = data.map(d => d.usedMinutes > d.limitMinutes ? VERMELHO : AZUL);
     new window.Chart(document.getElementById("chartTopCircuits"), {
       type: "bar",
       data: {
-        labels: items.map(d => d.customerName),
+        labels: data.map(d => d.circuit),
         datasets: [
           {
             label: "Minutos usados",
-            data: items.map(d => d.usedMinutes),
+            data: data.map(d => d.usedMinutes),
             backgroundColor: usedColors,
             borderRadius: 2,
           },
           {
             label: "Pacote contratado",
-            data: items.map(d => d.limitMinutes),
+            data: data.map(d => d.limitMinutes),
             backgroundColor: AZUL_T,
             borderRadius: 2,
           },
