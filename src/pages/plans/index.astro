@@ -19,6 +19,7 @@ import Layout from "../../layouts/Layout.astro";
   .plan-row.row-selected { background: #E6F1FB !important; border-left: 2px solid #378ADD; }
   .plan-row.row-inactive { opacity: 0.55; }
   .plan-row.row-inactive:hover { opacity: 0.75; }
+  .modal-plan { height: auto; max-height: 85vh; }
 </style>
 
 <Layout>
@@ -93,7 +94,7 @@ import Layout from "../../layouts/Layout.astro";
   <div id="modal-overlay" class="modal-overlay"></div>
 
   <!-- ── Modal de Plano ──────────────────────────────────────────────────── -->
-  <div id="modal-plan" class="modal-main">
+  <div id="modal-plan" class="modal-main modal-plan">
     <div class="modal-header">
       <div class="modal-header-top">
         <div class="modal-header-titles">
@@ -198,7 +199,7 @@ import Layout from "../../layouts/Layout.astro";
     </div>
 
     <div class="modal-footer">
-      <button id="btn-delete" class="btn-modal-delete invisible">Excluir</button>
+      <button id="btn-delete" class="btn-modal-delete hidden">Excluir</button>
       <div class="modal-footer-right">
         <button id="btn-cancel" class="btn-modal-cancel">Cancelar</button>
         <button id="btn-save" class="btn-modal-save">Salvar</button>
@@ -512,7 +513,7 @@ import Layout from "../../layouts/Layout.astro";
 
     updatePackageSections();
 
-    btnDelete.classList.toggle('invisible', !editingId);
+    btnDelete.classList.toggle('hidden', !editingId);
 
     if (selectedRow) selectedRow.classList.remove("row-selected");
     if (row) { row.classList.add("row-selected"); selectedRow = row; }
