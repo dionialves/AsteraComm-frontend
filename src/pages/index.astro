@@ -4,191 +4,133 @@ import Layout from "../layouts/Layout.astro";
 
 <Layout title="AsteraComm - Dashboard">
 
-  <style>
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    @media (max-width: 768px) { .card-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 480px) { .card-grid { grid-template-columns: 1fr; } }
-
-    .dash-card {
-      background: #fff;
-      border-radius: 8px;
-      padding: 1rem;
-    }
-    .chart-box {
-      background: #fff;
-      border: 0.5px solid rgba(0,0,0,0.10);
-      border-radius: 12px;
-      padding: 1rem 1.25rem;
-      margin-bottom: 16px;
-    }
-    .chart-title {
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 8px;
-    }
-    .legend {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 12px;
-      color: #6b7280;
-    }
-    .legend-sq {
-      width: 10px;
-      height: 10px;
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-    .chart-wrap {
-      position: relative;
-    }
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      display: inline-block;
-      flex-shrink: 0;
-    }
-  </style>
-
   <!-- 1. Cabeçalho -->
   <div class="page-header">
-    <div style="display:flex;align-items:baseline;gap:10px">
+    <div class="flex items-baseline gap-[10px]">
       <h1 class="page-title">AsteraComm</h1>
-      <span id="last-updated" style="font-size:12px;color:#9ca3af"></span>
+      <span id="last-updated" class="text-[12px] text-[#9ca3af]"></span>
     </div>
     <p id="subtitle" class="page-subtitle"></p>
   </div>
 
   <!-- 2. Cards de resumo -->
-  <div class="card-grid">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
 
     <!-- Circuitos -->
-    <div class="dash-card">
-      <div style="font-size:13px;color:#6b7280;margin-bottom:6px">Circuitos</div>
-      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">
-        <span id="c-total" style="font-size:24px;font-weight:500">—</span>
-        <span style="font-size:12px;color:#9ca3af">total</span>
+    <div class="bg-white rounded-lg p-4">
+      <div class="text-[13px] text-[#6b7280] mb-1.5">Circuitos</div>
+      <div class="flex items-baseline gap-1.5 mb-2">
+        <span id="c-total" class="text-[24px] font-medium">—</span>
+        <span class="text-[12px] text-[#9ca3af]">total</span>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <div class="legend-item">
-          <span class="dot" style="background:#1D9E75"></span>
+      <div class="flex gap-[10px] flex-wrap">
+        <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+          <span class="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-[#1D9E75]"></span>
           <span id="c-online">— online</span>
         </div>
-        <div class="legend-item">
-          <span class="dot" style="background:#E24B4A"></span>
+        <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+          <span class="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-[#E24B4A]"></span>
           <span id="c-offline">— offline</span>
         </div>
       </div>
     </div>
 
     <!-- Troncos -->
-    <div class="dash-card">
-      <div style="font-size:13px;color:#6b7280;margin-bottom:6px">Troncos</div>
-      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">
-        <span id="t-total" style="font-size:24px;font-weight:500">—</span>
-        <span style="font-size:12px;color:#9ca3af">registrados</span>
+    <div class="bg-white rounded-lg p-4">
+      <div class="text-[13px] text-[#6b7280] mb-1.5">Troncos</div>
+      <div class="flex items-baseline gap-1.5 mb-2">
+        <span id="t-total" class="text-[24px] font-medium">—</span>
+        <span class="text-[12px] text-[#9ca3af]">registrados</span>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <div class="legend-item">
-          <span class="dot" style="background:#1D9E75"></span>
+      <div class="flex gap-[10px] flex-wrap">
+        <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+          <span class="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-[#1D9E75]"></span>
           <span id="t-active">— ativos</span>
         </div>
-        <div class="legend-item">
-          <span class="dot" style="background:#E24B4A"></span>
+        <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+          <span class="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-[#E24B4A]"></span>
           <span id="t-inactive">— inativos</span>
         </div>
       </div>
     </div>
 
     <!-- Ligações do mês -->
-    <div class="dash-card">
-      <div style="font-size:13px;color:#6b7280;margin-bottom:6px">Ligações do mês</div>
-      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">
-        <span id="l-total" style="font-size:24px;font-weight:500">—</span>
+    <div class="bg-white rounded-lg p-4">
+      <div class="text-[13px] text-[#6b7280] mb-1.5">Ligações do mês</div>
+      <div class="flex items-baseline gap-1.5 mb-2">
+        <span id="l-total" class="text-[24px] font-medium">—</span>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <div class="legend-item">
-          <span class="dot" style="background:#1D9E75"></span>
+      <div class="flex gap-[10px] flex-wrap">
+        <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+          <span class="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-[#1D9E75]"></span>
           <span id="l-answered">— atend.</span>
         </div>
-        <div class="legend-item">
-          <span class="dot" style="background:#BA7517"></span>
+        <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+          <span class="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-[#BA7517]"></span>
           <span id="l-noanswer">— n/atend.</span>
         </div>
-        <div class="legend-item">
-          <span class="dot" style="background:#E24B4A"></span>
+        <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+          <span class="w-2 h-2 rounded-full inline-block flex-shrink-0 bg-[#E24B4A]"></span>
           <span id="l-busy">— ocup.</span>
         </div>
       </div>
     </div>
 
     <!-- Faturamento mês -->
-    <div class="dash-card">
-      <div style="font-size:13px;color:#6b7280;margin-bottom:6px">Faturamento mês</div>
-      <div style="margin-bottom:8px">
-        <span id="f-total" style="font-size:24px;font-weight:500;color:#1D9E75">—</span>
+    <div class="bg-white rounded-lg p-4">
+      <div class="text-[13px] text-[#6b7280] mb-1.5">Faturamento mês</div>
+      <div class="mb-2">
+        <span id="f-total" class="text-[24px] font-medium text-[#1D9E75]">—</span>
       </div>
-      <div id="f-subscriptions" style="font-size:12px;color:#6b7280">Mensalidades: —</div>
-      <div id="f-excedents" style="font-size:12px;color:#6b7280">Excedentes: —</div>
+      <div id="f-subscriptions" class="text-[12px] text-[#6b7280]">Mensalidades: —</div>
+      <div id="f-excedents" class="text-[12px] text-[#6b7280]">Excedentes: —</div>
     </div>
 
   </div>
 
   <!-- 3+4. Faturamento mensal | Ligações por dia — lado a lado -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+  <div class="grid grid-cols-2 gap-4 mb-4">
 
     <!-- 3. Faturamento mensal — últimos 12 meses -->
-    <div class="chart-box" style="margin-bottom:0">
-      <div class="chart-title">Faturamento mensal — últimos 12 meses</div>
-      <div class="legend">
-        <div class="legend-item">
-          <span class="legend-sq" style="background:#185FA5"></span>
+    <div class="bg-white border border-black/10 rounded-xl px-5 py-4">
+      <div class="text-[14px] font-medium mb-2">Faturamento mensal — últimos 12 meses</div>
+      <div class="flex gap-4 flex-wrap mb-3">
+        <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+          <span class="w-2.5 h-2.5 rounded-sm flex-shrink-0 bg-[#185FA5]"></span>
           Mensalidades
         </div>
-        <div class="legend-item">
-          <span class="legend-sq" style="background:#BA7517"></span>
+        <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+          <span class="w-2.5 h-2.5 rounded-sm flex-shrink-0 bg-[#BA7517]"></span>
           Excedentes
         </div>
       </div>
-      <div class="chart-wrap" style="height:260px">
+      <div class="relative h-[260px]">
         <canvas id="chartMonthlyBilling"></canvas>
       </div>
     </div>
 
     <!-- 4. Ligações por dia — últimos 30 dias -->
-    <div class="chart-box" style="margin-bottom:0">
-      <div class="chart-title">Ligações por dia — últimos 30 dias</div>
-      <div class="legend">
-        <div class="legend-item">
-          <span class="legend-sq" style="background:#1D9E75"></span>
+    <div class="bg-white border border-black/10 rounded-xl px-5 py-4">
+      <div class="text-[14px] font-medium mb-2">Ligações por dia — últimos 30 dias</div>
+      <div class="flex gap-4 flex-wrap mb-3">
+        <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+          <span class="w-2.5 h-2.5 rounded-sm flex-shrink-0 bg-[#1D9E75]"></span>
           Atendidas
         </div>
-        <div class="legend-item">
-          <span class="legend-sq" style="background:#BA7517"></span>
+        <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+          <span class="w-2.5 h-2.5 rounded-sm flex-shrink-0 bg-[#BA7517]"></span>
           Não atendidas
         </div>
-        <div class="legend-item">
-          <span class="legend-sq" style="background:#E24B4A"></span>
+        <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+          <span class="w-2.5 h-2.5 rounded-sm flex-shrink-0 bg-[#E24B4A]"></span>
           Ocupado
         </div>
-        <div class="legend-item">
-          <span class="legend-sq" style="background:#64748B"></span>
+        <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+          <span class="w-2.5 h-2.5 rounded-sm flex-shrink-0 bg-[#64748B]"></span>
           Falha
         </div>
       </div>
-      <div class="chart-wrap" style="height:260px">
+      <div class="relative h-[260px]">
         <canvas id="chartDailyCalls"></canvas>
       </div>
     </div>
@@ -196,24 +138,24 @@ import Layout from "../layouts/Layout.astro";
   </div>
 
   <!-- 5. Circuitos próximo do limite | Gráfico de excedência — lado a lado -->
-  <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;margin-bottom:16px;align-items:stretch">
+  <div class="grid grid-cols-[1fr_280px] gap-4 mb-4 items-stretch">
 
     <!-- Tabela near-limit -->
-    <div class="chart-box" style="margin-bottom:0">
-      <div class="chart-title">Circuitos com consumo próximo do limite</div>
-      <table style="width:100%;border-collapse:collapse">
+    <div class="bg-white border border-black/10 rounded-xl px-5 py-4">
+      <div class="text-[14px] font-medium mb-2">Circuitos com consumo próximo do limite</div>
+      <table class="w-full border-collapse">
         <thead>
-          <tr style="font-size:12px;font-weight:500;color:#6b7280;border-bottom:1px solid rgba(0,0,0,0.08)">
-            <th style="text-align:left;padding:6px 8px">Circuito</th>
-            <th style="text-align:left;padding:6px 8px">Plano</th>
-            <th style="text-align:right;padding:6px 8px">Usado</th>
-            <th style="text-align:right;padding:6px 8px">Pacote</th>
-            <th style="text-align:left;padding:6px 8px;min-width:180px">Consumo</th>
+          <tr class="text-[12px] font-medium text-[#6b7280] border-b border-black/[0.08]">
+            <th class="text-left px-2 py-1.5">Circuito</th>
+            <th class="text-left px-2 py-1.5">Plano</th>
+            <th class="text-right px-2 py-1.5">Usado</th>
+            <th class="text-right px-2 py-1.5">Pacote</th>
+            <th class="text-left px-2 py-1.5 min-w-[180px]">Consumo</th>
           </tr>
         </thead>
         <tbody id="near-limit-tbody">
           <tr>
-            <td colspan="5" style="padding:16px 8px;font-size:13px;color:#9ca3af;text-align:center">
+            <td colspan="5" class="px-2 py-4 text-[13px] text-[#9ca3af] text-center">
               Carregando...
             </td>
           </tr>
@@ -222,38 +164,38 @@ import Layout from "../layouts/Layout.astro";
     </div>
 
     <!-- Donut: excedidos vs. dentro do limite -->
-    <div class="chart-box" style="margin-bottom:0;display:flex;flex-direction:column">
-      <div class="chart-title">Excedência de pacote</div>
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
-        <div class="chart-wrap" style="width:180px;height:180px;flex-shrink:0">
+    <div class="bg-white border border-black/10 rounded-xl px-5 py-4 flex flex-col">
+      <div class="text-[14px] font-medium mb-2">Excedência de pacote</div>
+      <div class="flex-1 flex flex-col items-center justify-center gap-4">
+        <div class="relative w-[180px] h-[180px] flex-shrink-0">
           <canvas id="chartOverage"></canvas>
         </div>
-        <div id="overage-legend" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div id="overage-legend" class="flex flex-col gap-2"></div>
       </div>
     </div>
 
   </div>
 
   <!-- 6. Top 10 circuitos por consumo -->
-  <div class="chart-box" style="margin-bottom:0">
-    <div class="chart-title">Top 10 circuitos por consumo</div>
-    <div class="legend">
-      <div class="legend-item">
-        <span class="legend-sq" style="background:#185FA5"></span>
+  <div class="bg-white border border-black/10 rounded-xl px-5 py-4">
+    <div class="text-[14px] font-medium mb-2">Top 10 circuitos por consumo</div>
+    <div class="flex gap-4 flex-wrap mb-3">
+      <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+        <span class="w-2.5 h-2.5 rounded-sm flex-shrink-0 bg-[#185FA5]"></span>
         Minutos usados
       </div>
-      <div class="legend-item">
-        <span class="legend-sq" style="background:rgba(24,95,165,0.12);border:1px solid rgba(24,95,165,0.3)"></span>
+      <div class="flex items-center gap-1 text-[12px] text-[#6b7280]">
+        <span class="w-2.5 h-2.5 rounded-sm flex-shrink-0 bg-[rgba(24,95,165,0.12)] border border-[rgba(24,95,165,0.3)]"></span>
         Pacote contratado
       </div>
     </div>
-    <div class="chart-wrap" style="height:340px">
+    <div class="relative h-[340px]">
       <canvas id="chartTopCircuits"></canvas>
     </div>
   </div>
 
   <!-- Erro -->
-  <div id="dashboard-error" class="hidden" style="margin-top:16px;padding:1rem;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;color:#dc2626;font-size:14px"></div>
+  <div id="dashboard-error" class="hidden mt-4 p-4 bg-[#fef2f2] border border-[#fecaca] rounded-lg text-[#dc2626] text-[14px]"></div>
 
 </Layout>
 

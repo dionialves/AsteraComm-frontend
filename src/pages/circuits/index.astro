@@ -108,7 +108,7 @@ import Layout from "../../layouts/Layout.astro";
   <!-- ── Table ───────────────────────────────────────────────────────────── -->
   <div class="rounded-xl border border-[#e0e0e0] overflow-hidden">
     <!-- Header -->
-    <div class="circuit-row bg-[#f5f5f5] border-b border-[#e0e0e0]" style="cursor:default">
+    <div class="circuit-row bg-[#f5f5f5] border-b border-[#e0e0e0] cursor-default">
       <span data-field="id"           class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">ID</span>
       <span data-field="active"       class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Status</span>
       <span data-field="number"       class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Código</span>
@@ -171,7 +171,7 @@ import Layout from "../../layouts/Layout.astro";
         </div>
         <hr class="section-divider" />
         <p class="section-title">Autenticação</p>
-        <div class="form-group" style="margin-bottom:12px">
+        <div class="form-group mb-3">
           <label class="form-label">Senha <span class="text-red-500">*</span></label>
           <div class="input-password-wrap">
             <input id="field-password" type="password" class="form-input" autocomplete="new-password" />
@@ -184,7 +184,7 @@ import Layout from "../../layouts/Layout.astro";
         </div>
         <hr class="section-divider" />
         <p class="section-title">Configuração</p>
-        <div class="form-grid-2" style="margin-bottom:12px">
+        <div class="form-grid-2 mb-3">
           <div class="form-group">
             <label class="form-label">Tronco <span class="text-red-500">*</span></label>
             <div id="cs-trunk"></div>
@@ -194,14 +194,14 @@ import Layout from "../../layouts/Layout.astro";
             <div id="cs-plan"></div>
           </div>
         </div>
-        <div class="form-group" style="max-width:50%">
+        <div class="form-group max-w-[50%]">
           <label class="form-label">Cliente <span class="text-red-500">*</span></label>
           <div id="cs-customer"></div>
         </div>
       </div>
       <!-- Tab: DIDs -->
       <div id="tab-dids" class="tab-panel">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <div class="flex justify-end mb-3">
           <button id="btn-add-did" class="btn-modal-cancel" type="button">+ Adicionar</button>
         </div>
         <div class="did-grid-header">
@@ -232,20 +232,20 @@ import Layout from "../../layouts/Layout.astro";
       <div class="modal-header-top">
         <div class="modal-header-titles">
           <span class="modal-subtitle">Circuito</span>
-          <span class="modal-title" style="font-size:16px">Adicionar DID</span>
+          <span class="modal-title text-[16px]">Adicionar DID</span>
         </div>
         <button id="did-btn-close" class="modal-btn-close" title="Fechar">✕</button>
       </div>
     </div>
-    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;overflow:hidden">
+    <div class="modal-body flex flex-col gap-3 overflow-hidden">
       <input id="did-search-input" type="text" class="form-input" placeholder="Pesquisar número..." />
-      <div id="did-available-list" style="flex:1;overflow-y:auto"></div>
+      <div id="did-available-list" class="flex-1 overflow-y-auto"></div>
     </div>
     <div class="modal-footer">
       <div></div>
       <div class="modal-footer-right">
         <button id="did-btn-cancel"  class="btn-modal-cancel" type="button">Cancelar</button>
-        <button id="did-btn-confirm" class="btn-modal-save"   type="button" disabled style="opacity:0.5;cursor:default">Adicionar</button>
+        <button id="did-btn-confirm" class="btn-modal-save disabled:opacity-50 disabled:cursor-default" type="button" disabled>Adicionar</button>
       </div>
     </div>
   </div>
@@ -259,7 +259,7 @@ import Layout from "../../layouts/Layout.astro";
       <button id="sub-btn-back" class="btn-sub-back" title="Voltar">←</button>
       <div class="sub-modal-titles">
         <span id="sub-modal-subtitle" class="modal-subtitle">—</span>
-        <span id="sub-modal-title"    class="modal-title" style="font-size:16px">—</span>
+        <span id="sub-modal-title"    class="modal-title text-[16px]">—</span>
       </div>
       <button id="sub-btn-close" class="modal-btn-close" title="Fechar tudo">✕</button>
     </div>
@@ -928,8 +928,6 @@ import Layout from "../../layouts/Layout.astro";
   function setDidConfirmState(enabled) {
     const btn = document.getElementById("did-btn-confirm");
     btn.disabled = !enabled;
-    btn.style.opacity = enabled ? "" : "0.5";
-    btn.style.cursor  = enabled ? "" : "default";
   }
 
   document.getElementById("did-search-input").addEventListener("input", e => {

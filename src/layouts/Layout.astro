@@ -33,119 +33,26 @@ function roleLabel(role: string) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title}</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-
-    /* ── Sidebar ─────────────────────────────────────────────────── */
-    #sidebar {
-      position: fixed; top: 0; left: 0;
-      width: 220px; height: 100vh;
-      background: #1a1a1a;
-      display: flex; flex-direction: column;
-      z-index: 5; overflow-y: auto;
-    }
-
-    .nav-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 9px 12px; border-radius: 6px;
-      font-size: 13px; color: rgba(255,255,255,0.65);
-      text-decoration: none; margin-bottom: 1px;
-      transition: background 0.15s, color 0.15s;
-      cursor: pointer;
-    }
-    .nav-item:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.9); }
-    .nav-item.active { background: rgba(255,255,255,0.08); color: #fff; }
-
-    .section-label {
-      font-size: 10px; font-weight: 600; letter-spacing: 1px;
-      color: rgba(255,255,255,0.35); text-transform: uppercase;
-      padding: 14px 12px 4px; display: block;
-    }
-
-    /* Colapsáveis */
-    .collapsible-btn {
-      width: 100%; display: flex; align-items: center; justify-content: space-between;
-      padding: 9px 12px; border-radius: 6px; border: none; background: none;
-      font-size: 13px; color: rgba(255,255,255,0.65);
-      cursor: pointer; margin-bottom: 1px;
-      transition: background 0.15s, color 0.15s;
-    }
-    .collapsible-btn:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.9); }
-    .collapsible-btn.active { background: rgba(255,255,255,0.08); color: #fff; }
-    .collapsible-btn .btn-left { display: flex; align-items: center; gap: 10px; }
-
-    .chevron { flex-shrink: 0; transition: transform 0.25s ease; }
-    .chevron.open { transform: rotate(180deg); }
-
-    .submenu { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
-    .submenu.open { max-height: 200px; }
-
-    .sub-item {
-      display: block; padding: 7px 12px 7px 38px;
-      font-size: 13px; color: rgba(255,255,255,0.55);
-      text-decoration: none; border-radius: 6px; margin-bottom: 1px;
-      transition: background 0.15s, color 0.15s;
-    }
-    .sub-item:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.9); }
-    .sub-item.active { color: #fff; }
-
-    /* Rodapé do perfil */
-    #profile-btn {
-      width: 100%; display: flex; align-items: center; gap: 8px;
-      padding: 8px 10px; border-radius: 6px;
-      background: none; border: none; cursor: pointer;
-      transition: background 0.15s;
-    }
-    #profile-btn:hover { background: rgba(255,255,255,0.05); }
-
-    #profile-dropdown {
-      display: none;
-      position: absolute; bottom: calc(100% + 4px); left: 8px; right: 8px;
-      background: #2a2a2a; border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px; overflow: hidden;
-      animation: dropUp 0.15s ease;
-    }
-    #profile-dropdown.open { display: block; }
-
-    @keyframes dropUp {
-      from { opacity: 0; transform: translateY(6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .dropdown-item {
-      width: 100%; text-align: left; padding: 9px 14px;
-      font-size: 13px; color: rgba(255,255,255,0.75);
-      background: none; border: none; cursor: pointer;
-      transition: background 0.12s, color 0.12s;
-      display: block;
-    }
-    .dropdown-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
-    .dropdown-item.danger { color: #f87171; }
-    .dropdown-item.danger:hover { background: rgba(239,68,68,0.12); color: #f87171; }
-
-    /* ── Modais do layout: z-index acima do sidebar ─────────────── */
-    #layout-overlay { z-index: 200; }
-    #modal-profile, #modal-password { z-index: 210; height: auto; }
-  </style>
 </head>
 
-<body>
+<body class="font-sans">
 
   <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
-  <aside id="sidebar">
+  <aside id="sidebar" class="fixed top-0 left-0 w-[220px] h-screen bg-[#1a1a1a] flex flex-col z-[5] overflow-y-auto">
 
     <!-- Logo -->
-    <div style="padding:20px 16px 12px;flex-shrink:0;text-align:center">
-      <span style="font-size:24px;font-weight:500;letter-spacing:-0.5px">
-        <span style="color:#5DCAA5">Astera</span><span style="color:#fff">Comm</span>
+    <div class="px-4 pt-5 pb-3 flex-shrink-0 text-center">
+      <span class="text-[24px] font-medium tracking-[-0.5px]">
+        <span class="text-[#5DCAA5]">Astera</span><span class="text-white">Comm</span>
       </span>
     </div>
 
     <!-- Navegação -->
-    <nav style="flex:1;padding:4px 8px;overflow-y:auto">
+    <nav class="flex-1 px-2 py-1 overflow-y-auto">
 
       <!-- Dashboard -->
-      <a href="/" data-path="/" class="nav-item">
+      <a href="/" data-path="/"
+        class="flex items-center gap-[10px] px-3 py-[9px] rounded-md text-[13px] text-white/65 no-underline mb-px cursor-pointer transition-[background,color] duration-150 hover:bg-white/[0.05] hover:text-white/90">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
           <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
@@ -154,31 +61,33 @@ function roleLabel(role: string) {
       </a>
 
       <!-- OPERACIONAL -->
-      <span class="section-label">Operacional</span>
+      <span class="text-[10px] font-semibold tracking-[1px] text-white/35 uppercase pt-[14px] px-3 pb-1 block">Operacional</span>
 
       <!-- Cadastro (colapsável) -->
-      <button class="collapsible-btn" data-target="menu-cadastro" data-paths="/circuits,/customers,/dids,/plans">
-        <div class="btn-left">
+      <button class="w-full flex items-center justify-between px-3 py-[9px] rounded-md border-none bg-transparent text-[13px] text-white/65 cursor-pointer mb-px transition-[background,color] duration-150 hover:bg-white/[0.05] hover:text-white/90"
+        data-target="menu-cadastro" data-paths="/circuits,/customers,/dids,/plans">
+        <div class="flex items-center gap-[10px]">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
             <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
           </svg>
           Cadastro
         </div>
-        <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="flex-shrink-0 transition-transform duration-[250ms] ease" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="6 9 12 15 18 9"/>
         </svg>
       </button>
-      <div id="menu-cadastro" class="submenu">
-        <a href="/circuits"  data-path="/circuits"  class="sub-item">Circuitos</a>
-        <a href="/customers" data-path="/customers" class="sub-item">Clientes</a>
-        <a href="/dids"      data-path="/dids"      class="sub-item">DIDs</a>
-        <a href="/plans"     data-path="/plans"     class="sub-item">Planos</a>
+      <div id="menu-cadastro" class="max-h-0 overflow-hidden transition-[max-height] duration-[250ms] ease">
+        <a href="/circuits"  data-path="/circuits"  class="block px-3 py-[7px] pl-[38px] text-[13px] text-white/55 no-underline rounded-md mb-px transition-[background,color] duration-150 hover:bg-white/[0.05] hover:text-white/90">Circuitos</a>
+        <a href="/customers" data-path="/customers" class="block px-3 py-[7px] pl-[38px] text-[13px] text-white/55 no-underline rounded-md mb-px transition-[background,color] duration-150 hover:bg-white/[0.05] hover:text-white/90">Clientes</a>
+        <a href="/dids"      data-path="/dids"      class="block px-3 py-[7px] pl-[38px] text-[13px] text-white/55 no-underline rounded-md mb-px transition-[background,color] duration-150 hover:bg-white/[0.05] hover:text-white/90">DIDs</a>
+        <a href="/plans"     data-path="/plans"     class="block px-3 py-[7px] pl-[38px] text-[13px] text-white/55 no-underline rounded-md mb-px transition-[background,color] duration-150 hover:bg-white/[0.05] hover:text-white/90">Planos</a>
       </div>
 
       <!-- Configuração (colapsável) -->
-      <button class="collapsible-btn" data-target="menu-configuracao" data-paths="/trunks">
-        <div class="btn-left">
+      <button class="w-full flex items-center justify-between px-3 py-[9px] rounded-md border-none bg-transparent text-[13px] text-white/65 cursor-pointer mb-px transition-[background,color] duration-150 hover:bg-white/[0.05] hover:text-white/90"
+        data-target="menu-configuracao" data-paths="/trunks">
+        <div class="flex items-center gap-[10px]">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
             <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
@@ -188,35 +97,39 @@ function roleLabel(role: string) {
           </svg>
           Configuração
         </div>
-        <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="flex-shrink-0 transition-transform duration-[250ms] ease" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="6 9 12 15 18 9"/>
         </svg>
       </button>
-      <div id="menu-configuracao" class="submenu">
-        <a href="/trunks" data-path="/trunks" class="sub-item">Troncos</a>
+      <div id="menu-configuracao" class="max-h-0 overflow-hidden transition-[max-height] duration-[250ms] ease">
+        <a href="/trunks" data-path="/trunks" class="block px-3 py-[7px] pl-[38px] text-[13px] text-white/55 no-underline rounded-md mb-px transition-[background,color] duration-150 hover:bg-white/[0.05] hover:text-white/90">Troncos</a>
       </div>
 
       <!-- FINANCEIRO -->
-      <span class="section-label">Financeiro</span>
+      <span class="text-[10px] font-semibold tracking-[1px] text-white/35 uppercase pt-[14px] px-3 pb-1 block">Financeiro</span>
 
-      <a href="/cdrs"          data-path="/cdrs"          class="nav-item">
+      <a href="/cdrs" data-path="/cdrs"
+        class="flex items-center gap-[10px] px-3 py-[9px] rounded-md text-[13px] text-white/65 no-underline mb-px cursor-pointer transition-[background,color] duration-150 hover:bg-white/[0.05] hover:text-white/90">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
         </svg>
         Ligações
       </a>
-      <a href="/reports"       data-path="/reports"       class="nav-item">
+      <a href="/reports" data-path="/reports"
+        class="flex items-center gap-[10px] px-3 py-[9px] rounded-md text-[13px] text-white/65 no-underline mb-px cursor-pointer transition-[background,color] duration-150 hover:bg-white/[0.05] hover:text-white/90">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
           <line x1="6" y1="20" x2="6" y2="14"/>
         </svg>
         Relatórios
       </a>
+
       <!-- ADMINISTRAÇÃO (condicional SSR) -->
       {showAdmin && (
         <>
-          <span class="section-label">Administração</span>
-          <a href="/users" data-path="/users" class="nav-item">
+          <span class="text-[10px] font-semibold tracking-[1px] text-white/35 uppercase pt-[14px] px-3 pb-1 block">Administração</span>
+          <a href="/users" data-path="/users"
+            class="flex items-center gap-[10px] px-3 py-[9px] rounded-md text-[13px] text-white/65 no-underline mb-px cursor-pointer transition-[background,color] duration-150 hover:bg-white/[0.05] hover:text-white/90">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
             </svg>
@@ -228,26 +141,26 @@ function roleLabel(role: string) {
     </nav>
 
     <!-- Rodapé: perfil -->
-    <div style="flex-shrink:0;padding:8px;border-top:1px solid rgba(255,255,255,0.07);position:relative">
+    <div class="flex-shrink-0 p-2 border-t border-white/[0.07] relative">
 
       <!-- Dropdown (abre para cima) -->
-      <div id="profile-dropdown">
-        <button class="dropdown-item" id="btn-open-profile">Dados cadastrais</button>
-        <button class="dropdown-item" id="btn-open-password">Alterar senha</button>
-        <div style="border-top:1px solid rgba(255,255,255,0.1)"></div>
-        <button class="dropdown-item danger" id="btn-logout">Sair</button>
+      <div id="profile-dropdown" class="hidden absolute bottom-[calc(100%+4px)] left-2 right-2 bg-[#2a2a2a] border border-white/10 rounded-lg overflow-hidden animate-[dropUp_0.15s_ease]">
+        <button class="w-full text-left px-[14px] py-[9px] text-[13px] text-white/75 bg-transparent border-none cursor-pointer transition-[background,color] duration-[120ms] block hover:bg-white/[0.06] hover:text-white" id="btn-open-profile">Dados cadastrais</button>
+        <button class="w-full text-left px-[14px] py-[9px] text-[13px] text-white/75 bg-transparent border-none cursor-pointer transition-[background,color] duration-[120ms] block hover:bg-white/[0.06] hover:text-white" id="btn-open-password">Alterar senha</button>
+        <div class="border-t border-white/10"></div>
+        <button class="w-full text-left px-[14px] py-[9px] text-[13px] text-[#f87171] bg-transparent border-none cursor-pointer transition-[background,color] duration-[120ms] block hover:bg-[rgba(239,68,68,0.12)]" id="btn-logout">Sair</button>
       </div>
 
       <!-- Botão do perfil -->
-      <button id="profile-btn">
-        <div style="width:28px;height:28px;border-radius:50%;background:#1D9E75;color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <button id="profile-btn" class="w-full flex items-center gap-2 px-[10px] py-2 rounded-md bg-transparent border-none cursor-pointer transition-[background] duration-150 hover:bg-white/[0.05]">
+        <div class="w-7 h-7 rounded-full bg-[#1D9E75] text-white text-[12px] font-semibold flex items-center justify-center flex-shrink-0">
           {userInitial}
         </div>
-        <div style="flex:1;min-width:0;text-align:left">
-          <p id="sidebar-user-name" style="font-size:12px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{userName}</p>
-          <p style="font-size:11px;color:rgba(255,255,255,0.4)">{roleLabel(userRole)}</p>
+        <div class="flex-1 min-w-0 text-left">
+          <p id="sidebar-user-name" class="text-[12px] text-white whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
+          <p class="text-[11px] text-white/40">{roleLabel(userRole)}</p>
         </div>
-        <svg id="profile-chevron" class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg id="profile-chevron" class="flex-shrink-0 transition-transform duration-[250ms] ease" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="6 9 12 15 18 9"/>
         </svg>
       </button>
@@ -255,15 +168,15 @@ function roleLabel(role: string) {
   </aside>
 
   <!-- ── Conteúdo principal ───────────────────────────────────────────────── -->
-  <main style="margin-left:220px;min-height:100vh;overflow-y:auto;padding:32px" class="bg-stone-50">
+  <main class="ml-[220px] min-h-screen overflow-y-auto p-8 bg-stone-50">
     <slot />
   </main>
 
   <!-- ── Overlay dos modais do layout ────────────────────────────────────── -->
-  <div id="layout-overlay" class="modal-overlay"></div>
+  <div id="layout-overlay" class="modal-overlay !z-[200]"></div>
 
   <!-- ── Modal Dados Cadastrais (580px) ──────────────────────────────────── -->
-  <div id="modal-profile" class="modal-main" style="width:580px;height:auto">
+  <div id="modal-profile" class="modal-main !w-[580px] !h-auto !z-[210]">
     <div class="modal-header">
       <div class="modal-header-top">
         <div class="modal-header-titles">
@@ -285,11 +198,11 @@ function roleLabel(role: string) {
           <input id="p-username" type="text" class="form-input" disabled />
         </div>
       </div>
-      <div class="form-group" style="margin-bottom:12px">
+      <div class="form-group mb-3">
         <label class="form-label">Nome</label>
         <input id="p-name" type="text" class="form-input" placeholder="Nome completo" />
       </div>
-      <div class="form-grid-2" style="margin-bottom:12px">
+      <div class="form-grid-2 mb-3">
         <div class="form-group">
           <label class="form-label">Role</label>
           <input id="p-role" type="text" class="form-input" disabled />
@@ -320,7 +233,7 @@ function roleLabel(role: string) {
   </div>
 
   <!-- ── Modal Alterar Senha (420px) ─────────────────────────────────────── -->
-  <div id="modal-password" class="modal-main" style="width:420px;height:auto">
+  <div id="modal-password" class="modal-main !w-[420px] !h-auto !z-[210]">
     <div class="modal-header">
       <div class="modal-header-top">
         <div class="modal-header-titles">
@@ -332,7 +245,7 @@ function roleLabel(role: string) {
     </div>
     <div id="pw-error" class="modal-error"></div>
     <div class="modal-body">
-      <div class="form-group" style="margin-bottom:12px">
+      <div class="form-group mb-3">
         <label class="form-label">Senha atual</label>
         <div class="input-password-wrap">
           <input id="pw-current" type="password" class="form-input" placeholder="Senha atual" autocomplete="current-password" />
@@ -343,7 +256,7 @@ function roleLabel(role: string) {
           </button>
         </div>
       </div>
-      <div class="form-group" style="margin-bottom:12px">
+      <div class="form-group mb-3">
         <label class="form-label">Nova senha</label>
         <div class="input-password-wrap">
           <input id="pw-new" type="password" class="form-input" placeholder="Nova senha" autocomplete="new-password" />
@@ -370,7 +283,7 @@ function roleLabel(role: string) {
       <div></div>
       <div class="modal-footer-right">
         <button class="btn-modal-cancel" data-close-modal="modal-password">Cancelar</button>
-        <button class="btn-modal-save" id="btn-save-password" disabled style="opacity:0.5;cursor:default">Salvar</button>
+        <button class="btn-modal-save disabled:opacity-50 disabled:cursor-default" id="btn-save-password" disabled>Salvar</button>
       </div>
     </div>
   </div>
@@ -386,29 +299,37 @@ function roleLabel(role: string) {
     document.querySelectorAll("[data-path]").forEach(el => {
       const p = el.getAttribute("data-path");
       if (p && (path === p || (p !== "/" && path.startsWith(p) && p.length > 1))) {
-        el.classList.add("active");
+        el.classList.add("!bg-white/[0.08]", "!text-white");
       }
     });
 
     // Collapsible menus: auto-expand if current path matches
-    document.querySelectorAll(".collapsible-btn[data-paths]").forEach(btn => {
+    document.querySelectorAll("button[data-paths]").forEach(btn => {
       const paths = btn.getAttribute("data-paths")?.split(",") ?? [];
       const targetId = btn.getAttribute("data-target");
-      const chevron = btn.querySelector(".chevron");
+      const chevron = btn.querySelector("svg:last-child");
       const submenu = targetId ? document.getElementById(targetId) : null;
       if (!submenu) return;
 
       const isActive = paths.some(p => path === p || path.startsWith(p + "/"));
       if (isActive) {
-        submenu.classList.add("open");
-        chevron?.classList.add("open");
-        btn.classList.add("active");
+        submenu.classList.remove("max-h-0");
+        submenu.classList.add("max-h-[200px]");
+        chevron?.classList.add("rotate-180");
+        btn.classList.add("!bg-white/[0.08]", "!text-white");
       }
 
       btn.addEventListener("click", () => {
-        const isOpen = submenu.classList.contains("open");
-        submenu.classList.toggle("open", !isOpen);
-        chevron?.classList.toggle("open", !isOpen);
+        const isOpen = submenu.classList.contains("max-h-[200px]");
+        if (isOpen) {
+          submenu.classList.remove("max-h-[200px]");
+          submenu.classList.add("max-h-0");
+          chevron?.classList.remove("rotate-180");
+        } else {
+          submenu.classList.remove("max-h-0");
+          submenu.classList.add("max-h-[200px]");
+          chevron?.classList.add("rotate-180");
+        }
       });
     });
 
@@ -419,22 +340,22 @@ function roleLabel(role: string) {
 
     profileBtn?.addEventListener("click", (e) => {
       e.stopPropagation();
-      const isOpen = profileDropdown?.classList.contains("open");
-      profileDropdown?.classList.toggle("open", !isOpen);
-      profileChevron?.classList.toggle("open", !isOpen);
+      const isHidden = profileDropdown?.classList.contains("hidden");
+      profileDropdown?.classList.toggle("hidden", !isHidden);
+      profileChevron?.classList.toggle("rotate-180", isHidden);
     });
 
     document.addEventListener("click", (e) => {
       if (!profileBtn?.contains(e.target as Node)) {
-        profileDropdown?.classList.remove("open");
-        profileChevron?.classList.remove("open");
+        profileDropdown?.classList.add("hidden");
+        profileChevron?.classList.remove("rotate-180");
       }
     });
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
-        profileDropdown?.classList.remove("open");
-        profileChevron?.classList.remove("open");
+        profileDropdown?.classList.add("hidden");
+        profileChevron?.classList.remove("rotate-180");
         closeAllModals();
       }
     });
@@ -500,8 +421,8 @@ function roleLabel(role: string) {
 
     document.getElementById("btn-open-profile")?.addEventListener("click", () => {
       if (!userData) return;
-      profileDropdown?.classList.remove("open");
-      profileChevron?.classList.remove("open");
+      profileDropdown?.classList.add("hidden");
+      profileChevron?.classList.remove("rotate-180");
       const err = document.getElementById("profile-error");
       if (err) err.style.display = "none";
 
@@ -552,15 +473,13 @@ function roleLabel(role: string) {
     function updatePwSaveBtn() {
       const ok = pwCurrent.value && pwNew.value && pwConfirm.value && pwNew.value === pwConfirm.value;
       pwSaveBtn.disabled = !ok;
-      pwSaveBtn.style.opacity = ok ? "" : "0.5";
-      pwSaveBtn.style.cursor  = ok ? "" : "default";
     }
 
     [pwCurrent, pwNew, pwConfirm].forEach(el => el?.addEventListener("input", updatePwSaveBtn));
 
     document.getElementById("btn-open-password")?.addEventListener("click", () => {
-      profileDropdown?.classList.remove("open");
-      profileChevron?.classList.remove("open");
+      profileDropdown?.classList.add("hidden");
+      profileChevron?.classList.remove("rotate-180");
       const err = document.getElementById("pw-error");
       if (err) err.style.display = "none";
       pwCurrent.value = ""; pwNew.value = ""; pwConfirm.value = "";

@@ -69,7 +69,7 @@ import Layout from "../../layouts/Layout.astro";
 
   <!-- ── Tabela ───────────────────────────────────────────────────────────── -->
   <div class="rounded-xl border border-[#e0e0e0] overflow-hidden">
-    <div class="user-row bg-[#f5f5f5] border-b border-[#e0e0e0]" style="cursor:default">
+    <div class="user-row bg-[#f5f5f5] border-b border-[#e0e0e0] cursor-default">
       <span data-field="id"        class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">ID</span>
       <span data-field="enabled"   class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Status</span>
       <span data-field="name"      class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Nome</span>
@@ -100,24 +100,24 @@ import Layout from "../../layouts/Layout.astro";
     </div>
 
     <!-- Error -->
-    <div id="modal-error" style="display:none; margin:0 20px 0; padding:8px 12px; background:#fee2e2; color:#991b1b; border-radius:6px; font-size:13px;"></div>
+    <div id="modal-error" class="modal-error"></div>
 
     <!-- Body: formulário -->
-    <div id="form-body" class="modal-body" style="padding-top:16px">
-      <div class="form-group" style="margin-bottom:12px">
+    <div id="form-body" class="modal-body pt-4">
+      <div class="form-group mb-3">
         <label class="form-label">Nome</label>
         <input id="field-name" type="text" class="form-input" placeholder="Nome completo" />
       </div>
-      <div class="form-group" style="margin-bottom:12px">
+      <div class="form-group mb-3">
         <label class="form-label">Username</label>
         <input id="field-username" type="text" class="form-input" placeholder="Nome de usuário ou e-mail" />
       </div>
-      <div id="password-group" class="form-group" style="margin-bottom:12px">
+      <div id="password-group" class="form-group mb-3">
         <label class="form-label">Senha</label>
         <input id="field-password" type="password" class="form-input" placeholder="Senha" />
       </div>
       <!-- Toggle status (edit only) -->
-      <div id="status-group" class="toggle-group" style="display:none; margin-bottom:4px">
+      <div id="status-group" class="toggle-group !hidden">
         <label class="toggle-switch">
           <input id="field-active" type="checkbox" />
           <span class="toggle-slider"></span>
@@ -128,7 +128,7 @@ import Layout from "../../layouts/Layout.astro";
 
     <!-- Footer -->
     <div class="modal-footer">
-      <button id="btn-delete" class="btn-modal-delete" style="display:none">Excluir</button>
+      <button id="btn-delete" class="btn-modal-delete hidden">Excluir</button>
       <div class="modal-footer-right">
         <button id="btn-cancel" class="btn-modal-cancel">Cancelar</button>
         <button id="btn-save"   class="btn-modal-save">Salvar</button>
@@ -345,7 +345,7 @@ import Layout from "../../layouts/Layout.astro";
   }
 
   function showError(msg) {
-    modalError.textContent   = msg;
+    modalError.textContent = msg;
     modalError.style.display = "block";
   }
 
@@ -376,9 +376,9 @@ import Layout from "../../layouts/Layout.astro";
     clearError();
 
     modalTitle.textContent      = isEdit ? "Editar Usuário" : "Novo Usuário";
-    passwordGroup.style.display = isEdit ? "none" : "";
-    statusGroup.style.display   = isEdit ? "flex" : "none";
-    btnDelete.style.display     = isEdit ? "" : "none";
+    passwordGroup.classList.toggle("!hidden", isEdit);
+    statusGroup.classList.toggle("!hidden", !isEdit);
+    btnDelete.classList.toggle("hidden", !isEdit);
 
     if (isEdit) {
       fieldUsername.disabled = true;

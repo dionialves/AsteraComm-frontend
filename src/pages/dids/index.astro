@@ -63,7 +63,7 @@ import Layout from "../../layouts/Layout.astro";
 
   <!-- ── Table ─────────────────────────────────────────────────────────────── -->
   <div class="rounded-xl border border-[#e0e0e0] overflow-hidden">
-    <div class="did-row bg-[#f5f5f5] border-b border-[#e0e0e0]" style="cursor:default">
+    <div class="did-row bg-[#f5f5f5] border-b border-[#e0e0e0] cursor-default">
       <span data-field="id"     class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">ID</span>
       <span data-field="number" class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Número</span>
       <span                      class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Status</span>
@@ -98,13 +98,13 @@ import Layout from "../../layouts/Layout.astro";
         <div class="form-group">
           <label class="form-label">Número do DID</label>
           <input id="field-number" type="text" maxlength="15" class="form-input" placeholder="(XX) XXXX-XXXX" />
-          <p style="font-size:11px;color:#aaa;margin-top:4px">Formato: (XX) XXXX-XXXX — apenas dígitos são armazenados</p>
+          <p class="text-[11px] text-[#aaa] mt-1">Formato: (XX) XXXX-XXXX — apenas dígitos são armazenados</p>
         </div>
       </div>
 
       <!-- Painel: visualização -->
-      <div id="panel-view" style="display:none">
-        <div class="form-grid-2" style="margin-bottom:16px">
+      <div id="panel-view" class="hidden">
+        <div class="form-grid-2 mb-4">
           <div>
             <p class="form-label">Número</p>
             <p id="view-number" class="font-mono text-[20px] font-medium text-[#1a1a1a] mt-1">—</p>
@@ -122,10 +122,10 @@ import Layout from "../../layouts/Layout.astro";
 
     </div>
     <div id="modal-footer" class="modal-footer">
-      <button id="btn-delete-did" class="btn-modal-delete" type="button" style="display:none">Excluir</button>
+      <button id="btn-delete-did" class="btn-modal-delete hidden" type="button">Excluir</button>
       <div class="modal-footer-right">
         <button id="btn-cancel-did" class="btn-modal-cancel" type="button">Cancelar</button>
-        <button id="btn-save-did"   class="btn-modal-save"   type="button" style="display:none">Salvar</button>
+        <button id="btn-save-did"   class="btn-modal-save hidden"   type="button">Salvar</button>
       </div>
     </div>
   </div>
@@ -195,15 +195,15 @@ import Layout from "../../layouts/Layout.astro";
 
   // ── Mode helpers ──────────────────────────────────────────────────────────
   function setMode(mode, isFree) {
-    panelCreate.style.display = mode === "create" ? "" : "none";
-    panelView.style.display   = mode === "view"   ? "" : "none";
+    panelCreate.classList.toggle('hidden', mode !== 'create');
+    panelView.classList.toggle('hidden', mode !== 'view');
 
     if (mode === "create") {
-      btnDeleteDID.style.display = "none";
-      btnSaveDID.style.display   = "";
+      btnDeleteDID.classList.add('hidden');
+      btnSaveDID.classList.remove('hidden');
     } else {
-      btnDeleteDID.style.display = isFree ? "" : "none";
-      btnSaveDID.style.display   = "none";
+      btnDeleteDID.classList.toggle('hidden', !isFree);
+      btnSaveDID.classList.add('hidden');
     }
   }
 

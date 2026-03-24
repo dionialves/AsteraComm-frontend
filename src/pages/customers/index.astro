@@ -92,7 +92,7 @@ import Layout from "../../layouts/Layout.astro";
 
   <!-- ── Table ─────────────────────────────────────────────────────────────── -->
   <div class="rounded-xl border border-[#e0e0e0] overflow-hidden">
-    <div class="customer-row bg-[#f5f5f5] border-b border-[#e0e0e0]" style="cursor:default">
+    <div class="customer-row bg-[#f5f5f5] border-b border-[#e0e0e0] cursor-default">
       <span data-field="id"        class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">ID</span>
       <span data-field="name"      class="sort-col text-[11px] font-medium text-[#888] uppercase tracking-wide cursor-pointer select-none flex items-center gap-1">Nome</span>
       <span                         class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Status</span>
@@ -175,11 +175,11 @@ import Layout from "../../layouts/Layout.astro";
       <button id="csub-btn-back" class="btn-sub-back" title="Voltar">←</button>
       <div class="sub-modal-titles">
         <span id="csub-subtitle" class="modal-subtitle">Circuito</span>
-        <span id="csub-title"    class="modal-title" style="font-size:16px">—</span>
+        <span id="csub-title"    class="modal-title text-[16px]">—</span>
       </div>
       <button id="csub-btn-close" class="modal-btn-close" title="Fechar tudo">✕</button>
     </div>
-    <div class="modal-tabs" style="flex-shrink:0;padding:0 20px;border-bottom:1px solid #e5e7eb">
+    <div class="modal-tabs shrink-0 px-5">
       <button class="modal-tab active" data-csub-tab="detalhes">Detalhes</button>
       <button class="modal-tab"        data-csub-tab="dids">DIDs</button>
       <button class="modal-tab"        data-csub-tab="historico">Histórico</button>
@@ -208,7 +208,7 @@ import Layout from "../../layouts/Layout.astro";
         </div>
         <hr class="section-divider" />
         <p class="section-title">Autenticação</p>
-        <div class="form-group" style="margin-bottom:12px">
+        <div class="form-group mb-3">
           <label class="form-label">Senha</label>
           <div class="input-password-wrap">
             <input id="csub-field-password" type="password" class="form-input" autocomplete="new-password" />
@@ -221,7 +221,7 @@ import Layout from "../../layouts/Layout.astro";
         </div>
         <hr class="section-divider" />
         <p class="section-title">Configuração</p>
-        <div class="form-grid-2" style="margin-bottom:12px">
+        <div class="form-grid-2 mb-3">
           <div class="form-group">
             <label class="form-label">Tronco</label>
             <div id="csub-cs-trunk"></div>
@@ -231,14 +231,14 @@ import Layout from "../../layouts/Layout.astro";
             <div id="csub-cs-plan"></div>
           </div>
         </div>
-        <div class="form-group" style="max-width:50%">
+        <div class="form-group max-w-[50%]">
           <label class="form-label">Cliente</label>
           <div id="csub-cs-customer"></div>
         </div>
       </div>
       <!-- Tab: DIDs -->
       <div id="csub-tab-dids" class="tab-panel">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <div class="flex justify-end mb-3">
           <button id="csub-btn-add-did" class="btn-modal-cancel" type="button">+ Adicionar</button>
         </div>
         <div class="did-grid-header">
@@ -267,20 +267,20 @@ import Layout from "../../layouts/Layout.astro";
       <div class="modal-header-top">
         <div class="modal-header-titles">
           <span class="modal-subtitle">Circuito</span>
-          <span class="modal-title" style="font-size:16px">Adicionar DID</span>
+          <span class="modal-title text-[16px]">Adicionar DID</span>
         </div>
         <button id="cdid-btn-close" class="modal-btn-close" title="Fechar">✕</button>
       </div>
     </div>
-    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;overflow:hidden">
+    <div class="modal-body flex flex-col gap-3 overflow-hidden">
       <input id="cdid-search-input" type="text" class="form-input" placeholder="Pesquisar número..." />
-      <div id="cdid-available-list" style="flex:1;overflow-y:auto"></div>
+      <div id="cdid-available-list" class="flex-1 overflow-y-auto"></div>
     </div>
     <div class="modal-footer">
       <div></div>
       <div class="modal-footer-right">
         <button id="cdid-btn-cancel"  class="btn-modal-cancel" type="button">Cancelar</button>
-        <button id="cdid-btn-confirm" class="btn-modal-save"   type="button" disabled style="opacity:0.5;cursor:default">Adicionar</button>
+        <button id="cdid-btn-confirm" class="btn-modal-save disabled:opacity-50 disabled:cursor-default" type="button" disabled>Adicionar</button>
       </div>
     </div>
   </div>
@@ -1004,7 +1004,7 @@ import Layout from "../../layouts/Layout.astro";
 
   function setCDidConfirmState(enabled) {
     const btn = document.getElementById("cdid-btn-confirm");
-    btn.disabled = !enabled; btn.style.opacity = enabled ? "" : "0.5"; btn.style.cursor = enabled ? "" : "default";
+    btn.disabled = !enabled;
   }
 
   document.getElementById("cdid-search-input").addEventListener("input", e => renderCDidList(e.target.value));

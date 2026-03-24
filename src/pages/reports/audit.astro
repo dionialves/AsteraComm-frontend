@@ -78,7 +78,7 @@ import Layout from "../../layouts/Layout.astro";
       <!-- Mês -->
       <div class="flex flex-col gap-1">
         <label class="text-[12px] text-[#555] font-medium">Mês</label>
-        <select id="select-month" class="cs-select" style="width:140px">
+        <select id="select-month" class="cs-select w-[140px]">
           <option value="1">Janeiro</option>
           <option value="2">Fevereiro</option>
           <option value="3">Março</option>
@@ -97,7 +97,7 @@ import Layout from "../../layouts/Layout.astro";
       <!-- Ano -->
       <div class="flex flex-col gap-1">
         <label class="text-[12px] text-[#555] font-medium">Ano</label>
-        <select id="select-year" class="cs-select" style="width:100px"></select>
+        <select id="select-year" class="cs-select w-[100px]"></select>
       </div>
 
       <!-- Processar -->
@@ -109,7 +109,7 @@ import Layout from "../../layouts/Layout.astro";
   <div id="result-container" class="hidden">
 
     <!-- Card de contexto -->
-    <div class="bg-white rounded-xl p-4 mb-4" style="border:0.5px solid #e0e0e0">
+    <div class="bg-white rounded-xl p-4 mb-4 border-[0.5px] border-[#e0e0e0]">
       <div class="flex gap-8">
         <div>
           <p class="text-[11px] font-medium uppercase tracking-wide text-[#888] mb-1">Circuito</p>
@@ -133,12 +133,10 @@ import Layout from "../../layouts/Layout.astro";
           id="toggle-btn"
           role="switch"
           aria-checked="false"
-          class="relative flex-shrink-0 transition-colors duration-200"
-          style="width:36px;height:20px;border-radius:99px;background:#e0e0e0;border:none;cursor:pointer;padding:0;outline:none">
+          class="relative shrink-0 w-9 h-5 rounded-[99px] bg-[#e0e0e0] border-none cursor-pointer p-0 outline-none transition-colors duration-200">
           <span
             id="toggle-thumb"
-            class="absolute top-[2px] left-[2px] transition-transform duration-200"
-            style="width:16px;height:16px;border-radius:50%;background:#fff;display:block">
+            class="absolute top-[2px] left-[2px] w-4 h-4 rounded-full bg-white block transition-transform duration-200">
           </span>
         </button>
         <span class="text-[13px] text-[#1a1a1a] select-none">Apenas chamadas relevantes</span>
@@ -155,7 +153,7 @@ import Layout from "../../layouts/Layout.astro";
 
     <!-- Tabela -->
     <div class="rounded-xl border border-[#e0e0e0] overflow-hidden mb-4">
-      <div class="audit-row bg-[#f5f5f5] border-b border-[#e0e0e0]" style="cursor:default">
+      <div class="audit-row bg-[#f5f5f5] border-b border-[#e0e0e0] cursor-default">
         <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Data/hora</span>
         <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Destino</span>
         <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Tipo</span>
@@ -180,17 +178,17 @@ import Layout from "../../layouts/Layout.astro";
         <p class="text-[12px] text-[#888] mb-1">Tempo faturável</p>
         <p id="tot-billable" class="text-[20px] font-medium text-[#1a1a1a]">—</p>
       </div>
-      <div class="rounded-lg px-4 py-[14px] text-center" style="background:#E6F1FB">
-        <p class="text-[12px] mb-1" style="color:#0C447C">Tempo do pacote</p>
-        <p id="tot-package" class="text-[20px] font-medium" style="color:#0C447C">—</p>
+      <div class="rounded-lg px-4 py-[14px] text-center bg-[#E6F1FB]">
+        <p class="text-[12px] mb-1 text-[#0C447C]">Tempo do pacote</p>
+        <p id="tot-package" class="text-[20px] font-medium text-[#0C447C]">—</p>
       </div>
-      <div class="rounded-lg px-4 py-[14px] text-center" style="background:#FAEEDA">
-        <p class="text-[12px] mb-1" style="color:#854F0B">Tempo excedente</p>
-        <p id="tot-excess" class="text-[20px] font-medium" style="color:#854F0B">—</p>
+      <div class="rounded-lg px-4 py-[14px] text-center bg-[#FAEEDA]">
+        <p class="text-[12px] mb-1 text-[#854F0B]">Tempo excedente</p>
+        <p id="tot-excess" class="text-[20px] font-medium text-[#854F0B]">—</p>
       </div>
-      <div class="rounded-lg px-4 py-[14px] text-center" style="background:#E1F5EE">
-        <p class="text-[12px] mb-1" style="color:#085041">Custo total</p>
-        <p id="tot-cost" class="text-[20px] font-medium" style="color:#085041">—</p>
+      <div class="rounded-lg px-4 py-[14px] text-center bg-[#E1F5EE]">
+        <p class="text-[12px] mb-1 text-[#085041]">Custo total</p>
+        <p id="tot-cost" class="text-[20px] font-medium text-[#085041]">—</p>
       </div>
     </div>
 
@@ -210,11 +208,11 @@ import Layout from "../../layouts/Layout.astro";
       <button id="csub-btn-back" class="btn-sub-back" title="Voltar">←</button>
       <div class="sub-modal-titles">
         <span id="csub-subtitle" class="modal-subtitle">Circuito</span>
-        <span id="csub-title"    class="modal-title" style="font-size:16px">—</span>
+        <span id="csub-title"    class="modal-title text-[16px]">—</span>
       </div>
       <button id="csub-btn-close" class="modal-btn-close" title="Fechar tudo">✕</button>
     </div>
-    <div class="modal-tabs" style="flex-shrink:0;padding:0 20px;border-bottom:1px solid #e5e7eb">
+    <div class="modal-tabs shrink-0 px-5">
       <button class="modal-tab active" data-csub-tab="detalhes">Detalhes</button>
       <button class="modal-tab"        data-csub-tab="dids">DIDs</button>
       <button class="modal-tab"        data-csub-tab="historico">Histórico</button>
@@ -243,7 +241,7 @@ import Layout from "../../layouts/Layout.astro";
         </div>
         <hr class="section-divider" />
         <p class="section-title">Autenticação</p>
-        <div class="form-group" style="margin-bottom:12px">
+        <div class="form-group mb-3">
           <label class="form-label">Senha</label>
           <div class="input-password-wrap">
             <input id="csub-field-password" type="password" class="form-input" autocomplete="new-password" />
@@ -256,7 +254,7 @@ import Layout from "../../layouts/Layout.astro";
         </div>
         <hr class="section-divider" />
         <p class="section-title">Configuração</p>
-        <div class="form-grid-2" style="margin-bottom:12px">
+        <div class="form-grid-2 mb-3">
           <div class="form-group">
             <label class="form-label">Tronco</label>
             <div id="csub-cs-trunk"></div>
@@ -266,14 +264,14 @@ import Layout from "../../layouts/Layout.astro";
             <div id="csub-cs-plan"></div>
           </div>
         </div>
-        <div class="form-group" style="max-width:50%">
+        <div class="form-group max-w-[50%]">
           <label class="form-label">Cliente</label>
           <div id="csub-cs-customer"></div>
         </div>
       </div>
       <!-- Tab: DIDs -->
       <div id="csub-tab-dids" class="tab-panel">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <div class="flex justify-end mb-3">
           <button id="csub-btn-add-did" class="btn-modal-cancel" type="button">+ Adicionar</button>
         </div>
         <div class="did-grid-header">
@@ -304,20 +302,20 @@ import Layout from "../../layouts/Layout.astro";
       <div class="modal-header-top">
         <div class="modal-header-titles">
           <span class="modal-subtitle">Circuito</span>
-          <span class="modal-title" style="font-size:16px">Adicionar DID</span>
+          <span class="modal-title text-[16px]">Adicionar DID</span>
         </div>
         <button id="csub-did-btn-close" class="modal-btn-close" title="Fechar">✕</button>
       </div>
     </div>
-    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;overflow:hidden">
+    <div class="modal-body flex flex-col gap-3 overflow-hidden">
       <input id="csub-did-search-input" type="text" class="form-input" placeholder="Pesquisar número..." />
-      <div id="csub-did-available-list" style="flex:1;overflow-y:auto"></div>
+      <div id="csub-did-available-list" class="flex-1 overflow-y-auto"></div>
     </div>
     <div class="modal-footer">
       <div></div>
       <div class="modal-footer-right">
         <button id="csub-did-btn-cancel"  class="btn-modal-cancel" type="button">Cancelar</button>
-        <button id="csub-did-btn-confirm" class="btn-modal-save"   type="button" disabled style="opacity:0.5;cursor:default">Adicionar</button>
+        <button id="csub-did-btn-confirm" class="btn-modal-save disabled:opacity-50 disabled:cursor-default" type="button" disabled>Adicionar</button>
       </div>
     </div>
   </div>
@@ -901,8 +899,6 @@ import Layout from "../../layouts/Layout.astro";
   function setCsubDidConfirmState(enabled) {
     const btn = document.getElementById("csub-did-btn-confirm");
     btn.disabled = !enabled;
-    btn.style.opacity = enabled ? "" : "0.5";
-    btn.style.cursor  = enabled ? "" : "default";
   }
 
   document.getElementById("csub-did-search-input").addEventListener("input", e => renderCsubDidList(e.target.value));

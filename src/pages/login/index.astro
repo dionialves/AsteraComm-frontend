@@ -3,145 +3,131 @@ import Layout from "../../layouts/LayoutLogin.astro";
 ---
 
 <Layout title="Login | AsteraComm">
-    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f5f5f5; padding: 2rem;">
-        <div style="width: 480px; background: #ffffff; border: 0.5px solid #e0e0e0; border-radius: 12px; padding: 40px 32px 32px;">
+  <div class="min-h-screen flex items-center justify-center bg-[#f5f5f5] p-8">
+    <div class="w-[480px] bg-white border-[0.5px] border-[#e0e0e0] rounded-xl px-8 pt-10 pb-8">
 
-            <!-- Logo -->
-            <div style="text-align: center; margin-bottom: 32px;">
-                <div style="font-size: 36px; font-weight: 500; letter-spacing: -0.5px;">
-                    <span style="color: #1D9E75;">Astera</span><span style="color: #1a1a1a;">Comm</span>
-                </div>
-                <p style="font-size: 13px; color: #888; margin: 8px 0 0;">Controle total da sua telefonia, em tempo real.</p>
-            </div>
-
-            <!-- Campo Usuário -->
-            <div style="margin-bottom: 20px;">
-                <label for="input-username" style="display: block; font-size: 12px; color: #888; margin-bottom: 4px;">Usuário</label>
-                <input
-                    type="text"
-                    id="input-username"
-                    placeholder="email@exemplo.com"
-                    style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 6px; border: 1px solid #d0d0d0; font-size: 14px; color: #1a1a1a; outline: none;"
-                />
-            </div>
-
-            <!-- Campo Senha -->
-            <div style="margin-bottom: 24px; position: relative;">
-                <label for="input-password" style="display: block; font-size: 12px; color: #888; margin-bottom: 4px;">Senha</label>
-                <div style="position: relative;">
-                    <input
-                        type="password"
-                        id="input-password"
-                        placeholder="Digite sua senha"
-                        style="width: 100%; box-sizing: border-box; padding: 10px 40px 10px 12px; border-radius: 6px; border: 1px solid #d0d0d0; font-size: 14px; color: #1a1a1a; outline: none;"
-                    />
-                    <button
-                        id="login-toggle"
-                        type="button"
-                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: #888; display: flex; align-items: center;"
-                        aria-label="Mostrar/ocultar senha"
-                    >
-                        <svg id="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                        <svg id="icon-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
-                            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
-                            <line x1="1" y1="1" x2="23" y2="23"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Botão Entrar -->
-            <button
-                id="btn-entrar"
-                type="button"
-                style="width: 100%; padding: 11px; border-radius: 6px; background: #1D9E75; border: none; color: #ffffff; font-size: 14px; font-weight: 500; cursor: pointer; margin-bottom: 16px; transition: opacity 0.15s;"
-            >
-                Entrar
-            </button>
-
-            <!-- Mensagem de erro -->
-            <div id="error-msg" style="display: none; padding: 10px 12px; border-radius: 6px; background: #FCEBEB; margin-bottom: 16px;">
-                <p id="error-text" style="font-size: 12px; color: #791F1F; margin: 0;">Usuário ou senha incorretos.</p>
-            </div>
-
-            <!-- Rodapé -->
-            <p style="font-size: 11px; color: #888; text-align: center; margin: 0;">AsteraComm — Todos os direitos reservados</p>
-
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <div class="text-[36px] font-medium tracking-[-0.5px]">
+          <span class="text-[#1D9E75]">Astera</span><span class="text-[#1a1a1a]">Comm</span>
         </div>
+        <p class="text-[13px] text-[#888] mt-2">Controle total da sua telefonia, em tempo real.</p>
+      </div>
+
+      <!-- Campo Usuário -->
+      <div class="mb-5">
+        <label for="input-username" class="block text-[12px] text-[#888] mb-1">Usuário</label>
+        <input
+          type="text"
+          id="input-username"
+          placeholder="email@exemplo.com"
+          class="w-full box-border px-3 py-[10px] rounded-md border border-[#d0d0d0] text-[14px] text-[#1a1a1a] outline-none"
+        />
+      </div>
+
+      <!-- Campo Senha -->
+      <div class="mb-6 relative">
+        <label for="input-password" class="block text-[12px] text-[#888] mb-1">Senha</label>
+        <div class="relative">
+          <input
+            type="password"
+            id="input-password"
+            placeholder="Digite sua senha"
+            class="w-full box-border px-3 py-[10px] pr-10 rounded-md border border-[#d0d0d0] text-[14px] text-[#1a1a1a] outline-none"
+          />
+          <button
+            id="login-toggle"
+            type="button"
+            class="absolute right-[10px] top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer p-0 text-[#888] flex items-center"
+            aria-label="Mostrar/ocultar senha"
+          >
+            <svg id="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg id="icon-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden">
+              <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Botão Entrar -->
+      <button
+        id="btn-entrar"
+        type="button"
+        class="w-full py-[11px] rounded-md bg-[#1D9E75] border-none text-white text-[14px] font-medium cursor-pointer mb-4 transition-opacity hover:opacity-90 active:opacity-80"
+      >
+        Entrar
+      </button>
+
+      <!-- Mensagem de erro -->
+      <div id="error-msg" class="hidden px-3 py-[10px] rounded-md bg-[#FCEBEB] mb-4">
+        <p id="error-text" class="text-[12px] text-[#791F1F] m-0">Usuário ou senha incorretos.</p>
+      </div>
+
+      <!-- Rodapé -->
+      <p class="text-[11px] text-[#888] text-center m-0">AsteraComm — Todos os direitos reservados</p>
+
     </div>
+  </div>
 </Layout>
 
 <script>
-    const btnEntrar = document.getElementById('btn-entrar') as HTMLButtonElement;
-    const errorMsg = document.getElementById('error-msg') as HTMLDivElement;
-    const errorText = document.getElementById('error-text') as HTMLParagraphElement;
-    const usernameInput = document.getElementById('input-username') as HTMLInputElement;
-    const passwordInput = document.getElementById('input-password') as HTMLInputElement;
-    const loginToggle = document.getElementById('login-toggle') as HTMLButtonElement;
-    const iconEye = document.getElementById('icon-eye') as SVGElement;
-    const iconEyeOff = document.getElementById('icon-eye-off') as SVGElement;
+  const btnEntrar     = document.getElementById('btn-entrar') as HTMLButtonElement;
+  const errorMsg      = document.getElementById('error-msg') as HTMLDivElement;
+  const errorText     = document.getElementById('error-text') as HTMLParagraphElement;
+  const usernameInput = document.getElementById('input-username') as HTMLInputElement;
+  const passwordInput = document.getElementById('input-password') as HTMLInputElement;
+  const loginToggle   = document.getElementById('login-toggle') as HTMLButtonElement;
+  const iconEye       = document.getElementById('icon-eye') as SVGElement;
+  const iconEyeOff    = document.getElementById('icon-eye-off') as SVGElement;
 
-    async function doLogin() {
-        errorMsg.style.display = 'none';
-        btnEntrar.disabled = true;
-        btnEntrar.textContent = 'Entrando...';
+  async function doLogin() {
+    errorMsg.classList.add('hidden');
+    btnEntrar.disabled = true;
+    btnEntrar.textContent = 'Entrando...';
 
-        try {
-            const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: usernameInput.value.trim(),
-                    password: passwordInput.value,
-                }),
-            });
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: usernameInput.value.trim(),
+          password: passwordInput.value,
+        }),
+      });
 
-            if (res.ok) {
-                window.location.href = '/';
-            } else {
-                errorText.textContent = 'Usuário ou senha incorretos.';
-                errorMsg.style.display = 'block';
-                passwordInput.value = '';
-                passwordInput.focus();
-            }
-        } catch {
-            errorText.textContent = 'Erro de conexão. Tente novamente.';
-            errorMsg.style.display = 'block';
-        } finally {
-            btnEntrar.disabled = false;
-            btnEntrar.textContent = 'Entrar';
-        }
+      if (res.ok) {
+        window.location.href = '/';
+      } else {
+        errorText.textContent = 'Usuário ou senha incorretos.';
+        errorMsg.classList.remove('hidden');
+        passwordInput.value = '';
+        passwordInput.focus();
+      }
+    } catch {
+      errorText.textContent = 'Erro de conexão. Tente novamente.';
+      errorMsg.classList.remove('hidden');
+    } finally {
+      btnEntrar.disabled = false;
+      btnEntrar.textContent = 'Entrar';
     }
+  }
 
-    btnEntrar.addEventListener('click', doLogin);
+  btnEntrar.addEventListener('click', doLogin);
 
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') doLogin();
-    });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doLogin();
+  });
 
-    // Toggle visibilidade da senha
-    let senhaVisivel = false;
-    loginToggle.addEventListener('click', () => {
-        senhaVisivel = !senhaVisivel;
-        passwordInput.type = senhaVisivel ? 'text' : 'password';
-        iconEye.style.display = senhaVisivel ? 'none' : 'block';
-        iconEyeOff.style.display = senhaVisivel ? 'block' : 'none';
-    });
-
-    // Hover e disabled no botão
-    btnEntrar.addEventListener('mouseenter', () => {
-        if (!btnEntrar.disabled) btnEntrar.style.opacity = '0.9';
-    });
-    btnEntrar.addEventListener('mouseleave', () => {
-        btnEntrar.style.opacity = '1';
-    });
-    btnEntrar.addEventListener('mousedown', () => {
-        if (!btnEntrar.disabled) btnEntrar.style.opacity = '0.8';
-    });
-    btnEntrar.addEventListener('mouseup', () => {
-        if (!btnEntrar.disabled) btnEntrar.style.opacity = '0.9';
-    });
+  // Toggle visibilidade da senha
+  let senhaVisivel = false;
+  loginToggle.addEventListener('click', () => {
+    senhaVisivel = !senhaVisivel;
+    passwordInput.type = senhaVisivel ? 'text' : 'password';
+    iconEye.classList.toggle('hidden', senhaVisivel);
+    iconEyeOff.classList.toggle('hidden', !senhaVisivel);
+  });
 </script>

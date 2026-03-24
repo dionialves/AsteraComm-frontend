@@ -60,7 +60,7 @@ import Layout from "../../layouts/Layout.astro";
     </div>
 
     <!-- Pagination — hidden when totalPages <= 1 -->
-    <div id="pagination-area" style="display:none" class="flex items-center gap-2">
+    <div id="pagination-area" class="hidden items-center gap-2">
       <button id="btn-prev" class="flex items-center justify-center w-7 h-7 rounded border border-[#e0e0e0] text-[#888] hover:bg-[#f5f5f5] transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
@@ -73,7 +73,7 @@ import Layout from "../../layouts/Layout.astro";
 
   <!-- ── Table ───────────────────────────────────────────────────────────── -->
   <div class="rounded-xl border border-[#e0e0e0] overflow-hidden">
-    <div class="trunk-row bg-[#f5f5f5] border-b border-[#e0e0e0]" style="cursor:default">
+    <div class="trunk-row bg-[#f5f5f5] border-b border-[#e0e0e0] cursor-default">
       <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">ID</span>
       <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Nome</span>
       <span class="text-[11px] font-medium text-[#888] uppercase tracking-wide">Host</span>
@@ -107,13 +107,13 @@ import Layout from "../../layouts/Layout.astro";
     <div class="modal-body">
 
       <p class="section-title">Identificação</p>
-      <div class="form-grid-2" style="margin-bottom:12px">
+      <div class="form-grid-2 mb-3">
         <div class="form-group">
           <label class="form-label">ID</label>
-          <input id="inputId" type="text" disabled class="form-input" placeholder="—" style="font-family:monospace;font-size:12px;color:#aaa;background:#fafafa" />
+          <input id="inputId" type="text" disabled class="form-input font-mono text-[12px] text-[#aaa] bg-[#fafafa]" placeholder="—" />
         </div>
         <div class="form-group">
-          <label class="form-label">Nome <span style="color:#ef4444">*</span></label>
+          <label class="form-label">Nome <span class="text-red-500">*</span></label>
           <input id="inputName" type="text" maxlength="50" placeholder="Ex: operadora-a" class="form-input" />
         </div>
       </div>
@@ -121,18 +121,18 @@ import Layout from "../../layouts/Layout.astro";
       <hr class="section-divider" />
       <p class="section-title">Conexão SIP</p>
 
-      <div class="form-group" style="margin-bottom:12px">
-        <label class="form-label">Host / Domínio SIP <span style="color:#ef4444">*</span></label>
-        <input id="inputHost" type="text" maxlength="255" placeholder="Ex: sip.operadora.com.br" class="form-input" style="font-family:monospace;font-size:12px" />
+      <div class="form-group mb-3">
+        <label class="form-label">Host / Domínio SIP <span class="text-red-500">*</span></label>
+        <input id="inputHost" type="text" maxlength="255" placeholder="Ex: sip.operadora.com.br" class="form-input font-mono text-[12px]" />
       </div>
 
       <div class="form-grid-2">
         <div class="form-group">
-          <label class="form-label">Usuário <span style="color:#ef4444">*</span></label>
+          <label class="form-label">Usuário <span class="text-red-500">*</span></label>
           <input id="inputUsername" type="text" maxlength="100" placeholder="Usuário SIP" class="form-input" />
         </div>
         <div class="form-group">
-          <label class="form-label">Senha <span style="color:#ef4444">*</span></label>
+          <label class="form-label">Senha <span class="text-red-500">*</span></label>
           <div class="input-password-wrap">
             <input id="inputPassword" type="password" maxlength="100" placeholder="••••••••" class="form-input" autocomplete="new-password" />
             <button id="btn-toggle-pw" class="btn-eye" type="button" title="Ver senha">
@@ -150,13 +150,13 @@ import Layout from "../../layouts/Layout.astro";
       <div class="form-group">
         <label class="form-label">Prefixo de discagem</label>
         <input id="inputPrefix" type="text" maxlength="20" placeholder="Ex: 8712 (opcional)" class="form-input" />
-        <span style="font-size:11px;color:#aaa;margin-top:4px;display:block">Adicionado antes do número discado. Deixe em branco se não usar.</span>
+        <span class="text-[11px] text-[#aaa] mt-1 block">Adicionado antes do número discado. Deixe em branco se não usar.</span>
       </div>
 
     </div>
 
     <div class="modal-footer">
-      <button id="btnDelete" class="btn-modal-delete" style="display:none">Excluir</button>
+      <button id="btnDelete" class="btn-modal-delete hidden">Excluir</button>
       <div class="modal-footer-right">
         <button id="btnCancel" class="btn-modal-cancel">Cancelar</button>
         <button id="btnSave"   class="btn-modal-save">Salvar</button>
@@ -272,10 +272,12 @@ import Layout from "../../layouts/Layout.astro";
   // ── Render pagination ─────────────────────────────────────────────────────
   function renderPagination() {
     if (totalPages <= 1) {
-      paginationArea.style.display = 'none';
+      paginationArea.classList.add('hidden');
+      paginationArea.classList.remove('flex');
       return;
     }
-    paginationArea.style.display = 'flex';
+    paginationArea.classList.remove('hidden');
+    paginationArea.classList.add('flex');
     pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages}`;
     btnPrev.disabled = currentPage === 0;
     btnNext.disabled = currentPage >= totalPages - 1;
@@ -300,7 +302,7 @@ import Layout from "../../layouts/Layout.astro";
       inputId.value      = trunkId;
       inputName.value    = editingTrunkName;
       inputName.disabled = true;
-      btnDelete.style.display = '';
+      btnDelete.classList.remove('hidden');
 
       if (selectedRow) selectedRow.classList.remove('row-selected');
       selectedRow = row;
@@ -319,7 +321,7 @@ import Layout from "../../layouts/Layout.astro";
         .catch(() => {});
     } else {
       inputName.disabled = false;
-      btnDelete.style.display = 'none';
+      btnDelete.classList.add('hidden');
     }
 
     overlay.classList.add('active');
