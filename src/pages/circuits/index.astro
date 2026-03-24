@@ -95,14 +95,14 @@ import Layout from "../../layouts/Layout.astro";
 
     <!-- Pagination (right) -->
     <div class="flex items-center gap-2">
-        <button id="btn-prev" class="flex items-center justify-center w-7 h-7 rounded border border-[#e0e0e0] text-[#888] hover:bg-[#f5f5f5] transition-colors">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <span id="page-info" class="text-[12px] text-[#888] whitespace-nowrap">Página 1 de 1</span>
-        <button id="btn-next" class="flex items-center justify-center w-7 h-7 rounded border border-[#e0e0e0] text-[#888] hover:bg-[#f5f5f5] transition-colors">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
+      <button id="btn-prev" class="w-7 h-7 flex items-center justify-center rounded border border-[#e0e0e0] text-[#888] hover:border-[#ccc] disabled:opacity-40 disabled:cursor-not-allowed transition">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span id="page-info" class="text-[12px] text-[#888] whitespace-nowrap">Página 1 de 1</span>
+      <button id="btn-next" class="w-7 h-7 flex items-center justify-center rounded border border-[#e0e0e0] text-[#888] hover:border-[#ccc] disabled:opacity-40 disabled:cursor-not-allowed transition">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
   </div>
 
   <!-- ── Table ───────────────────────────────────────────────────────────── -->
@@ -702,6 +702,8 @@ import Layout from "../../layouts/Layout.astro";
         btnPrev.disabled = currentPage === 0;
         btnNext.disabled = currentPage >= totalPages - 1;
         renderCounter();
+
+        console.log(currentPage === 0);
       })
       .catch(() => {
         tbody.innerHTML = `<div class="px-4 py-3 text-[13px] text-red-500">Erro ao carregar dados.</div>`;
